@@ -1,0 +1,40 @@
+{
+  "name": "fluent-graphql",
+  "version": "0.0.1",
+  "description": "JavaScript GraphQL client",
+  "funding": "https://github.com/mathieuprog/fluent-graphql?sponsor=1",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "jest": {
+    "testEnvironment": "jest-environment-node",
+    "transform": {}
+  },
+  "type": "module",
+  "devDependencies": {
+    "@babel/core": "^7.18.0",
+    "@babel/preset-env": "^7.18.0",
+    "jest": "^28.1.0"
+  },
+  "dependencies": {
+    "ky": "^0.30.0",
+    "graphql-ws": "^5.8.2",
+    "object-array-utils": "^2.8.0"
+  },
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mathieuprog/fluent-graphql.git"
+  },
+  "keywords": [
+    "graphql",
+    "fluent graphql",
+    "graphql client"
+  ],
+  "author": "Mathieu Decaffmeyer",
+  "license": "AGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/mathieuprog/fluent-graphql/issues"
+  },
+  "homepage": "https://github.com/mathieuprog/fluent-graphql#readme"
+}
