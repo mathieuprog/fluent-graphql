@@ -1,0 +1,8 @@
+export default Object.freeze({
+  ROOT_OBJECT: 'ROOT_OBJECT',
+  VIEWER_OBJECT: 'VIEWER_OBJECT',
+  ENTITY: 'ENTITY',
+  ENTITY_SET: 'ENTITY_SET',
+  EMBED: 'EMBED',
+  EMBED_LIST: 'EMBED_LIST'
+});
