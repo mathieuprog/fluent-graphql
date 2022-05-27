@@ -1,10 +1,5 @@
 import Document from './Document';
 
-const fetchAccount = (accountId) => {
-  const cache = OperationExecutor.getCache('operationName', {});
-  return cache.entities[accountId];
-};
-
 test('stringify', () => {
   const document =
     Document.query('operationName')
@@ -13,7 +8,7 @@ test('stringify', () => {
       .entity('user')
         .scalar('name')
         .entity('account')
-          .deriveFromForeignKey('accountId', fetchAccount)
+          .deriveFromForeignKey('accountId')
           .scalar('loggedInAt')._
         .entitySet('appointments')
           .useVariables('calendarId', 'dateRange')
