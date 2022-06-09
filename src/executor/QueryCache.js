@@ -5,13 +5,11 @@ import {
   isObjectLiteral
 } from '../utils';
 import ObjectType from '../document/ObjectType';
-import Document from '../document/Document';
+import { checkInstanceOfDocumentArg } from './helpers';
 
 export default class QueryCache {
   constructor(document, data, variables) {
-    if (document instanceof Document === false) {
-      throw new Error();
-    }
+    checkInstanceOfDocumentArg(document);
     this.document = document;
     this.data = data;
     this.transformedData = document.transform(data);
@@ -31,7 +29,12 @@ export default class QueryCache {
       throw new Error();
     }
 
-    for (const [propName, object] of Object.entries(meta.objects)) {
+    const objects =
+      (data.__typename && meta.inlineFragments[data.__typename])
+      ? { ...meta.objects, ...meta.inlineFragments[data.__typename].objects }
+      : meta.objects;
+
+    for (const [propName, object] of Object.entries(objects)) {
       if (propName in data === false) {
         throw new Error();
       }
@@ -42,6 +45,8 @@ export default class QueryCache {
           break;
 
         case ObjectType.ENTITY:
+        case ObjectType.UNION:
+        case ObjectType.INTERFACE:
           if (object.filter) {
             for (let updatedEntity of updates) {
               if (
@@ -66,15 +71,8 @@ export default class QueryCache {
           break;
 
         case ObjectType.ENTITY_SET:
-          data[propName] =
-            data[propName]
-              .map((entity) => {
-                const { entity: entity_, updated: updated_ } = this.updateEntity(entity, object, updates);
-                updated = updated || updated_;
-                return entity_;
-              })
-              .filter((entity) => entity);
-
+        case ObjectType.UNION_LIST:
+        case ObjectType.INTERFACE_SET:
           if (object.filter) {
             for (let updatedEntity of updates) {
               if (
@@ -86,6 +84,15 @@ export default class QueryCache {
               }
             }
           }
+
+          data[propName] =
+            data[propName]
+              .map((entity) => {
+                const { entity: entity_, updated: updated_ } = this.updateEntity(entity, object, updates);
+                updated = updated || updated_;
+                return entity_;
+              })
+              .filter((entity) => entity);
 
           data[propName].forEach((entity) => {
             updated = this.doUpdate(updates, entity, object, updated);
@@ -114,7 +121,12 @@ export default class QueryCache {
         return { entity: null, updated: true };
       }
 
-      for (let propName of Object.keys(meta.scalars)) {
+      const scalars =
+        (meta.inlineFragments[entity.__typename])
+        ? { ...meta.scalars, ...meta.inlineFragments[entity.__typename].scalars }
+        : meta.scalars;
+
+      for (let propName of Object.keys(scalars)) {
         if (propName in updatedEntity) {
           if (areValuesEqual(entity[propName], updatedEntity[propName])) {
             continue;
@@ -124,7 +136,12 @@ export default class QueryCache {
         }
       }
 
-      for (const [propName, object] of Object.entries(meta.objects)) {
+      const objects =
+        (meta.inlineFragments[entity.__typename])
+        ? { ...meta.objects, ...meta.inlineFragments[entity.__typename].objects }
+        : meta.objects;
+
+      for (const [propName, object] of Object.entries(objects)) {
         if (propName in updatedEntity === false) {
           continue;
         }
@@ -144,6 +161,8 @@ export default class QueryCache {
             break;
 
           case ObjectType.ENTITY:
+          case ObjectType.UNION:
+          case ObjectType.INTERFACE:
             if (entity[propName]?.id === updatedEntity[propName]?.id) {
               continue;
             }
@@ -159,6 +178,8 @@ export default class QueryCache {
             break;
 
           case ObjectType.ENTITY_SET:
+          case ObjectType.UNION_LIST:
+          case ObjectType.INTERFACE_SET:
             const currentIds = entity[propName].map(({ id }) => id);
             const updatedIds = updatedEntity[propName].map(({ id }) => id);
 
@@ -206,22 +227,33 @@ export default class QueryCache {
     return { entity, updated };
   }
 
-  addEntity(meta, updatedEntity) {
+  addEntity(meta, entity) {
     const newEntity = {
-      ...filterProperties(updatedEntity, ['id', '__typename']),
+      ...filterProperties(entity, ['id', '__typename']),
       __added: true
     };
 
-    for (let propName of Object.keys(meta.scalars)) {
-      if (propName in updatedEntity === false) {
+    const scalars =
+      (meta.inlineFragments[entity.__typename])
+      ? { ...meta.scalars, ...meta.inlineFragments[entity.__typename].scalars }
+      : meta.scalars;
+
+    for (let propName of Object.keys(scalars)) {
+      if (propName in entity === false) {
+        console.log(entity, propName)
         throw new Error();
       }
 
-      newEntity[propName] = updatedEntity[propName];
+      newEntity[propName] = entity[propName];
     }
 
-    for (const [propName, object] of Object.entries(meta.objects)) {
-      if (propName in updatedEntity === false) {
+    const objects =
+      (meta.inlineFragments[entity.__typename])
+      ? { ...meta.objects, ...meta.inlineFragments[entity.__typename].objects }
+      : meta.objects;
+
+    for (const [propName, object] of Object.entries(objects)) {
+      if (propName in entity === false) {
         throw new Error();
       }
 
@@ -232,17 +264,21 @@ export default class QueryCache {
 
         case ObjectType.EMBED:
         case ObjectType.EMBED_LIST:
-          newEntity[propName] = updatedEntity[propName];
+          newEntity[propName] = entity[propName];
           break;
 
         case ObjectType.ENTITY:
-          newEntity[propName] = (updatedEntity[propName] !== null)
-            ? this.addEntity(object, updatedEntity[propName])
+        case ObjectType.UNION:
+        case ObjectType.INTERFACE:
+          newEntity[propName] = (entity[propName] !== null)
+            ? this.addEntity(object, entity[propName])
             : null;
           break;
 
         case ObjectType.ENTITY_SET:
-          newEntity[propName] = updatedEntity[propName].map((entity) => this.addEntity(object, entity));
+        case ObjectType.UNION_LIST:
+        case ObjectType.INTERFACE_SET:
+          newEntity[propName] = entity[propName].map((entity) => this.addEntity(object, entity));
           break;
       }
     }

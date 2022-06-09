@@ -1,8 +1,12 @@
 import RootObject from './RootObject';
+import InlineFragment from './InlineFragment';
 import OperationType from './OperationType';
 import stringify from './stringify';
+import OperationExecutor from '../executor/OperationExecutor';
 
 export default class Document {
+  static defaultClient = null;
+
   constructor(operationType, operationName) {
     this.operationType = operationType;
     this.operationName = operationName;
@@ -12,6 +16,7 @@ export default class Document {
     this.transform = (data) => data;
     this.clearAfterDuration = null;
     this.pollAfterDuration = null;
+    this.executor = null;
   }
 
   static query(operationName = null) {
@@ -26,6 +31,14 @@ export default class Document {
     return (new Document(OperationType.SUBSCRIPTION, operationName)).rootObject;
   }
 
+  static setDefaultClient(client) {
+    Document.defaultClient = client;
+  }
+
+  static createInlineFragment(parent, type, typename) { // added this here to avoid a cyclic dependency error
+    return new InlineFragment(parent, type, typename);
+  }
+
   getQueryString() {
     if (!this.queryString) {
       this.queryString = stringify(this);
@@ -36,6 +49,20 @@ export default class Document {
   prepareQueryString() {
     this.getQueryString();
     return this;
+  }
+
+  makeExecutable(client = Document.defaultClient) {
+    this.getQueryString();
+    this.executor = new OperationExecutor(this, client);
+    return this;
+  }
+
+  execute(...args) {
+    return this.executor.execute(...args);
+  }
+
+  handleReactivity() {
+    return this.executor.unsubscribeOnSubsequentCalls();
   }
 
   transformResponse(fun) {

@@ -1,4 +1,3 @@
-import Document from '../document/Document';
 import OperationType from '../document/OperationType';
 import QueryForVars from './QueryForVars';
 import Notifier from './Notifier';
@@ -7,14 +6,11 @@ import deriveFromForeignKey from './deriveFromForeignKey';
 import normalizeEntities from './normalizeEntities';
 import AutoUnsubscriber from './AutoUnsubscriber';
 import FetchStrategy from './FetchStrategy';
+import { checkInstanceOfDocumentArg } from './helpers';
 
 export default class OperationExecutor {
-  static allQueriesForVars = {};
-
   constructor(document, client) {
-    if (document instanceof Document === false) {
-      throw new Error();
-    }
+    checkInstanceOfDocumentArg(document);
     this.document = document;
     this.client = client;
     this.queriesForVars = {};
@@ -107,7 +103,6 @@ export default class OperationExecutor {
           () => this.removeQueryForVars(variables),
           Notifier.notify
         );
-      OperationExecutor.allQueriesForVars[`${this.document.operationName}:${stringifiedVars}`] = this.queriesForVars[stringifiedVars];
     }
 
     return this.queriesForVars[stringifiedVars];
@@ -116,11 +111,10 @@ export default class OperationExecutor {
   removeQueryForVars(variables) {
     const stringifiedVars = JSON.stringify(variables);
     delete this.queriesForVars[stringifiedVars];
-    delete OperationExecutor.allQueriesForVars[`${this.document.operationName}:${stringifiedVars}`];
   }
 
-  static getCache(operationName, variables) {
+  getCache(variables) {
     const stringifiedVars = JSON.stringify(variables);
-    return this.allQueriesForVars[`${operationName}:${stringifiedVars}`]?.cache?.transformedData || null;
+    return this.queriesForVars[stringifiedVars]?.cache?.transformedData || null;
   }
 }

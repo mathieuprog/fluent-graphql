@@ -7,44 +7,79 @@ export default class Object {
   constructor(parent, type, name) {
     // use of _ to refer to parent node was inspired by https://github.com/djeang/parent-chaining
     this._ = parent;
-    this.parent = parent;
     this.type = type;
     this.name = name;
     this.variables = [];
     this.scalars = {};
+    this.inlineFragments = {};
     this.objects = {};
     this.derivedFrom = null;
     this.filter = null;
     this.isToBeDeleted = false;
     this.areElementsToBeOverridden = false;
     this.areElementsToBeRemoved = false;
-    if ([ObjectType.ENTITY, ObjectType.ENTITY_SET].includes(type)) {
-      this.scalar('id');
-      this.scalar('__typename');
-    }
-  }
-
-  isRoot() {
-    return !this.name;
+    this.addDefaultScalars(type, parent.type);
   }
 
   scalar(name, transformer = ((v) => v)) {
+    if (name !== '__typename') {
+      this.rejectAddingFieldsInUnion(); // todo: think of other constraints
+    }
     this.scalars[name] = { name, transformer };
     return this;
   }
 
   entity(name) {
-    if ([ObjectType.EMBED, ObjectType.EMBED_LIST].includes(this.type)) {
-      throw new Error('embeds may not contain entities');
-    }
+    this.rejectAddingEntityInEmbed();
+    this.rejectAddingFieldsInUnion();
     return this.object_(name, ObjectType.ENTITY);
   }
 
   entitySet(name) {
-    if ([ObjectType.EMBED, ObjectType.EMBED_LIST].includes(this.type)) {
-      throw new Error('embeds may not contain entities');
-    }
+    this.rejectAddingEntityInEmbed();
+    this.rejectAddingFieldsInUnion();
     return this.object_(name, ObjectType.ENTITY_SET);
+  }
+
+  union(name) {
+    this.rejectAddingEntityInEmbed();
+    this.rejectAddingFieldsInUnion();
+    return this.object_(name, ObjectType.UNION);
+  }
+
+  unionList(name) {
+    this.rejectAddingEntityInEmbed();
+    this.rejectAddingFieldsInUnion();
+    return this.object_(name, ObjectType.UNION_LIST);
+  }
+
+  interface(name) {
+    this.rejectAddingEntityInEmbed();
+    this.rejectAddingFieldsInUnion();
+    return this.object_(name, ObjectType.INTERFACE);
+  }
+
+  interfaceSet(name) {
+    this.rejectAddingEntityInEmbed();
+    this.rejectAddingFieldsInUnion();
+    return this.object_(name, ObjectType.INTERFACE_SET);
+  }
+
+  onEntity(typename) {
+    this.rejectAddingInlineFragmentInObject();
+    const inlineFragment = Document.createInlineFragment(this, ObjectType.INLINE_FRAGMENT_ENTITY, typename);
+    this.inlineFragments[typename] = inlineFragment;
+    return inlineFragment;
+  }
+
+  onTypedObject(typename) {
+    this.rejectAddingInlineFragmentInObject();
+    if (this.getOperationType() !== OperationType.MUTATION) {
+      throw new Error();
+    }
+    const inlineFragment = Document.createInlineFragment(this, ObjectType.INLINE_FRAGMENT_TYPED_OBJECT, typename);
+    this.inlineFragments[typename] = inlineFragment;
+    return inlineFragment;
   }
 
   embed(name) {
@@ -94,7 +129,7 @@ export default class Object {
   }
 
   overrideElements() {
-    if (this.type !== ObjectType.ENTITY_SET) {
+    if (![ObjectType.ENTITY_SET, ObjectType.UNION_LIST, ObjectType.INTERFACE_SET].includes(this.type)) {
       throw new Error();
     }
     this.areElementsToBeOverridden = true;
@@ -102,7 +137,7 @@ export default class Object {
   }
 
   removeElements() {
-    if (this.type !== ObjectType.ENTITY_SET) {
+    if (![ObjectType.ENTITY_SET, ObjectType.UNION_LIST, ObjectType.INTERFACE_SET].includes(this.type)) {
       throw new Error();
     }
     if (this.getOperationType() !== OperationType.MUTATION) {
@@ -113,7 +148,7 @@ export default class Object {
   }
 
   deleteElements() {
-    if (this.type !== ObjectType.ENTITY_SET) {
+    if (![ObjectType.ENTITY_SET, ObjectType.UNION_LIST, ObjectType.INTERFACE_SET].includes(this.type)) {
       throw new Error();
     }
     if (this.getOperationType() !== OperationType.MUTATION) {
@@ -125,7 +160,7 @@ export default class Object {
   }
 
   delete() {
-    if (this.type !== ObjectType.ENTITY) {
+    if (![ObjectType.ENTITY, ObjectType.INLINE_FRAGMENT_ENTITY].includes(this.type)) {
       throw new Error();
     }
     if (this.getOperationType() !== OperationType.MUTATION) {
@@ -136,11 +171,69 @@ export default class Object {
   }
 
   getOperationType() {
-    let document = this.parent;
+    let document = this._;
     while (document instanceof Document === false) {
-      document = document.parent;
+      document = document._;
     }
 
     return document.operationType;
+  }
+
+  rejectAddingEntityInEmbed() {
+    if ([
+      ObjectType.EMBED,
+      ObjectType.EMBED_LIST
+    ].includes(this.type)) {
+      throw new Error('embeds may not contain entities');
+    }
+  }
+
+  rejectAddingFieldsInUnion() {
+    if ([
+      ObjectType.UNION,
+      ObjectType.UNION_LIST
+    ].includes(this.type)) {
+      throw new Error('unions may not contain fields outside an inline fragment');
+    }
+  }
+
+  rejectAddingInlineFragmentInObject() {
+    if (![
+      ObjectType.UNION,
+      ObjectType.UNION_LIST,
+      ObjectType.INTERFACE,
+      ObjectType.INTERFACE_SET
+    ].includes(this.type)) {
+      throw new Error('inline fragments may only be added into unions or interfaces');
+    }
+  }
+
+  addDefaultScalars(type, parentType) {
+    if ([
+      ObjectType.ENTITY,
+      ObjectType.ENTITY_SET,
+      ObjectType.INTERFACE,
+      ObjectType.INTERFACE_SET
+    ].includes(type)) {
+      this.scalar('id');
+      this.scalar('__typename');
+      return;
+    }
+
+    if ([
+      ObjectType.UNION,
+      ObjectType.UNION_LIST
+    ].includes(type)) {
+      this.scalar('__typename');
+      return;
+    }
+
+    if ([
+      ObjectType.UNION,
+      ObjectType.UNION_LIST
+    ].includes(parentType) && type === ObjectType.INLINE_FRAGMENT_ENTITY) {
+      this.scalar('id');
+      return;
+    }
   }
 }

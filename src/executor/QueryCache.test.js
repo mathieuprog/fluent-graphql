@@ -78,6 +78,157 @@ test('change value of scalar and embed', () => {
   expect(queryCache.data.me.user.user.embed.foo).toBe(2);
 });
 
+test('unions and interfaces', () => {
+  const document1 =
+    Document.query()
+      .entity('account')
+        .scalar('name')._
+      .entity('user')
+        .scalar('name')
+        .union('union')
+          .onEntity('Type1')
+            .scalar('name')
+            .entity('account')
+              .scalar('name')._
+            .embed('bar')
+              .scalar('name')._._
+          .onEntity('Type2')
+            .scalar('name')
+            .scalar('height')._
+          ._._
+      .interfaceSet('interfaces')
+        .scalar('name')
+        .onEntity('Type3')
+          .entity('account')
+            .scalar('name')._
+          .scalar('age')._
+        .onEntity('Type4')
+          .scalar('height')._._._;
+
+  const data1 = {
+    account: {
+      id: 'account2',
+      __typename: 'Account',
+    },
+    user: {
+      id: 'user1',
+      __typename: 'User',
+      name: 'John',
+      union: {
+        id: 'type1',
+        __typename: 'Type1',
+        name: 'union name',
+        account: {
+          id: 'account1',
+          __typename: 'Account',
+          name: 'account name'
+        },
+        bar: {
+          name: 'bar name'
+        }
+      }
+    },
+    interfaces: [
+      {
+        id: 'type3',
+        __typename: 'Type3',
+        name: 'interface 1 name',
+        age: 'interface 1 age',
+        account: {
+          id: 'account2',
+          __typename: 'Account',
+          name: 'account name'
+        },
+      },
+      {
+        id: 'type4',
+        __typename: 'Type4',
+        name: 'interface 2 name',
+        height: 'interface 2 height'
+      }
+    ]
+  };
+
+  const queryCache = new QueryCache(document1, data1, {});
+
+  expect(queryCache.data.user.name).toBe('John');
+  expect(queryCache.data.user.union.id).toBe('type1');
+  expect(queryCache.data.user.union.__typename).toBe('Type1');
+  expect(queryCache.data.user.union.name).toBe('union name');
+  expect(queryCache.data.user.union.account.id).toBe('account1');
+  expect(queryCache.data.user.union.account.name).toBe('account name');
+  expect(queryCache.data.user.union.bar.name).toBe('bar name');
+  expect(queryCache.data.interfaces.length).toBe(2);
+  expect(queryCache.data.interfaces[0].name).toBe('interface 1 name');
+  expect(queryCache.data.interfaces[0].age).toBe('interface 1 age');
+  expect(queryCache.data.interfaces[0].account).toBeTruthy();
+  expect(queryCache.data.interfaces[1].name).toBe('interface 2 name');
+  expect(queryCache.data.interfaces[1].height).toBe('interface 2 height');
+
+  const document2 =
+    Document.mutation()
+      .entity('account')
+        .delete()._
+      .entity('foo')
+        .delete()._
+      .entitySet('users')
+        .scalar('name')
+        .union('union')
+          .onEntity('Type1')
+            .scalar('name')
+            .entity('account')
+              .scalar('name')._
+            .embed('bar')
+              .scalar('name')._._
+          .onEntity('Type2')
+            .scalar('name')
+            .scalar('height')._
+          ._
+        .entitySet('account')
+          .scalar('name')._._._;
+
+  const data2 = {
+    account: {
+      id: 'account2',
+      __typename: 'Account'
+    },
+    foo: {
+      id: 'type4',
+      __typename: 'Type4'
+    },
+    users: [{
+      id: 'user1',
+      __typename: 'User',
+      name: 'James',
+      union: {
+        id: 'type2',
+        __typename: 'Type2',
+        name: 'updated union name',
+        height: 0
+      },
+      account: [{
+        id: 'account1',
+        __typename: 'Account',
+        name: 'updated account name'
+      }]
+    }]
+  };
+
+  const entities = normalizeEntities(document2, data2);
+
+  expect(queryCache.update(entities)).toBeTruthy();
+
+  expect(queryCache.data.account).toBeNull();
+  expect(queryCache.data.user.name).toBe('James');
+  expect(queryCache.data.user.union.id).toBe('type2');
+  expect(queryCache.data.user.union.__typename).toBe('Type2');
+  expect(queryCache.data.user.union.name).toBe('updated union name');
+  expect(queryCache.data.interfaces.length).toBe(1);
+  expect(queryCache.data.interfaces[0].name).toBe('interface 1 name');
+  expect(queryCache.data.interfaces[0].age).toBe('interface 1 age');
+  expect(queryCache.data.interfaces[0].account).toBeNull();
+});
+
 test('delete entity', () => {
   const document1 =
     Document.query()
@@ -122,6 +273,56 @@ test('delete entity', () => {
   expect(queryCache.update(entities)).toBeTruthy();
 
   expect(queryCache.data.user).toBeNull();
+});
+
+test('change nested entity', () => {
+  const document1 =
+    Document.query()
+      .entity('user')
+        .entity('account')
+          .scalar('name')._._._;
+
+  const data1 = {
+    user: {
+      id: 'user1',
+      __typename: 'User',
+      account: {
+        id: 'account1',
+        __typename: 'Account',
+        name: 'John'
+      }
+    }
+  };
+
+  const queryCache = new QueryCache(document1, data1, {});
+
+  expect(queryCache.data.user.account.id).toBe('account1');
+  expect(queryCache.data.user.account.name).toBe('John');
+
+  const document2 =
+    Document.query()
+    .entity('user')
+      .entity('account')
+        ._._._;
+
+  const data2 = {
+    user: {
+      id: 'user1',
+      __typename: 'User',
+      account: {
+        id: 'account2',
+        __typename: 'Account',
+        name: 'James'
+      }
+    }
+  };
+
+  const entities = normalizeEntities(document2, data2);
+
+  expect(queryCache.update(entities)).toBeTruthy();
+
+  expect(queryCache.data.user.account.id).toBe('account2');
+  expect(queryCache.data.user.account.name).toBe('James');
 });
 
 test('set nested entity to null/empty array', () => {

@@ -4,10 +4,6 @@ import Document from '../document/Document';
 import FetchStrategy from './FetchStrategy';
 import OperationExecutor from './OperationExecutor';
 
-beforeEach(() => {
-  OperationExecutor.allQueriesForVars = {};
-});
-
 test('OperationExecutor', async () => {
   const request1 = jest.fn();
   const request2 = jest.fn();
@@ -51,8 +47,8 @@ test('OperationExecutor', async () => {
 
   await operationExecutor1.execute({}, subscriber1, returnUnsubscriber1);
 
-  expect(OperationExecutor.getCache('document1', {}).me.user.name).toBe('John');
-  expect(OperationExecutor.getCache('document1', { var: 1 })).toBeNull();
+  expect(operationExecutor1.getCache({}).me.user.name).toBe('John');
+  expect(operationExecutor1.getCache({ var: 1 })).toBeNull();
 
   expect(request1).toHaveBeenCalledTimes(1);
   expect(subscriber1).toHaveBeenCalledTimes(0);
@@ -76,8 +72,8 @@ test('OperationExecutor', async () => {
 
   await operationExecutor2.execute({ foo: 1 }, subscriber2, returnUnsubscriber2);
 
-  expect(OperationExecutor.getCache('document1', {}).me.user.name).toBe('James');
-  expect(OperationExecutor.getCache('document2', { foo: 1 }).users[0].name).toBe('James');
+  expect(operationExecutor1.getCache({}).me.user.name).toBe('James');
+  expect(operationExecutor2.getCache({ foo: 1 }).users[0].name).toBe('James');
 
   expect(request2).toHaveBeenCalledTimes(1);
   expect(request1).toHaveBeenCalledTimes(1);
@@ -88,8 +84,8 @@ test('OperationExecutor', async () => {
   await operationExecutor2.execute({ foo: 1 }, subscriber2, returnUnsubscriber2);
   await operationExecutor2.execute({ foo: 1 }, subscriber2, returnUnsubscriber2);
 
-  expect(OperationExecutor.getCache('document1', {}).me.user.name).toBe('James');
-  expect(OperationExecutor.getCache('document2', { foo: 1 }).users[0].name).toBe('James');
+  expect(operationExecutor1.getCache({}).me.user.name).toBe('James');
+  expect(operationExecutor2.getCache({ foo: 1 }).users[0].name).toBe('James');
 
   expect(request2).toHaveBeenCalledTimes(1);
   expect(request1).toHaveBeenCalledTimes(1);
@@ -101,8 +97,8 @@ test('OperationExecutor', async () => {
   await operationExecutor1.execute({}, subscriber1, returnUnsubscriber1);
   await operationExecutor2.execute({ foo: 1 }, subscriber2, returnUnsubscriber2, { fetchStrategy: FetchStrategy.NETWORK_ONLY });
 
-  expect(OperationExecutor.getCache('document1', {}).me.user.name).toBe('Jane');
-  expect(OperationExecutor.getCache('document2', { foo: 1 }).users[0].name).toBe('Jane');
+  expect(operationExecutor1.getCache({}).me.user.name).toBe('Jane');
+  expect(operationExecutor2.getCache({ foo: 1 }).users[0].name).toBe('Jane');
 
   expect(request2).toHaveBeenCalledTimes(2);
   expect(request1).toHaveBeenCalledTimes(1);
@@ -111,9 +107,9 @@ test('OperationExecutor', async () => {
 
   await operationExecutor1.execute({ bar: 1 }, subscriber1, returnUnsubscriber1);
 
-  expect(OperationExecutor.getCache('document1', {}).me.user.name).toBe('Jane');
-  expect(OperationExecutor.getCache('document1', { bar: 1 }).me.user.name).toBe('Jane');
-  expect(OperationExecutor.getCache('document2', { foo: 1 }).users[0].name).toBe('Jane');
+  expect(operationExecutor1.getCache({}).me.user.name).toBe('Jane');
+  expect(operationExecutor1.getCache({ bar: 1 }).me.user.name).toBe('Jane');
+  expect(operationExecutor2.getCache({ foo: 1 }).users[0].name).toBe('Jane');
 
   expect(request2).toHaveBeenCalledTimes(2);
   expect(request1).toHaveBeenCalledTimes(2);
@@ -122,10 +118,10 @@ test('OperationExecutor', async () => {
 
   await operationExecutor1.execute({ baz: 1 }, subscriber1, returnUnsubscriber1);
 
-  expect(OperationExecutor.getCache('document1', {}).me.user.name).toBe('Jane');
-  expect(OperationExecutor.getCache('document1', { bar: 1 }).me.user.name).toBe('Jane');
-  expect(OperationExecutor.getCache('document1', { baz: 1 }).me.user.name).toBe('Jane');
-  expect(OperationExecutor.getCache('document2', { foo: 1 }).users[0].name).toBe('Jane');
+  expect(operationExecutor1.getCache({}).me.user.name).toBe('Jane');
+  expect(operationExecutor1.getCache({ bar: 1 }).me.user.name).toBe('Jane');
+  expect(operationExecutor1.getCache({ baz: 1 }).me.user.name).toBe('Jane');
+  expect(operationExecutor2.getCache({ foo: 1 }).users[0].name).toBe('Jane');
 
   expect(request2).toHaveBeenCalledTimes(2);
   expect(request1).toHaveBeenCalledTimes(3);
@@ -150,11 +146,11 @@ test('OperationExecutor', async () => {
 
   await operationExecutor3.execute({}, subscriber3, returnUnsubscriber3);
 
-  expect(OperationExecutor.getCache('document1', {}).me.user.name).toBe('Jack');
-  expect(OperationExecutor.getCache('document1', { bar: 1 }).me.user.name).toBe('Jack');
-  expect(OperationExecutor.getCache('document1', { baz: 1 }).me.user.name).toBe('Jack');
-  expect(OperationExecutor.getCache('document2', { foo: 1 }).users[0].name).toBe('Jack');
-  expect(OperationExecutor.getCache('document3', {}).users[0].name).toBe('Jack');
+  expect(operationExecutor1.getCache({}).me.user.name).toBe('Jack');
+  expect(operationExecutor1.getCache({ bar: 1 }).me.user.name).toBe('Jack');
+  expect(operationExecutor1.getCache({ baz: 1 }).me.user.name).toBe('Jack');
+  expect(operationExecutor2.getCache({ foo: 1 }).users[0].name).toBe('Jack');
+  expect(operationExecutor3.getCache({}).users[0].name).toBe('Jack');
 
   expect(request3).toHaveBeenCalledTimes(1);
   expect(request2).toHaveBeenCalledTimes(2);
@@ -216,7 +212,7 @@ test('no cache', async () => {
 
   const data = await operationExecutor.execute({}, { fetchStrategy: FetchStrategy.NO_CACHE });
 
-  expect(OperationExecutor.getCache('document', {})).toBeNull();
+  expect(operationExecutor.getCache({})).toBeNull();
 
   expect(data.user).toBeTruthy();
 });
@@ -243,7 +239,7 @@ test('standby', async () => {
 
   const data = await operationExecutor.execute({}, { fetchStrategy: FetchStrategy.STANDBY });
 
-  expect(OperationExecutor.getCache('document', {})).toBeNull();
+  expect(operationExecutor.getCache({})).toBeNull();
 
   expect(data.user).toBeTruthy();
 });
@@ -281,16 +277,16 @@ test('clear and poll', async () => {
   await sleep(60);
 
   expect(request1).toHaveBeenCalledTimes(1);
-  expect(OperationExecutor.getCache('document', {})).toBeTruthy();
+  expect(operationExecutor.getCache({})).toBeTruthy();
 
   await sleep(100);
 
   clearInterval(operationExecutor.getQueryForVars({}).intervalPoll);
 
   expect(request1).toHaveBeenCalledTimes(2);
-  expect(OperationExecutor.getCache('document', {})).toBeTruthy();
+  expect(operationExecutor.getCache({})).toBeTruthy();
 
   await sleep(250);
 
-  expect(OperationExecutor.getCache('document', {})).toBeNull();
+  expect(operationExecutor.getCache({})).toBeNull();
 });

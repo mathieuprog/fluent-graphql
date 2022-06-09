@@ -16,4 +16,8 @@ export default class AutoUnsubscriber {
 
     return this.operationExecutor.execute(variables, subscriber, getUnsubscriber, options);
   }
+
+  getCache(variables) {
+    return this.operationExecutor.getCache(variables);
+  }
 }

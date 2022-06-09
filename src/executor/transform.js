@@ -1,11 +1,9 @@
 import { isObjectLiteral } from '../utils';
 import ObjectType from '../document/ObjectType';
-import Document from '../document/Document';
+import { checkInstanceOfDocumentArg } from './helpers';
 
 export default function transform(document, data) {
-  if (document instanceof Document === false) {
-    throw new Error();
-  }
+  checkInstanceOfDocumentArg(document);
 
   return doTransform(document.rootObject, data);
 }
@@ -38,14 +36,38 @@ function doTransform(meta, data) {
       case ObjectType.VIEWER_OBJECT:
       case ObjectType.ENTITY:
       case ObjectType.EMBED:
-        data[propName] = (data[propName] !== null)
-          ? doTransform(object, data[propName])
-          : null;
+      case ObjectType.INTERFACE:
+        if (data[propName] !== null) {
+          data[propName] = doTransform(object, data[propName]);
+        }
         break;
 
       case ObjectType.ENTITY_SET:
       case ObjectType.EMBED_LIST:
+      case ObjectType.INTERFACE_SET:
         data[propName] = data[propName].map((value) => doTransform(object, value));
+        break;
+    }
+
+    switch (object.type) {
+      case ObjectType.UNION:
+      case ObjectType.INTERFACE:
+        if (data[propName] !== null) {
+          if (!object.inlineFragments[data[propName].__typename]) {
+            throw new Error();
+          }
+          data[propName] = doTransform(object.inlineFragments[data[propName].__typename], data[propName]);
+        }
+        break;
+
+      case ObjectType.UNION_LIST:
+      case ObjectType.INTERFACE_SET:
+        data[propName] = data[propName].map((value) => {
+          if (!object.inlineFragments[value.__typename]) {
+            throw new Error();
+          }
+          return doTransform(object.inlineFragments[value.__typename], value);
+        });
         break;
     }
   }
