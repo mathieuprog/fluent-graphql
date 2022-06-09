@@ -95,7 +95,7 @@ test('OperationExecutor', async () => {
   user1.name = 'Jane';
 
   await operationExecutor1.execute({}, subscriber1, returnUnsubscriber1);
-  await operationExecutor2.execute({ foo: 1 }, subscriber2, returnUnsubscriber2, { fetchStrategy: FetchStrategy.NETWORK_ONLY });
+  await operationExecutor2.execute({ foo: 1 }, subscriber2, returnUnsubscriber2, { fetchStrategy: FetchStrategy.FETCH_FROM_NETWORK });
 
   expect(operationExecutor1.getCache({}).me.user.name).toBe('Jane');
   expect(operationExecutor2.getCache({ foo: 1 }).users[0].name).toBe('Jane');
@@ -190,7 +190,7 @@ test('transform response', async () => {
   expect(data.user).toBeTruthy();
 });
 
-test('no cache', async () => {
+test('network', async () => {
   const document =
     Document.query('document')
       .entity('user')
@@ -210,34 +210,7 @@ test('no cache', async () => {
 
   const operationExecutor = new OperationExecutor(document, client);
 
-  const data = await operationExecutor.execute({}, { fetchStrategy: FetchStrategy.NO_CACHE });
-
-  expect(operationExecutor.getCache({})).toBeNull();
-
-  expect(data.user).toBeTruthy();
-});
-
-test('standby', async () => {
-  const document =
-    Document.query('document')
-      .entity('user')
-        .scalar('name')._._;
-
-  const client = {
-    request() {
-      return {
-        user: {
-          id: 'user1',
-          __typename: 'User',
-          name: 'John'
-        }
-      };
-    }
-  };
-
-  const operationExecutor = new OperationExecutor(document, client);
-
-  const data = await operationExecutor.execute({}, { fetchStrategy: FetchStrategy.STANDBY });
+  const data = await operationExecutor.execute({}, { fetchStrategy: FetchStrategy.FETCH_FROM_NETWORK });
 
   expect(operationExecutor.getCache({})).toBeNull();
 

@@ -141,7 +141,7 @@ export default class QueryForVars {
 
     this.intervalPoll =
       setInterval(
-        () => this.fetchByStrategy(FetchStrategy.NETWORK_ONLY),
+        () => this.fetchByStrategy(FetchStrategy.FETCH_FROM_NETWORK),
         this.pollAfterDuration.total({ unit: 'millisecond' })
       );
   }

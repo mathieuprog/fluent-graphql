@@ -1,3 +1,4 @@
+import { hasObjectProperty } from 'object-array-utils';
 import OperationType from '../document/OperationType';
 import QueryForVars from './QueryForVars';
 import Notifier from './Notifier';
@@ -32,42 +33,36 @@ export default class OperationExecutor {
         if (typeof arg2 === 'function') {
           subscriber = arg2;
           returnUnsubscriber = arg3;
-          options = arg4;
+          options = this.validateExecuteOptions(arg4);
         } else {
-          options = arg2;
+          options = this.validateExecuteOptions(arg2);
         }
 
-        const fetchStrategy = options?.fetchStrategy || FetchStrategy.CACHE_FIRST;
+        const fetchStrategy = options?.fetchStrategy || FetchStrategy.FETCH_FROM_CACHE_OR_FALLBACK_NETWORK;
 
-        switch (fetchStrategy) {
-          case FetchStrategy.NO_CACHE:
-            return this.document.transform(await this.executeRequest(variables));
-
-          case FetchStrategy.STANDBY:
-            return this.queriesForVars[JSON.stringify(variables)]?.cache?.transformedData
-              ?? this.document.transform(await this.executeRequest(variables, Notifier.notify));
-
-          default:
-            const queryForVars = this.getQueryForVars(variables);
-
-            if (subscriber) {
-              const unsubscribe = queryForVars.subscribe(subscriber);
-              returnUnsubscriber(unsubscribe);
-            }
-
-            await queryForVars.fetchByStrategy(fetchStrategy, Notifier.notify);
-
-            queryForVars.listen(() => Notifier.subscribe(queryForVars));
-
-            return queryForVars.cache.transformedData;
+        if (fetchStrategy === FetchStrategy.FETCH_FROM_NETWORK && !this.hasQueryForVars(variables)) {
+          return this.document.transform(await this.executeRequest(variables));
         }
+
+        const queryForVars = this.getQueryForVars(variables);
+
+        if (subscriber) {
+          const unsubscribe = queryForVars.subscribe(subscriber);
+          returnUnsubscriber(unsubscribe);
+        }
+
+        await queryForVars.fetchByStrategy(fetchStrategy, Notifier.notify);
+
+        queryForVars.listen(() => Notifier.subscribe(queryForVars));
+
+        return queryForVars.cache.transformedData;
 
       case OperationType.MUTATION:
         return this.document.transform(this.executeRequest(variables, Notifier.notify));
 
       case OperationType.SUBSCRIPTION: {
         const sink = arg2;
-        const options = arg3;
+        const options = this.validateExecuteOptions(arg3);
 
         const client = await this.client;
         await client.subscribe(this.document.getQueryString(), variables, sink, options || {});
@@ -108,6 +103,10 @@ export default class OperationExecutor {
     return this.queriesForVars[stringifiedVars];
   }
 
+  hasQueryForVars(variables) {
+    return !!this.queriesForVars[JSON.stringify(variables)];
+  }
+
   removeQueryForVars(variables) {
     const stringifiedVars = JSON.stringify(variables);
     delete this.queriesForVars[stringifiedVars];
@@ -116,5 +115,23 @@ export default class OperationExecutor {
   getCache(variables) {
     const stringifiedVars = JSON.stringify(variables);
     return this.queriesForVars[stringifiedVars]?.cache?.transformedData || null;
+  }
+
+  validateExecuteOptions(options = {}) {
+    if (!hasObjectProperty(options, 'fetchStrategy')) {
+      return options;
+    }
+
+    switch (options.fetchStrategy) {
+      case FetchStrategy.FETCH_FROM_CACHE_AND_NETWORK:
+      case FetchStrategy.FETCH_FROM_CACHE_OR_FALLBACK_NETWORK:
+      case FetchStrategy.FETCH_FROM_CACHE_OR_THROW:
+      case FetchStrategy.FETCH_FROM_NETWORK:
+        break;
+      default:
+        throw new Error();
+    }
+
+    return options;
   }
 }

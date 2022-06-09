@@ -7,13 +7,13 @@ export default function getFetchStrategyAlgorithm(strategy) {
       default:
         throw new Error(`unknown strategy ${strategy}`);
 
-      case FetchStrategy.CACHE_FIRST:
+      case FetchStrategy.FETCH_FROM_CACHE_OR_FALLBACK_NETWORK:
         if (!cached) {
           await cacheData(await fetchData());
         }
         break;
 
-      case FetchStrategy.CACHE_AND_NETWORK:
+      case FetchStrategy.FETCH_FROM_CACHE_AND_NETWORK:
         if (!cached) {
           await cacheData(await fetchData());
         } else {
@@ -21,11 +21,11 @@ export default function getFetchStrategyAlgorithm(strategy) {
         }
         break;
 
-      case FetchStrategy.NETWORK_ONLY:
+      case FetchStrategy.FETCH_FROM_NETWORK:
         await cacheData(await fetchData());
         break;
 
-      case FetchStrategy.CACHE_ONLY:
+      case FetchStrategy.FETCH_FROM_CACHE_OR_THROW:
         if (!cached) {
           throw new NotFoundInCacheError('not found in cache');
         }
