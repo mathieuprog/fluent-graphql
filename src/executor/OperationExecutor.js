@@ -3,6 +3,7 @@ import OperationType from '../document/OperationType';
 import QueryForVars from './QueryForVars';
 import Notifier from './Notifier';
 import transform from './transform';
+import deriveFromDocument from './deriveFromDocument';
 import deriveFromForeignKey from './deriveFromForeignKey';
 import normalizeEntities from './normalizeEntities';
 import AutoUnsubscriber from './AutoUnsubscriber';
@@ -77,7 +78,9 @@ export default class OperationExecutor {
 
     data = transform(this.document, data);
 
-    data = deriveFromForeignKey(this.document, data);
+    data = await deriveFromForeignKey(this.document, data);
+
+    data = await deriveFromDocument(this.document, data, variables);
 
     const entities = normalizeEntities(this.document, data);
 

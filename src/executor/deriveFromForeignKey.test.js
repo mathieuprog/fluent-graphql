@@ -18,8 +18,8 @@ const fetchCategory = (categoryId) => ({
   __typename: 'Category'
 });
 
-test('derive data from foreign key', () => {
-  const document1 =
+test('derive data from foreign key', async () => {
+  const document =
     Document.query()
       .entity('user')
         .entity('account')
@@ -29,7 +29,7 @@ test('derive data from foreign key', () => {
           .entity('category')
             .deriveFromForeignKey('categoryId', fetchCategory)._._._._;
 
-  const data1 = deepFreeze({
+  const data = deepFreeze({
     user: {
       id: 'user1',
       __typename: 'User',
@@ -38,7 +38,7 @@ test('derive data from foreign key', () => {
     }
   });
 
-  const transformedData = deriveFromForeignKey(document1, data1);
+  const transformedData = await deriveFromForeignKey(document, data);
 
   expect(transformedData.user.accountId).toBeUndefined();
   expect(transformedData.user.account.id).toBe('account1');

@@ -57,6 +57,10 @@ export default class Document {
     return this;
   }
 
+  getExecutor() {
+    return this.executor;
+  }
+
   execute(...args) {
     return this.executor.execute(...args);
   }

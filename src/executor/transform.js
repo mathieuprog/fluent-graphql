@@ -28,7 +28,7 @@ function doTransform(meta, data) {
       throw new Error();
     }
 
-    if (object.derivedFrom) {
+    if (object.derivedFromForeignKey || object.derivedFromDocument) {
       continue;
     }
 

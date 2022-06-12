@@ -13,7 +13,8 @@ export default class Object {
     this.scalars = {};
     this.inlineFragments = {};
     this.objects = {};
-    this.derivedFrom = null;
+    this.derivedFromForeignKey = null;
+    this.derivedFromDocument = null;
     this.filter = null;
     this.isToBeDeleted = false;
     this.areElementsToBeOverridden = false;
@@ -23,7 +24,7 @@ export default class Object {
 
   scalar(name, transformer = ((v) => v)) {
     if (name !== '__typename') {
-      this.rejectAddingFieldsInUnion(); // todo: think of other constraints
+      this.rejectAddingFieldsInUnion();
     }
     this.scalars[name] = { name, transformer };
     return this;
@@ -124,7 +125,12 @@ export default class Object {
   }
 
   deriveFromForeignKey(foreignKey, fetch) {
-    this.derivedFrom = { foreignKey, fetch };
+    this.derivedFromForeignKey = { foreignKey, fetch };
+    return this;
+  }
+
+  deriveFromDocument(document, extract, takeVariables = (v) => v) {
+    this.derivedFromDocument = { document, extract, takeVariables };
     return this;
   }
 

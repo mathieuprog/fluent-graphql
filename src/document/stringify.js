@@ -35,6 +35,10 @@ function doStringify(str, objects) {
   objects = [].concat(objects);
 
   for (let object of objects) {
+    if (object.derivedFromDocument) {
+      continue;
+    }
+
     if (object.name !== null) {
       str += object.name;
     }
@@ -45,11 +49,11 @@ function doStringify(str, objects) {
 
     str += `{${Object.keys(object.scalars).join(' ')}`;
 
-    const { filtered: derivedObjects, rejected: nestedObjects } = takeProperties(object.objects, (_key, o) => o.derivedFrom);
+    const { filtered: derivedObjects, rejected: nestedObjects } = takeProperties(object.objects, (_key, o) => o.derivedFromForeignKey);
 
     if (!isEmptyObjectLiteral(derivedObjects)) {
       for (let key in derivedObjects) {
-        str += ' ' + derivedObjects[key].derivedFrom.foreignKey;
+        str += ' ' + derivedObjects[key].derivedFromForeignKey.foreignKey;
       }
     }
 
