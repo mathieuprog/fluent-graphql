@@ -16,14 +16,14 @@ test('OperationExecutor', async () => {
   const returnUnsubscriber3 = jest.fn();
 
   const document1 =
-    Document.query('document1')
-      .viewer('me')
-        .scalar('int', Number)
-        .entity('user')
-          .scalar('name')
-          .entitySet('articles')
-            .scalar('title')
-            ._._._._;
+    Document
+      .query('document1')
+        .viewer('me')
+          .scalar('int', Number)
+          .entity('user')
+            .scalar('name')
+            .entitySet('articles')
+              .scalar('title')._._._._;
 
   const user1 = {
     id: 'user1',
@@ -55,9 +55,10 @@ test('OperationExecutor', async () => {
   expect(returnUnsubscriber1).toHaveBeenCalledTimes(1);
 
   const document2 =
-    Document.query('document2')
-      .entitySet('users')
-        .scalar('name')._._;
+    Document
+      .query('document2')
+        .entitySet('users')
+          .scalar('name')._._;
 
   user1.name = 'James';
 
@@ -131,9 +132,10 @@ test('OperationExecutor', async () => {
   user1.name = 'Jack';
 
   const document3 =
-    Document.query('document3')
-      .entitySet('users')
-        .scalar('name')._._;
+    Document
+      .query('document3')
+        .entitySet('users')
+          .scalar('name')._._;
 
   const client3 = {
     request() {
@@ -162,10 +164,11 @@ test('OperationExecutor', async () => {
 
 test('transform response', async () => {
   const document =
-    Document.query('document')
-      .viewer('me')
-        .entity('user')
-          .scalar('name')._._._
+    Document
+      .query('document')
+        .viewer('me')
+          .entity('user')
+            .scalar('name')._._._
       .transformResponse(({ me: user }) => user);
 
   const client = {
@@ -192,9 +195,10 @@ test('transform response', async () => {
 
 test('network', async () => {
   const document =
-    Document.query('document')
-      .entity('user')
-        .scalar('name')._._;
+    Document
+      .query('document')
+        .entity('user')
+          .scalar('name')._._;
 
   const client = {
     request() {
@@ -221,9 +225,10 @@ test('clear and poll', async () => {
   const request1 = jest.fn();
 
   const document =
-    Document.query('document')
-      .entity('user')
-        .scalar('name')._._
+    Document
+      .query('document')
+        .entity('user')
+          .scalar('name')._._
       .clearAfter(Temporal.Duration.from({ milliseconds: 200 }))
       .pollAfter(Temporal.Duration.from({ milliseconds: 150 }));
 

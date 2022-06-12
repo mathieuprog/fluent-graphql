@@ -20,14 +20,15 @@ const fetchCategory = (categoryId) => ({
 
 test('derive data from foreign key', async () => {
   const document =
-    Document.query()
-      .entity('user')
-        .entity('account')
-          .deriveFromForeignKey('accountId', fetchAccount)._
-        .entitySet('articles')
-          .deriveFromForeignKey('articleIds', fetchArticles)
-          .entity('category')
-            .deriveFromForeignKey('categoryId', fetchCategory)._._._._;
+    Document
+      .query()
+        .entity('user')
+          .entity('account')
+            .deriveFromForeignKey('accountId', fetchAccount)._
+          .entitySet('articles')
+            .deriveFromForeignKey('articleIds', fetchArticles)
+            .entity('category')
+              .deriveFromForeignKey('categoryId', fetchCategory)._._._._;
 
   const data = deepFreeze({
     user: {

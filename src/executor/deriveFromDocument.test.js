@@ -48,7 +48,8 @@ test('derive data from other document', async () => {
   const document =
     Document
       .query('document')
-        .entity('user')._
+        .entity('user')
+          ._
         .entitySet('locations')
           .deriveFromDocument(
             otherDocument,
