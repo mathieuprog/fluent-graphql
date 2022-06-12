@@ -3,7 +3,7 @@ import {
   filterProperties,
   isEmptyArray,
   isObjectLiteral
-} from '../utils';
+} from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { checkInstanceOfDocumentArg } from './helpers';
 

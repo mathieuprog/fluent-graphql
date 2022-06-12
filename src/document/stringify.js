@@ -1,4 +1,4 @@
-import { isEmptyArray, isEmptyObjectLiteral, takeProperties } from '../utils';
+import { isEmptyArray, isEmptyObjectLiteral, takeProperties } from 'object-array-utils';
 import OperationType from './OperationType';
 
 export default function stringify(document) {

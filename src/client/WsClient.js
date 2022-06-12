@@ -1,5 +1,5 @@
 import { createClient } from 'graphql-ws';
-import { isEmptyObjectLiteral, takeProperties } from '../utils';
+import { isEmptyObjectLiteral, takeProperties } from 'object-array-utils';
 
 export default class WsClient {
   constructor(params = {}) {

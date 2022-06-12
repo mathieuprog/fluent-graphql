@@ -1,6 +1,6 @@
 import ky from 'ky';
+import { isEmptyObjectLiteral } from 'object-array-utils';
 import GraphQLError from '../errors/GraphQLError';
-import { isEmptyObjectLiteral } from '../utils';
 
 export default class HttpClient {
   constructor(params = {}) {

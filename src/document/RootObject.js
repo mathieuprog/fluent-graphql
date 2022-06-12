@@ -1,4 +1,4 @@
-import { isObjectLiteral } from '../utils';
+import { isObjectLiteral } from 'object-array-utils';
 import ObjectType from './ObjectType';
 import Object from './Object';
 

@@ -1,4 +1,4 @@
-import { isObjectLiteral } from '../utils';
+import { isObjectLiteral } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { checkInstanceOfDocumentArg } from './helpers';
 

@@ -1,4 +1,4 @@
-import { isArray, isArrayWhereEvery } from '../utils';
+import { isArray, isArrayWhereEvery } from 'object-array-utils';
 import Document from './Document';
 import ObjectType from './ObjectType';
 import OperationType from './OperationType';

@@ -1,4 +1,4 @@
-import { isEmptyObjectLiteral } from '../utils';
+import { isEmptyObjectLiteral } from 'object-array-utils';
 
 export default class Notifier {
   static subscribers = new Set();
