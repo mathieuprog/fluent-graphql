@@ -2,7 +2,7 @@ import RootObject from './RootObject';
 import InlineFragment from './InlineFragment';
 import OperationType from './OperationType';
 import stringify from './stringify';
-import OperationExecutor from '../executor/OperationExecutor';
+import OperationExecutor from '../execution/OperationExecutor';
 
 export default class Document {
   static defaultClient = null;
