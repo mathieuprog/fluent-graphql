@@ -54,6 +54,18 @@ export default class Object {
     return this.object_(name, ObjectType.UNION_LIST);
   }
 
+  embedUnion(name) {
+    this.rejectAddingEntityInEmbed();
+    this.rejectAddingFieldsInUnion();
+    return this.object_(name, ObjectType.EMBED_UNION);
+  }
+
+  embedUnionList(name) {
+    this.rejectAddingEntityInEmbed();
+    this.rejectAddingFieldsInUnion();
+    return this.object_(name, ObjectType.EMBED_UNION_LIST);
+  }
+
   interface(name) {
     this.rejectAddingEntityInEmbed();
     this.rejectAddingFieldsInUnion();
