@@ -80,6 +80,7 @@ export default class Object {
 
   onEntity(typename) {
     this.rejectAddingInlineFragmentInObject();
+    this.rejectAddingInlineEntityFragmentInEmbedUnion();
     const inlineFragment = Document.createInlineFragment(this, ObjectType.INLINE_FRAGMENT_ENTITY, typename);
     this.inlineFragments[typename] = inlineFragment;
     return inlineFragment;
@@ -200,7 +201,18 @@ export default class Object {
   rejectAddingEntityInEmbed() {
     if ([
       ObjectType.EMBED,
-      ObjectType.EMBED_LIST
+      ObjectType.EMBED_LIST,
+      ObjectType.EMBED_UNION,
+      ObjectType.EMBED_UNION_LIST
+    ].includes(this.type)) {
+      throw new Error('embeds may not contain entities');
+    }
+  }
+
+  rejectAddingInlineEntityFragmentInEmbedUnion() {
+    if ([
+      ObjectType.EMBED_UNION,
+      ObjectType.EMBED_UNION_LIST
     ].includes(this.type)) {
       throw new Error('embeds may not contain entities');
     }
@@ -209,7 +221,9 @@ export default class Object {
   rejectAddingFieldsInUnion() {
     if ([
       ObjectType.UNION,
-      ObjectType.UNION_LIST
+      ObjectType.UNION_LIST,
+      ObjectType.EMBED_UNION,
+      ObjectType.EMBED_UNION_LIST
     ].includes(this.type)) {
       throw new Error('unions may not contain fields outside an inline fragment');
     }
@@ -220,7 +234,9 @@ export default class Object {
       ObjectType.UNION,
       ObjectType.UNION_LIST,
       ObjectType.INTERFACE,
-      ObjectType.INTERFACE_SET
+      ObjectType.INTERFACE_SET,
+      ObjectType.EMBED_UNION,
+      ObjectType.EMBED_UNION_LIST
     ].includes(this.type)) {
       throw new Error('inline fragments may only be added into unions or interfaces');
     }
@@ -240,7 +256,9 @@ export default class Object {
 
     if ([
       ObjectType.UNION,
-      ObjectType.UNION_LIST
+      ObjectType.UNION_LIST,
+      ObjectType.EMBED_UNION,
+      ObjectType.EMBED_UNION_LIST
     ].includes(type)) {
       this.scalar('__typename');
       return;
