@@ -24,12 +24,12 @@ function doTransform(meta, data) {
   }
 
   for (const [propName, object] of Object.entries(meta.objects)) {
-    if (propName in data === false) {
-      throw new Error();
-    }
-
     if (object.derivedFromForeignKey || object.derivedFromDocument) {
       continue;
+    }
+
+    if (propName in data === false) {
+      throw new Error();
     }
 
     switch (object.type) {

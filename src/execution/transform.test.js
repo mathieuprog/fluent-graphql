@@ -2,7 +2,7 @@ import { deepFreeze } from 'object-array-utils';
 import Document from '../document/Document';
 import transform from './transform';
 
-test('normalize entities', () => {
+test('transform', () => {
   const document =
     Document.mutation()
       .viewer('me')
