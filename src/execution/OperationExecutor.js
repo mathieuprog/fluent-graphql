@@ -1,4 +1,5 @@
 import { hasObjectProperty } from 'object-array-utils';
+import Document from '../document/Document';
 import OperationType from '../document/OperationType';
 import QueryForVars from './QueryForVars';
 import Notifier from './Notifier';
