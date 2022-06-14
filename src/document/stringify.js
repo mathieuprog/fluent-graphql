@@ -24,7 +24,7 @@ export default function stringify(document) {
     str += ' ' + document.operationName;
   }
 
-  if (document.variableDefinitions) {
+  if (!isEmptyObjectLiteral(document.variableDefinitions)) {
     str += `(${Object.entries(document.variableDefinitions).map(([name, type]) => `\$${name}:${type}`).join(',')})`;
   }
 
