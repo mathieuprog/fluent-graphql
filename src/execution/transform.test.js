@@ -13,6 +13,9 @@ test('normalize entities', () => {
             .onTypedObject('Type1')
               .scalar('int', Number)._
             .onEntity('Type2')
+              .interface('nestedInterface')
+                .onEntity('Type4')
+                  .scalar('int', Number)._._
               .scalar('int', Number)._._
           .interface('interface')
             .scalar('int', Number)
@@ -38,7 +41,12 @@ test('normalize entities', () => {
           {
             id: 'type2',
             __typename: 'Type2',
-            int: '20'
+            int: '20',
+            nestedInterface: {
+              id: 'type4',
+              __typename: 'Type4',
+              int: '40'
+            }
           }
         ],
         interface: {
@@ -64,6 +72,7 @@ test('normalize entities', () => {
 
   expect(transformedData.me.foo.union[0].int).toBe(10);
   expect(transformedData.me.foo.union[1].int).toBe(20);
+  expect(transformedData.me.foo.union[1].nestedInterface.int).toBe(40);
 
   expect(transformedData.me.foo.interface.int).toBe(30);
   expect(transformedData.me.foo.interface.int2).toBe(40);

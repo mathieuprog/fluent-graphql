@@ -153,6 +153,8 @@ export default class QueryCache {
 
           case ObjectType.EMBED:
           case ObjectType.EMBED_LIST:
+          case ObjectType.EMBED_UNION:
+          case ObjectType.EMBED_UNION_LIST:
             if (areValuesEqual(entity[propName], updatedEntity[propName])) {
               continue;
             }
@@ -264,6 +266,8 @@ export default class QueryCache {
 
         case ObjectType.EMBED:
         case ObjectType.EMBED_LIST:
+        case ObjectType.EMBED_UNION:
+        case ObjectType.EMBED_UNION_LIST:
           newEntity[propName] = entity[propName];
           break;
 

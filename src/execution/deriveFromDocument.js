@@ -113,6 +113,8 @@ function buildDataGraph(meta, dataToDeriveFrom, result = {}) {
 
       case ObjectType.EMBED:
       case ObjectType.EMBED_LIST:
+      case ObjectType.EMBED_UNION:
+      case ObjectType.EMBED_UNION_LIST:
         result[propName] = dataToDeriveFrom[propName];
         break;
 

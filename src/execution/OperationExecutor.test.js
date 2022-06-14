@@ -169,7 +169,7 @@ test('transform response', async () => {
         .viewer('me')
           .entity('user')
             .scalar('name')._._._
-      .transformResponse(({ me: user }) => user);
+      .transformResponse(({ me }) => me);
 
   const client = {
     request() {
