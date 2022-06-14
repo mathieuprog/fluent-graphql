@@ -78,3 +78,30 @@ test('stringify', () => {
 
   expect(document.queryString).toBe(expectedDocumentString);
 });
+
+test('stringify', () => {
+  const document1 =
+    Document
+      .query()
+        .scalar('int', Number)._;
+
+  const document2 =
+    Document
+      .query('Services')
+        .entitySet('services')
+          .deriveFromDocument(document1, (data) => data)
+          .scalar('foo')._._
+      .prepareQueryString();
+
+  expect(document2.queryString).toBe(null);
+
+  const document3 =
+    Document
+      .query('')
+        .entitySet('services')
+          .deriveFromDocument(document1, (data) => data)
+          .scalar('foo')._._
+      .prepareQueryString();
+
+  expect(document3.queryString).toBe(null);
+});

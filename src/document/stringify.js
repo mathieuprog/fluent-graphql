@@ -28,7 +28,11 @@ export default function stringify(document) {
     str += `(${Object.entries(document.variableDefinitions).map(([name, type]) => `\$${name}:${type}`).join(',')})`;
   }
 
-  return doStringify(str, document.rootObject);
+  const result = doStringify(str, document.rootObject);
+
+  return (result === str + '{ }')
+    ? null
+    : result;
 }
 
 function doStringify(str, objects) {

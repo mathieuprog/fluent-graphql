@@ -75,7 +75,13 @@ export default class OperationExecutor {
   async executeRequest(variables, handleUpdates) {
     const client = await this.getClient();
 
-    let data = await client.request(this.document.getQueryString(), variables);
+    const queryString = this.document.getQueryString();
+
+    let data = {};
+
+    if (queryString) {
+      data = await client.request(this.document.getQueryString(), variables);
+    }
 
     data = transform(this.document, data);
 
