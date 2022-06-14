@@ -78,7 +78,13 @@ export default class Document {
   }
 
   transformResponse(fun) {
-    this.transform = fun;
+    this.transform = (data) => {
+      const result = fun(data);
+      if (result === undefined) {
+        throw new Error('transformResponse callback returned undefined');
+      }
+      return result;
+    };
     return this;
   }
 
