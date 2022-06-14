@@ -88,9 +88,7 @@ export default class Object {
 
   onTypedObject(typename) {
     this.rejectAddingInlineFragmentInObject();
-    if (this.getOperationType() !== OperationType.MUTATION) {
-      throw new Error();
-    }
+    this.rejectAddingInlineTypedObjectInQuery();
     const inlineFragment = Document.createInlineFragment(this, ObjectType.INLINE_FRAGMENT_TYPED_OBJECT, typename);
     this.inlineFragments[typename] = inlineFragment;
     return inlineFragment;
@@ -215,6 +213,19 @@ export default class Object {
       ObjectType.EMBED_UNION_LIST
     ].includes(this.type)) {
       throw new Error('embeds may not contain entities');
+    }
+  }
+
+  rejectAddingInlineTypedObjectInQuery() {
+    if ([
+      ObjectType.EMBED_UNION,
+      ObjectType.EMBED_UNION_LIST
+    ].includes(this.type)) {
+      return;
+    }
+
+    if (this.getOperationType() !== OperationType.MUTATION) {
+      throw new Error();
     }
   }
 
