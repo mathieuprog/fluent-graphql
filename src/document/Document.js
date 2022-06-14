@@ -58,10 +58,18 @@ export default class Document {
   }
 
   getExecutor() {
+    if (!this.executor) {
+      throw new Error('makeExecutable() has not been called');
+    }
+
     return this.executor;
   }
 
   execute(...args) {
+    if (!this.executor) {
+      throw new Error('makeExecutable() has not been called');
+    }
+
     return this.executor.execute(...args);
   }
 
