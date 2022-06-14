@@ -2,9 +2,9 @@ import HttpClient from './HttpClient';
 import WsClient from './WsClient';
 
 export default class Client {
-  constructor(httpParams = {}, wsParams = {}) {
-    this.httpClient = (httpParams.url) ? new HttpClient(httpParams) : null;
-    this.wsClient = (wsParams.url) ? new WsClient(wsParams) : null;
+  constructor({ http, ws }) {
+    this.httpClient = (http.url) ? new HttpClient(http) : null;
+    this.wsClient = (ws.url) ? new WsClient(ws) : null;
   }
 
   request(query, variables) {
