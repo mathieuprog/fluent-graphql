@@ -14,7 +14,7 @@ export default class OperationExecutor {
   constructor(document, client) {
     checkInstanceOfDocumentArg(document);
     this.document = document;
-    this.client = client;
+    this.maybeClient = client;
     this.queriesForVars = {};
   }
 
@@ -65,14 +65,14 @@ export default class OperationExecutor {
         const sink = arg2;
         const options = this.validateExecuteOptions(arg3);
 
-        const client = await this.client;
+        const client = await this.getClient();
         await client.subscribe(this.document.getQueryString(), variables, sink, options || {});
       } return;
     }
   }
 
   async executeRequest(variables, handleUpdates) {
-    const client = await this.client;
+    const client = await this.getClient();
 
     let data = await client.request(this.document.getQueryString(), variables);
 
@@ -136,5 +136,9 @@ export default class OperationExecutor {
     }
 
     return options;
+  }
+
+  getClient() {
+    return this.maybeClient ?? Document.defaultClient;
   }
 }

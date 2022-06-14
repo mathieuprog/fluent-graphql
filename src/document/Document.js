@@ -51,7 +51,7 @@ export default class Document {
     return this;
   }
 
-  makeExecutable(client = Document.defaultClient) {
+  makeExecutable(client = null) {
     this.getQueryString();
     this.executor = new OperationExecutor(this, client);
     return this;
