@@ -38,7 +38,7 @@ test('derive data from other document', async () => {
       .query('document')
         .variableDefinitions({ userId: 'ID!' })
         .entitySet('organizations')
-          .useVariables('userId')
+          .useVariables({ userId: 'userId' })
           .scalar('name')
           .entitySet('locations')
             .scalar('name')

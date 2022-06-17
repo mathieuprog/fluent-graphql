@@ -1,4 +1,4 @@
-import { isArray, isArrayWhereEvery } from 'object-array-utils';
+import { isObjectLiteral } from 'object-array-utils';
 import Document from './Document';
 import ObjectType from './ObjectType';
 import OperationType from './OperationType';
@@ -9,7 +9,7 @@ export default class Object {
     this._ = parent;
     this.type = type;
     this.name = name;
-    this.variables = [];
+    this.variables = {};
     this.scalars = {};
     this.inlineFragments = {};
     this.objects = {};
@@ -112,13 +112,11 @@ export default class Object {
     return object;
   }
 
-  useVariables(...variables) {
-    if (isArrayWhereEvery(variables, isArray)) {
-      if (variables.length > 1) {
-        throw new Error();
-      }
-      variables = variables[0];
+  useVariables(variables) {
+    if (!isObjectLiteral(variables)) {
+      throw new Error();
     }
+
     this.variables = variables;
     return this;
   }

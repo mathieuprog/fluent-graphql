@@ -717,7 +717,7 @@ test('filter entity with callback', () => {
         .variableDefinitions({ minVoteCount: 'Number!' })
         .entity('user')
           .entitySet('articles')
-            .useVariables('minVoteCount')
+            .useVariables({ minVoteCount: 'minVoteCount' })
             .scalar('voteCount', Number)
             .filterEntity({
               Article: (article, { minVoteCount }) => article.voteCount >= minVoteCount
@@ -778,7 +778,7 @@ test('add entity with callback', () => {
       .query()
         .variableDefinitions({ minVoteCount: 'Number!' })
         .entitySet('articles')
-          .useVariables('minVoteCount')
+          .useVariables({ minVoteCount: 'minVoteCount' })
           .scalar('voteCount', Number)
           .filterEntity({
             Article: (article, { minVoteCount }) => article.voteCount >= minVoteCount
@@ -830,7 +830,7 @@ test('replace entity with callback', () => {
       .query()
         .variableDefinitions({ accountId: 'ID!' })
         .entity('user')
-          .useVariables('accountId')
+          .useVariables({ accountId: 'accountId' })
           .scalar('accountId', Number)
           .replaceEntity({
             User: (user, { accountId }) => user.accountId === accountId

@@ -11,13 +11,13 @@ test('stringify', () => {
           .deriveFromForeignKey('accountId')
           .scalar('loggedInAt')._
         .entitySet('appointments')
-          .useVariables('calendarId', 'dateRange')
+          .useVariables({ calendarId: 'calendarId', dateRange: 'dateRange' })
           .scalar('date')
           .scalar('time')
           .embed('bar')
             .scalar('name')._._
         .entitySet('availabilities')
-          .useVariables('calendarId', 'dateRange')
+          .useVariables({ calendarId: 'calendarId', dateRange: 'dateRange' })
           .scalar('date')
           .scalar('time')._._
       .entity('organization')

@@ -1,4 +1,4 @@
-import { isEmptyArray, isEmptyObjectLiteral, takeProperties } from 'object-array-utils';
+import { isEmptyObjectLiteral, takeProperties } from 'object-array-utils';
 import OperationType from './OperationType';
 
 export default function stringify(document) {
@@ -47,8 +47,8 @@ function doStringify(str, objects) {
       str += object.name;
     }
 
-    if (!isEmptyArray(object.variables)) {
-      str += `(${object.variables.map((variable) => `${variable}:\$${variable}`).join(',')})`;
+    if (!isEmptyObjectLiteral(object.variables)) {
+      str += `(${Object.entries(object.variables).map(([name, variable]) => `${name}:\$${variable}`).join(',')})`;
     }
 
     str += `{${Object.keys(object.scalars).join(' ')}`;

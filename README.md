@@ -197,7 +197,7 @@ Document
   .query('UserList')
     .variableDefinitions({ organizationId: 'ID!' })
     .entity('users')
-      .useVariables('organizationId')
+      .useVariables({ organizationId: 'organizationId' })
       .scalar('name')._._
   .makeExecutable();
 ```
@@ -259,7 +259,7 @@ Document
     .variableDefinitions({ orgId: 'ID!' })
     .entity('organization')
       .entitySet('users')
-        .useVariables('orgId')
+        .useVariables({ orgId: 'orgId' })
         .filterEntity({
           User: (user, { orgId }) => user.orgId === org.id
         })._._._
@@ -274,7 +274,7 @@ Document
     .variableDefinitions({ orgId: 'ID!' })
     .entity('organization')
       .entity('location')
-        .useVariables('orgId')
+        .useVariables({ orgId: 'orgId' })
         .replaceEntity({
           Location: (location, { orgId }) => location.orgId === org.id
         })._._._
