@@ -1,5 +1,5 @@
 import Document from '../document/Document';
-import deriveFromDocument from './deriveFromDocument';
+import deriveFrom from './deriveFrom';
 
 test('derive data from other document', async () => {
   const client = {
@@ -45,17 +45,18 @@ test('derive data from other document', async () => {
             .scalar('address')._._._
       .makeExecutable(client);
 
+  const fetchLocations = async (variables) => {
+    const data = await otherDocument.execute(variables);
+    return data.organizations.flatMap(({ locations }) => locations);
+  };
+
   const document =
     Document
       .query('document')
         .entity('user')
           ._
         .entitySet('locations')
-          .deriveFromDocument(
-            otherDocument,
-            (data) => data.organizations.flatMap(({ locations }) => locations),
-            ({ userId }) => ({ userId })
-          )
+          .deriveFrom(fetchLocations)
           .scalar('address')._._
       .transformResponse(({ locations }) => locations);
 
@@ -66,7 +67,7 @@ test('derive data from other document', async () => {
     }
   };
 
-  const transformedData = await deriveFromDocument(document, data, { userId: 1 });
+  const transformedData = await deriveFrom(document, data, { userId: 1 });
 
   expect(transformedData.user.id).toBe('user1');
   expect(transformedData.locations.length).toBe(2);

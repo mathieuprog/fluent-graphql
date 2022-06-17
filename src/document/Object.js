@@ -14,7 +14,7 @@ export default class Object {
     this.inlineFragments = {};
     this.objects = {};
     this.derivedFromForeignKey = null;
-    this.derivedFromDocument = null;
+    this.derivedFrom = null;
     this.filter = null;
     this.isToBeDeleted = false;
     this.areElementsToBeOverridden = false;
@@ -140,8 +140,8 @@ export default class Object {
     return this;
   }
 
-  deriveFromDocument(document, extract, takeVariables = (v) => v) {
-    this.derivedFromDocument = { document, extract, takeVariables };
+  deriveFrom(fetch) {
+    this.derivedFrom = { fetch };
     return this;
   }
 

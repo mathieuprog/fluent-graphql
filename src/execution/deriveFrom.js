@@ -2,13 +2,13 @@ import { isObjectLiteral } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { checkInstanceOfDocumentArg } from './helpers';
 
-export default function deriveFromDocument(document, data, variables) {
+export default function deriveFrom(document, data, variables) {
   checkInstanceOfDocumentArg(document);
 
-  return doDeriveFromDocument(document.rootObject, data, variables);
+  return doDeriveFrom(document.rootObject, data, variables);
 }
 
-async function doDeriveFromDocument(meta, data, variables) {
+async function doDeriveFrom(meta, data, variables) {
   if (!isObjectLiteral(data)) {
     throw new Error();
   }
@@ -25,18 +25,16 @@ async function doDeriveFromDocument(meta, data, variables) {
       continue;
     }
 
-    if (object.derivedFromDocument) {
-      const { document, extract, takeVariables } = object.derivedFromDocument;
-
-      const derivedData = await document.execute(takeVariables(variables));
+    if (object.derivedFrom) {
+      const { fetch } = object.derivedFrom;
 
       switch (object.type) {
         case ObjectType.ENTITY:
-          data[propName] = buildDataGraph(object, extract(derivedData));
+          data[propName] = buildDataGraph(object, await fetch(variables));
           break;
 
         case ObjectType.ENTITY_SET:
-          data[propName] = extract(derivedData).map((entity) => buildDataGraph(object, entity));
+          data[propName] = (await fetch(variables)).map((entity) => buildDataGraph(object, entity));
           break;
       }
 
@@ -49,14 +47,14 @@ async function doDeriveFromDocument(meta, data, variables) {
       case ObjectType.UNION:
       case ObjectType.INTERFACE:
         data[propName] = (data[propName] !== null)
-          ? await doDeriveFromDocument(object, data[propName], variables)
+          ? await doDeriveFrom(object, data[propName], variables)
           : null;
         break;
 
       case ObjectType.ENTITY_SET:
       case ObjectType.UNION_LIST:
       case ObjectType.INTERFACE_SET:
-        data[propName] = await Promise.all(data[propName].map((entity) => doDeriveFromDocument(object, entity, variables)));
+        data[propName] = await Promise.all(data[propName].map((entity) => doDeriveFrom(object, entity, variables)));
         break;
     }
   }
@@ -98,7 +96,7 @@ function buildDataGraph(meta, dataToDeriveFrom, result = {}) {
       throw new Error();
     }
 
-    if (object.derivedFromDocument) {
+    if (object.derivedFrom) {
       throw new Error();
     }
 

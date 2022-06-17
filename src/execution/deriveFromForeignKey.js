@@ -2,13 +2,13 @@ import { isObjectLiteral } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { checkInstanceOfDocumentArg } from './helpers';
 
-export default function deriveFromForeignKey(document, data) {
+export default function deriveFromForeignKey(document, data, variables) {
   checkInstanceOfDocumentArg(document);
 
-  return doDeriveFromForeignKey(document.rootObject, data);
+  return doDeriveFromForeignKey(document.rootObject, data, variables);
 }
 
-async function doDeriveFromForeignKey(meta, data) {
+async function doDeriveFromForeignKey(meta, data, variables) {
   if (!isObjectLiteral(data)) {
     throw new Error();
   }
@@ -21,7 +21,7 @@ async function doDeriveFromForeignKey(meta, data) {
     : meta.objects;
 
   for (const [propName, object] of Object.entries(objects)) {
-    if (object.derivedFromDocument) {
+    if (object.derivedFrom) {
       continue;
     }
 
@@ -30,12 +30,12 @@ async function doDeriveFromForeignKey(meta, data) {
 
       switch (object.type) {
         case ObjectType.ENTITY:
-          data[propName] = await buildDataGraph(object, await fetch(data[foreignKey]));
+          data[propName] = await buildDataGraph(object, await fetch(data[foreignKey], variables), variables);
           break;
 
         case ObjectType.ENTITY_SET:
           data[propName] = await Promise.all(
-            (await fetch(data[foreignKey])).map((entity) => buildDataGraph(object, entity))
+            (await fetch(data[foreignKey], variables)).map((entity) => buildDataGraph(object, entity, variables))
           );
           break;
       }
@@ -50,14 +50,14 @@ async function doDeriveFromForeignKey(meta, data) {
       case ObjectType.UNION:
       case ObjectType.INTERFACE:
         data[propName] = (data[propName] !== null)
-          ? await doDeriveFromForeignKey(object, data[propName])
+          ? await doDeriveFromForeignKey(object, data[propName], variables)
           : null;
         break;
 
       case ObjectType.ENTITY_SET:
       case ObjectType.UNION_LIST:
       case ObjectType.INTERFACE_SET:
-        data[propName] = await Promise.all(data[propName].map((entity) => doDeriveFromForeignKey(object, entity)));
+        data[propName] = await Promise.all(data[propName].map((entity) => doDeriveFromForeignKey(object, entity, variables)));
         break;
     }
   }
@@ -65,7 +65,7 @@ async function doDeriveFromForeignKey(meta, data) {
   return data;
 }
 
-async function buildDataGraph(meta, dataToDeriveFrom, result = {}) {
+async function buildDataGraph(meta, dataToDeriveFrom, variables, result = {}) {
   if (dataToDeriveFrom === null) {
     return null;
   }
@@ -95,7 +95,7 @@ async function buildDataGraph(meta, dataToDeriveFrom, result = {}) {
     : meta.objects;
 
   for (const [propName, object] of Object.entries(objects)) {
-    if (object.derivedFromDocument) {
+    if (object.derivedFrom) {
       continue;
     }
 
@@ -104,12 +104,12 @@ async function buildDataGraph(meta, dataToDeriveFrom, result = {}) {
 
       switch (object.type) {
         case ObjectType.ENTITY:
-          result[propName] = await buildDataGraph(object, await fetch(dataToDeriveFrom[foreignKey]));
+          result[propName] = await buildDataGraph(object, await fetch(dataToDeriveFrom[foreignKey], variables), variables);
           break;
 
         case ObjectType.ENTITY_SET:
           result[propName] = await Promise.all(
-            (await fetch(dataToDeriveFrom[foreignKey])).map((entity) => buildDataGraph(object, entity))
+            (await fetch(dataToDeriveFrom[foreignKey], variables)).map((entity) => buildDataGraph(object, entity, variables))
           );
           break;
       }
@@ -136,14 +136,14 @@ async function buildDataGraph(meta, dataToDeriveFrom, result = {}) {
       case ObjectType.UNION:
       case ObjectType.INTERFACE:
         result[propName] = (dataToDeriveFrom[propName] !== null)
-          ? await buildDataGraph(object, dataToDeriveFrom[propName])
+          ? await buildDataGraph(object, dataToDeriveFrom[propName], variables)
           : null;
         break;
 
       case ObjectType.ENTITY_SET:
       case ObjectType.UNION_LIST:
       case ObjectType.INTERFACE_SET:
-        result[propName] = await Promise.all(dataToDeriveFrom[propName].map((entity) => buildDataGraph(object, entity)));
+        result[propName] = await Promise.all(dataToDeriveFrom[propName].map((entity) => buildDataGraph(object, entity, variables)));
         break;
     }
   }

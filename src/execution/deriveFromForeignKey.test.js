@@ -2,23 +2,23 @@ import { deepFreeze } from 'object-array-utils';
 import Document from '../document/Document';
 import deriveFromForeignKey from './deriveFromForeignKey';
 
-const fetchAccount = (accountId) => ({
-  id: accountId,
-  __typename: 'Account'
-});
-
-const fetchArticles = (articlesIds) => articlesIds.map((articleId) => ({
-  id: articleId,
-  __typename: 'Article',
-  categoryId: `category_${articleId}`
-}));
-
-const fetchCategory = (categoryId) => ({
-  id: categoryId,
-  __typename: 'Category'
-});
-
 test('derive data from foreign key', async () => {
+  const fetchAccount = (accountId) => ({
+    id: accountId,
+    __typename: 'Account'
+  });
+
+  const fetchArticles = (articlesIds) => articlesIds.map((articleId) => ({
+    id: articleId,
+    __typename: 'Article',
+    categoryId: `category_${articleId}`
+  }));
+
+  const fetchCategory = (categoryId) => ({
+    id: categoryId,
+    __typename: 'Category'
+  });
+
   const document =
     Document
       .query()

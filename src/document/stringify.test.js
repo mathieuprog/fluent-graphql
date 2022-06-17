@@ -79,17 +79,12 @@ test('stringify', () => {
   expect(document.queryString).toBe(expectedDocumentString);
 });
 
-test('stringify', () => {
-  const document1 =
-    Document
-      .query()
-        .scalar('int', Number)._;
-
+test('stringify returns null', () => {
   const document2 =
     Document
       .query('Services')
         .entitySet('services')
-          .deriveFromDocument(document1, (data) => data)
+          .deriveFrom(() => ({}))
           .scalar('foo')._._
       .prepareQueryString();
 
@@ -99,7 +94,7 @@ test('stringify', () => {
     Document
       .query('')
         .entitySet('services')
-          .deriveFromDocument(document1, (data) => data)
+          .deriveFrom(() => ({}))
           .scalar('foo')._._
       .prepareQueryString();
 

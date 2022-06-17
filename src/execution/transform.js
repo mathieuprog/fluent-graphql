@@ -24,7 +24,7 @@ function doTransform(meta, data) {
   }
 
   for (const [propName, object] of Object.entries(meta.objects)) {
-    if (object.derivedFromForeignKey || object.derivedFromDocument) {
+    if (object.derivedFromForeignKey || object.derivedFrom) {
       continue;
     }
 

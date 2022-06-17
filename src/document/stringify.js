@@ -39,7 +39,7 @@ function doStringify(str, objects) {
   objects = [].concat(objects);
 
   for (let object of objects) {
-    if (object.derivedFromDocument) {
+    if (object.derivedFrom) {
       continue;
     }
 
