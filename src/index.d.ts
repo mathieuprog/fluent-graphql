@@ -32,6 +32,7 @@ declare module "fluent-graphql" {
   export class GraphQLError extends Error {}
 
   export class Object {
+    _: Object | RootObject | InlineFragment | Document
     scalar(name: string, transformer?: (v: unknown) => unknown): Object;
     entity(name: string): Object;
     entitySet(name: string): Object;
