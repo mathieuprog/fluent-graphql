@@ -6,7 +6,19 @@ declare module "fluent-graphql" {
     FetchFromNetwork = "FETCH_FROM_NETWORK",
   }
 
-  export class Client {}
+  interface HttpClient {
+    url: string;
+    [key: string]: any;
+  }
+
+  interface WsClient {
+    url: string;
+    [key: string]: any;
+  }
+
+  export class Client {
+    constructor({ http: HttpClient, ws: WsClient });
+  }
 
   export class NotFoundInCacheError extends Error {}
 
