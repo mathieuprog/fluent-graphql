@@ -32,7 +32,7 @@ declare module "fluent-graphql" {
   export class GraphQLError extends Error {}
 
   export class Object {
-    scalar(name: string, transformer = (v: unknown) => unknown): Object;
+    scalar(name: string, transformer?: (v: unknown) => unknown): Object;
     entity(name: string): Object;
     entitySet(name: string): Object;
     union(name: string): Object;
@@ -70,22 +70,19 @@ declare module "fluent-graphql" {
     static setDefaultClient(client: Client): void;
     makeExecutable(client: Client | null): Document;
     execute(
-      variables: ObjectLiteral
-    ): Promise<unknown>;
-    execute(
       variables: ObjectLiteral,
-      options: ObjectLiteral | null
+      options?: ObjectLiteral
     ): Promise<unknown>;
     execute(
       variables: ObjectLiteral,
       subscriber: (data: ObjectLiteral) => void,
       returnUnsubscriber: (unsubscriber: () => void) => void,
-      options: ObjectLiteral | null
+      options?: ObjectLiteral | null
     ): Promise<unknown>;
     execute(
       variables: ObjectLiteral,
       sink: ObjectLiteral,
-      options: ObjectLiteral | null
+      options?: ObjectLiteral | null
     ): Promise<unknown>;
     transformResponse(fun: (data: unknown) => unknown): Document
     clearAfter(duration: any): Document
