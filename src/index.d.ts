@@ -1,5 +1,5 @@
 declare module "fluent-graphql" {
-  type ObjectLiteral = { [key: string]: any };
+  type ObjectLiteral = { [key: string]: unknown };
 
   export enum FetchStrategy {
     FetchFromCacheOrThrow = "FETCH_FROM_CACHE_OR_THROW",
@@ -10,12 +10,12 @@ declare module "fluent-graphql" {
 
   interface HttpClient {
     url: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   interface WsClient {
     url: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   export class Client {
@@ -66,22 +66,25 @@ declare module "fluent-graphql" {
     makeExecutable(client: Client | null): Document;
     execute(
       variables: ObjectLiteral
-    ): Promise<any>;
+    ): Promise<unknown>;
     execute(
       variables: ObjectLiteral,
       options: ObjectLiteral | null
-    ): Promise<any>;
+    ): Promise<unknown>;
     execute(
       variables: ObjectLiteral,
       subscriber: (data: ObjectLiteral) => void,
       returnUnsubscriber: (unsubscriber: () => void) => void,
       options: ObjectLiteral | null
-    ): Promise<any>;
+    ): Promise<unknown>;
     execute(
       variables: ObjectLiteral,
       sink: ObjectLiteral,
       options: ObjectLiteral | null
-    ): Promise<any>;
+    ): Promise<unknown>;
+    transformResponse(fun: (data: unknown) => unknown): Document
+    clearAfter(duration: any): Document
+    pollAfter(duration: any): Document
   }
 
   interface GraphQLErrorObject {
@@ -93,9 +96,9 @@ declare module "fluent-graphql" {
       }
     };
     extensions: {
-      [key: string]: any;
+      [key: string]: unknown;
     };
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   export function findGraphQLError(error: Error, find: (error: GraphQLErrorObject) => boolean): GraphQLErrorObject | null;
