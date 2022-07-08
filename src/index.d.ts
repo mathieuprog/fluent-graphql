@@ -1,10 +1,4 @@
 declare module "fluent-graphql" {
-  export enum OperationType {
-    Query = "QUERY",
-    Mutation = "MUTATION",
-    Subscription = "SUBSCRIPTION",
-  }
-
   export enum FetchStrategy {
     FetchFromCacheOrThrow = "FETCH_FROM_CACHE_OR_THROW",
     FetchFromCacheOrFallbackNetwork = "FETCH_FROM_CACHE_OR_FALLBACK_NETWORK",
@@ -12,13 +6,13 @@ declare module "fluent-graphql" {
     FetchFromNetwork = "FETCH_FROM_NETWORK",
   }
 
-  export interface Client {}
+  export class Client {}
 
-  export interface NotFoundInCacheError extends Error {}
+  export class NotFoundInCacheError extends Error {}
 
-  export interface GraphQLError extends Error {}
+  export class GraphQLError extends Error {}
 
-  export interface Document {
+  export class Document {
     query(operationName: string | null): Document;
     mutation(operationName: string): Document;
     subscription(operationName: string): Document;
@@ -58,5 +52,5 @@ declare module "fluent-graphql" {
     [key: string]: any;
   }
 
-  declare function findGraphQLError(error: Error, find: (error: GraphQLErrorObject) => boolean): GraphQLErrorObject | null;
+  export function findGraphQLError(error: Error, find: (error: GraphQLErrorObject) => boolean): GraphQLErrorObject | null;
 }
