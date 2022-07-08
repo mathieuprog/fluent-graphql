@@ -1,4 +1,6 @@
 declare module "fluent-graphql" {
+  type ObjectLiteral = { [key: string]: any };
+
   export enum FetchStrategy {
     FetchFromCacheOrThrow = "FETCH_FROM_CACHE_OR_THROW",
     FetchFromCacheOrFallbackNetwork = "FETCH_FROM_CACHE_OR_FALLBACK_NETWORK",
@@ -24,29 +26,61 @@ declare module "fluent-graphql" {
 
   export class GraphQLError extends Error {}
 
+  export class Object {
+    scalar(name: string, transformer = ((v) => v)): Object;
+    entity(name: string): Object;
+    entitySet(name: string): Object;
+    union(name: string): Object;
+    unionList(name: string): Object;
+    embedUnion(name: string): Object;
+    embedUnionList(name: string): Object;
+    interface(name: string): Object;
+    interfaceSet(name: string): Object;
+    onEntity(typename: string): InlineFragment;
+    onTypedObject(typename: string): InlineFragment;
+    embed(name: string): Object;
+    embedList(name: string): Object;
+    viewer(name: string): Object;
+    useVariables(variables: ObjectLiteral): Object;
+    replaceEntity(filter: ObjectLiteral): Object;
+    filterEntity(filter: ObjectLiteral): Object;
+    deriveFromForeignKey(foreignKey: string, fetch: (foreignKey: string | number, variables: ObjectLiteral) => ObjectLiteral): Object;
+    deriveFrom(fetch: (variables: ObjectLiteral) => ObjectLiteral): Object;
+    overrideElements(): Object;
+    removeElements(): Object;
+    deleteElements(): Object;
+    delete(): Object;
+  }
+
+  export class RootObject extends Object {
+    variableDefinitions(variableDefinitions: ObjectLiteral): RootObject;
+  }
+
+  export class InlineFragment extends Object {}
+
   export class Document {
-    static query(operationName: string | null): Document;
-    static mutation(operationName: string): Document;
-    static subscription(operationName: string): Document;
+    static query(operationName: string | null): RootObject;
+    static mutation(operationName: string): RootObject;
+    static subscription(operationName: string): RootObject;
     static setDefaultClient(client: Client): void;
     makeExecutable(client: Client | null): Document;
     execute(
-      variables: { [key: string]: any }
+      variables: ObjectLiteral
     ): Promise<any>;
     execute(
-      variables: { [key: string]: any },
-      options: { [key: string]: any } | null
+      variables: ObjectLiteral,
+      options: ObjectLiteral | null
     ): Promise<any>;
     execute(
-      variables: { [key: string]: any },
-      subscriber: (data: { [key: string]: any }) => void,
+      variables: ObjectLiteral,
+      subscriber: (data: ObjectLiteral) => void,
       returnUnsubscriber: (unsubscriber: () => void) => void,
-      options: { [key: string]: any } | null
+      options: ObjectLiteral | null
     ): Promise<any>;
     execute(
-      variables: { [key: string]: any },
-      sink: { [key: string]: any },
-      options: { [key: string]: any } | null
+      variables: ObjectLiteral,
+      sink: ObjectLiteral,
+      options: ObjectLiteral | null
     ): Promise<any>;
   }
 
