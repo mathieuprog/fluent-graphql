@@ -60,7 +60,7 @@ export default class OperationExecutor {
         return queryForVars.cache.transformedData;
 
       case OperationType.MUTATION:
-        return this.document.transform(this.executeRequest(variables, Notifier.notify));
+        return this.document.transform(await this.executeRequest(variables, Notifier.notify));
 
       case OperationType.SUBSCRIPTION: {
         const sink = arg2;
