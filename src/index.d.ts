@@ -25,10 +25,10 @@ declare module "fluent-graphql" {
   export class GraphQLError extends Error {}
 
   export class Document {
-    query(operationName: string | null): Document;
-    mutation(operationName: string): Document;
-    subscription(operationName: string): Document;
-    setDefaultClient(client: Client): void;
+    static query(operationName: string | null): Document;
+    static mutation(operationName: string): Document;
+    static subscription(operationName: string): Document;
+    static setDefaultClient(client: Client): void;
     makeExecutable(client: Client | null): Document;
     execute(
       variables: { [key: string]: any }
