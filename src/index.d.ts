@@ -31,45 +31,47 @@ declare module "fluent-graphql" {
 
   export class GraphQLError extends Error {}
 
-  export class Object {
-    _: Object | RootObject | InlineFragment | Document
-    scalar(name: string, transformer?: (v: unknown) => unknown): Object;
-    entity(name: string): Object;
-    entitySet(name: string): Object;
-    union(name: string): Object;
-    unionList(name: string): Object;
-    embedUnion(name: string): Object;
-    embedUnionList(name: string): Object;
-    interface(name: string): Object;
-    interfaceSet(name: string): Object;
-    onEntity(typename: string): InlineFragment;
-    onTypedObject(typename: string): InlineFragment;
-    embed(name: string): Object;
-    embedList(name: string): Object;
-    viewer(name: string): Object;
-    useVariables(variables: ObjectLiteral): Object;
-    replaceEntity(filter: ObjectLiteral): Object;
-    filterEntity(filter: ObjectLiteral): Object;
-    deriveFromForeignKey(foreignKey: string, fetch: (foreignKey: string | number, variables: ObjectLiteral) => ObjectLiteral): Object;
-    deriveFrom(fetch: (variables: ObjectLiteral) => ObjectLiteral): Object;
-    overrideElements(): Object;
-    removeElements(): Object;
-    deleteElements(): Object;
-    delete(): Object;
+  export class Object<This, Parent> {
+    _: Parent
+    scalar(name: string, transformer?: (v: unknown) => unknown): Object<This, Parent>;
+    entity(name: string): Object<NestedObject<This>, This>;
+    entitySet(name: string): Object<NestedObject<This>, This>;
+    union(name: string): Object<NestedObject<This>, This>;
+    unionList(name: string): Object<NestedObject<This>, This>;
+    embedUnion(name: string): Object<NestedObject<This>, This>;
+    embedUnionList(name: string): Object<NestedObject<This>, This>;
+    interface(name: string): Object<NestedObject<This>, This>;
+    interfaceSet(name: string): Object<NestedObject<This>, This>;
+    onEntity(typename: string): InlineFragment<This>;
+    onTypedObject(typename: string): InlineFragment<This>;
+    embed(name: string): Object<NestedObject<This>, This>;
+    embedList(name: string): Object<NestedObject<This>, This>;
+    viewer(name: string): Object<NestedObject<This>, This>;
+    useVariables(variables: ObjectLiteral): Object<This, Parent>;
+    replaceEntity(filter: ObjectLiteral): Object<This, Parent>;
+    filterEntity(filter: ObjectLiteral): Object<This, Parent>;
+    deriveFromForeignKey(foreignKey: string, fetch: (foreignKey: string | number, variables: ObjectLiteral) => ObjectLiteral): Object<This, Parent>;
+    deriveFrom(fetch: (variables: ObjectLiteral) => ObjectLiteral): Object<This, Parent>;
+    overrideElements(): Object<This, Parent>;
+    removeElements(): Object<This, Parent>;
+    deleteElements(): Object<This, Parent>;
+    delete(): Object<This, Parent>;
   }
 
-  export class RootObject extends Object {
+  export class NestedObject<Parent> extends Object<NestedObject<Parent>, Parent> {}
+
+  export class RootObject extends Object<RootObject, Document> {
     variableDefinitions(variableDefinitions: ObjectLiteral): RootObject;
   }
 
-  export class InlineFragment extends Object {}
+  export class InlineFragment<Parent> extends Object<InlineFragment<Parent>, Parent> {}
 
   export class Document {
-    static query(operationName: string | null): RootObject;
+    static query(operationName?: string): RootObject;
     static mutation(operationName: string): RootObject;
     static subscription(operationName: string): RootObject;
     static setDefaultClient(client: Client): void;
-    makeExecutable(client: Client | null): Document;
+    makeExecutable(client?: Client): Document;
     execute(
       variables: ObjectLiteral,
       options?: ObjectLiteral
@@ -78,15 +80,15 @@ declare module "fluent-graphql" {
       variables: ObjectLiteral,
       subscriber: (data: ObjectLiteral) => void,
       returnUnsubscriber: (unsubscriber: () => void) => void,
-      options?: ObjectLiteral | null
+      options?: ObjectLiteral
     ): Promise<unknown>;
     execute(
       variables: ObjectLiteral,
       sink: ObjectLiteral,
-      options?: ObjectLiteral | null
+      options?: ObjectLiteral
     ): Promise<unknown>;
-    transformResponse(fun: (data: unknown) => unknown): Document
-    clearAfter(duration: any): Document
+    transformResponse(fun: (data: any) => unknown): Document
+    clearAfter(duration: any): Document // TODO Temporal type
     pollAfter(duration: any): Document
   }
 
