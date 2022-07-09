@@ -1,4 +1,4 @@
-# fluent-graphql
+# Fluent GraphQL
 
 * [What?](#what)
 * [Why?](#why)
@@ -36,10 +36,11 @@ const data = await document.execute({});
 * Multiple fetch strategies
 * Trivial data transformations
 * Cache refresh (polling) and clearing
+* TypeScript support
 
 ## Why?
 
-Conventionally we would write our GraphQL document as a string:
+Conventionally in other frameworks we would write our GraphQL document as a string:
 
 ```javascript
 const query = `
@@ -59,7 +60,7 @@ const query = `
 However, this doesn't say anything about how to handle the data received from the server response.
 
 * How do we transform the `age` and `duration` fields into integers?
-* Did we receive the full list of services (in which case we may have to delete previously fetched services not included in this list in other queries' caches) or do we deal with a non-exhaustive list?
+* Did we receive the full list of services (in which case we have to delete previously fetched services not included in this list from cached data) or do we deal with a non-exhaustive list?
 * Is the user to be deleted?
 * etcetera
 
@@ -96,7 +97,7 @@ HTTP requests are executed by the [ky](https://github.com/sindresorhus/ky) libra
 
 The `http` object must contain a `url` property specifying the URL of the API, as well as the settings to apply to the request used by the Fetch API:<br>https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#supplying_request_options
 
-The `ws` object must also contain the `url` property as well as additional properties required from the `createClient` function of `graphql-ws`:<br>
+The `ws` object must also contain the `url` property as well as additional properties required by the `createClient` function of `graphql-ws`:<br>
 https://github.com/enisdenjo/graphql-ws/blob/master/docs/modules/client.md
 
 The client may also be a promise, which is useful when dealing with CSRF tokens.
@@ -107,31 +108,31 @@ The client may also be a promise, which is useful when dealing with CSRF tokens.
   ```javascript
   import { Client } from 'fluent-graphql';
 
-  async function createClient() {
-    const csrf = await getCsrfToken();
+  const httpUrl = 'http://myapp.localhost:4000/api';
 
-    const httpUrl = 'http://myapp.localhost:4000/api';
-    const wsUrl = 'ws://myapp.localhost:4000/api/ws?_csrf_token=${csrf}';
+  const csrfTokenResponse = await fetch(`${httpUrl}/csrf`, { credentials: 'include' });
+  const csrfToken = await csrfTokenResponse.text();
 
-    return new Client({
-      http: {
-        url: httpUrl,
-        credentials: 'include',
-        headers: { 'x-csrf-token': csrf }
-      },
-      ws: {
-        url: wsUrl
-      }
-    });
-  }
+  const wsUrl = 'ws://myapp.localhost:4000/api/ws?_csrf_token=${csrfToken}';
 
-  export default createClient();
+  const client = new Client({
+    http: {
+      url: httpUrl,
+      credentials: 'include',
+      headers: { 'x-csrf-token': csrfToken }
+    },
+    ws: {
+      url: wsUrl
+    }
+  });
+
+  export default client;
   ```
 </details>
 
 ### Create a Document instance
 
-Call the static function `query`, `mutation` or `subscription` on the `Document` class in order to create the instance. Each of these functions take the operation name as argument (optional for queries).
+Call the static function `query`, `mutation` or `subscription` on the `Document` class in order to create a `Document` instance. Each of these functions take the operation name as argument (optional for queries).
 
 ```javascript
 Document
@@ -175,20 +176,19 @@ A fluent API allows us to describe the document graph:
 
 * `entity(name)` an object containing `id` and `__typename`
 * `entitySet(name)` a list of objects containing `id` and `__typename`
-* `scalar(name, transformer)` a simple value such as a string, an integer, a boolean, a Date instance, etc.
+* `scalar(name, transformer)` a string value that we may convert using the `transformer` callback
 * `embed(name)` an object containing only scalars or nested embeds, but no entities
 * `embedList(name)` a list of embeds
 * `union(name)` a union which resolves to an entity or an object with a `__typename`
 * `unionList(name)` a list of unions
 * `interface(name)` an interface which resolves to an entity
 * `interfaceSet(name)` a list of interfaces
-* `onEntity(typename)`
-* `onTypedObject(typename)`
+* `onEntity(typename)` used in a union or interface to discriminate by type
+* `onTypedObject(typename)` used in a union to discriminate by type
 * `embedUnion(name)` a union which resolves to an object with a `__typename` but no entity or nested entities
 * `embedUnionList(name)` a list of the above
 
 The underscore character `_` refers to the parent object which allows us to navigate back to the parent.
-Its use was taken from the pattern described in the following GitHub repository: https://github.com/djeang/parent-chaining
 
 ### Declare variables
 
@@ -206,7 +206,7 @@ Document
 
 When new server data is fetched, caches held by queries may have to be updated. The functions below allow to specify what needs to be changed based on the fetched data:
 
-Delete an entity:
+Delete an entity from caches:
 
 ```javascript
 Document
@@ -226,7 +226,7 @@ Document
   .makeExecutable();
 ```
 
-Remove entities from a list:
+Remove entities from an array:
 
 ```javascript
 Document
@@ -237,7 +237,7 @@ Document
   .makeExecutable();
 ```
 
-Remove entities that are not included in the list:
+Remove entities from an array that are not included in the exhaustive list:
 
 ```javascript
 Document
@@ -248,10 +248,9 @@ Document
   .makeExecutable();
 ```
 
-When entities are fetched, some entities may need to be added into arrays or
-need to replace some nested entity.
+When entities are fetched, some entities may need to be added into cached arrays or need to replace some nested entity.
 
-`filterEntity` allows to add a fetched entity into an array of entities:
+`filterEntity` allows to add a fetched entity into an array of cached entities:
 
 ```javascript
 Document
