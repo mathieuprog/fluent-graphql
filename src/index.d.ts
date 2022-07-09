@@ -1,7 +1,7 @@
 declare module "fluent-graphql" {
   type ObjectLiteral = { [key: string]: unknown };
 
-  export enum FetchStrategy {
+  enum FetchStrategy {
     FetchFromCacheOrThrow = "FETCH_FROM_CACHE_OR_THROW",
     FetchFromCacheOrFallbackNetwork = "FETCH_FROM_CACHE_OR_FALLBACK_NETWORK",
     FetchFromCacheAndNetwork = "FETCH_FROM_CACHE_AND_NETWORK",
@@ -23,15 +23,15 @@ declare module "fluent-graphql" {
     [key: string]: unknown;
   }
 
-  export class Client {
+  class Client {
     constructor(config: ClientConfig);
   }
 
-  export class NotFoundInCacheError extends Error {}
+  class NotFoundInCacheError extends Error {}
 
-  export class GraphQLError extends Error {}
+  class GraphQLError extends Error {}
 
-  export class Object<This, Parent> {
+  class Object<This, Parent> {
     _: Parent
     scalar(name: string, transformer?: (v: unknown) => unknown): Object<This, Parent>;
     entity(name: string): Object<NestedObject<This>, This>;
@@ -58,15 +58,15 @@ declare module "fluent-graphql" {
     delete(): Object<This, Parent>;
   }
 
-  export class NestedObject<Parent> extends Object<NestedObject<Parent>, Parent> {}
+  class NestedObject<Parent> extends Object<NestedObject<Parent>, Parent> {}
 
-  export class RootObject extends Object<RootObject, Document> {
+  class RootObject extends Object<RootObject, Document> {
     variableDefinitions(variableDefinitions: ObjectLiteral): RootObject;
   }
 
-  export class InlineFragment<Parent> extends Object<InlineFragment<Parent>, Parent> {}
+  class InlineFragment<Parent> extends Object<InlineFragment<Parent>, Parent> {}
 
-  export class Document {
+  class Document {
     static query(operationName?: string): RootObject;
     static mutation(operationName: string): RootObject;
     static subscription(operationName: string): RootObject;
@@ -106,5 +106,5 @@ declare module "fluent-graphql" {
     [key: string]: unknown;
   }
 
-  export function findGraphQLError(error: Error, find: (error: GraphQLErrorObject) => boolean): GraphQLErrorObject | null;
+  function findGraphQLError(error: Error, find: (error: GraphQLErrorObject) => boolean): GraphQLErrorObject | null;
 }
