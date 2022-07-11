@@ -242,7 +242,6 @@ export default class QueryCache {
 
     for (let propName of Object.keys(scalars)) {
       if (propName in entity === false) {
-        console.log(entity, propName)
         throw new Error();
       }
 
