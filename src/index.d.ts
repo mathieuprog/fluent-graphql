@@ -70,21 +70,21 @@ declare module "fluent-graphql" {
     static subscription(operationName: string): RootObject;
     static setDefaultClient(client: Client): void;
     makeExecutable(client?: Client): Document;
-    execute(
+    execute<T>(
       variables: ObjectLiteral,
       options?: ObjectLiteral
-    ): Promise<unknown>;
-    execute(
+    ): Promise<T>;
+    execute<T>(
       variables: ObjectLiteral,
-      subscriber: (data: ObjectLiteral) => void,
+      subscriber: (data: T) => void,
       returnUnsubscriber: (unsubscriber: () => void) => void,
       options?: ObjectLiteral
-    ): Promise<unknown>;
-    execute(
+    ): Promise<T>;
+    execute<T>(
       variables: ObjectLiteral,
       sink: ObjectLiteral,
       options?: ObjectLiteral
-    ): Promise<unknown>;
+    ): Promise<T>;
     transformResponse(fun: (data: any) => unknown): Document
     clearAfter(duration: any): Document // TODO Temporal type
     pollAfter(duration: any): Document
