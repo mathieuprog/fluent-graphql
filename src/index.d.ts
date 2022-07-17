@@ -69,6 +69,8 @@ declare module "fluent-graphql" {
     static mutation(operationName: string): RootObject;
     static subscription(operationName: string): RootObject;
     static setDefaultClient(client: Client): void;
+    static simulateNetworkDelayGlobally(min: number, max: number): void;
+    simulateNetworkDelay(min: number, max: number): Document
     makeExecutable(client?: Client): Document;
     execute<T>(
       variables: ObjectLiteral,
