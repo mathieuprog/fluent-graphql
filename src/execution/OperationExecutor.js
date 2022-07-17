@@ -26,11 +26,6 @@ export default class OperationExecutor {
   async execute(...args) {
     const [variables, arg2, arg3, arg4] = args;
 
-    const delay = await this.document.maybeSimulateNetworkDelay();
-    if (delay === false) {
-      await Document.maybeSimulateNetworkDelayGlobally();
-    }
-
     switch (this.document.operationType) {
       case OperationType.QUERY:
         let subscriber;
@@ -78,6 +73,8 @@ export default class OperationExecutor {
   }
 
   async executeRequest(variables, handleUpdates) {
+    await this.maybeSimulateNetworkDelay();
+
     const client = await this.getClient();
 
     const queryString = this.document.getQueryString();
@@ -99,6 +96,13 @@ export default class OperationExecutor {
     handleUpdates && handleUpdates(entities);
 
     return data;
+  }
+
+  async maybeSimulateNetworkDelay() {
+    const delay = await this.document.maybeSimulateNetworkDelay();
+    if (delay === false) {
+      await Document.maybeSimulateNetworkDelayGlobally();
+    }
   }
 
   getQueryForVars(variables) {
