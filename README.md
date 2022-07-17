@@ -19,7 +19,7 @@ const document =
     .query()
       .entity('user')
         .scalar('name')
-        .scalar('age')._._
+        .scalar('age', Number)._._
     .makeExecutable();
 ```
 
