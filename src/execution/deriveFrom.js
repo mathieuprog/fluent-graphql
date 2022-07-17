@@ -52,7 +52,7 @@ async function doDeriveFrom(meta, data, variables) {
         break;
 
       case ObjectType.ENTITY_SET:
-      case ObjectType.UNION_LIST:
+      case ObjectType.UNION_SET:
       case ObjectType.INTERFACE_SET:
         data[propName] = await Promise.all(data[propName].map((entity) => doDeriveFrom(object, entity, variables)));
         break;
@@ -111,8 +111,6 @@ function buildDataGraph(meta, dataToDeriveFrom, result = {}) {
 
       case ObjectType.EMBED:
       case ObjectType.EMBED_LIST:
-      case ObjectType.EMBED_UNION:
-      case ObjectType.EMBED_UNION_LIST:
         result[propName] = dataToDeriveFrom[propName];
         break;
 
@@ -125,7 +123,7 @@ function buildDataGraph(meta, dataToDeriveFrom, result = {}) {
         break;
 
       case ObjectType.ENTITY_SET:
-      case ObjectType.UNION_LIST:
+      case ObjectType.UNION_SET:
       case ObjectType.INTERFACE_SET:
         result[propName] = dataToDeriveFrom[propName].map((entity) => buildDataGraph(object, entity));
         break;

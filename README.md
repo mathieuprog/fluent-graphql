@@ -4,9 +4,8 @@
 * [Why?](#why)
 * [How?](#how)
 * [Install!](#install)
+* [Limitations](#limitations)
 * [License](#license)
-<!--* [Architecture](#architecture)
-  * [Global normalized cache](#global-normalized-cache)-->
 
 ## What?
 
@@ -185,8 +184,6 @@ A fluent API allows us to describe the document graph:
 * `interfaceSet(name)` a list of interfaces
 * `onEntity(typename)` used in a union or interface to discriminate by type
 * `onTypedObject(typename)` used in a union to discriminate by type
-* `embedUnion(name)` a union which resolves to an object with a `__typename` but no entity or nested entities
-* `embedUnionList(name)` a list of the above
 
 The underscore character `_` refers to the parent object which allows us to navigate back to the parent.
 
@@ -332,6 +329,11 @@ Document
   .clearAfter(Temporal.Duration.from({ days: 1 }))
   .pollAfter(Temporal.Duration.from({ hours: 1 }));
 ```
+
+## Limitations
+
+* IDs must be unique globally (e.g. UUIDs)
+* lists of entities are sets, i.e. they may not contain duplicates (may add support for arrays)
 
 ## Install!
 

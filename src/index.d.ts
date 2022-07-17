@@ -37,9 +37,7 @@ declare module "fluent-graphql" {
     entity(name: string): Object<NestedObject<This>, This>;
     entitySet(name: string): Object<NestedObject<This>, This>;
     union(name: string): Object<NestedObject<This>, This>;
-    unionList(name: string): Object<NestedObject<This>, This>;
-    embedUnion(name: string): Object<NestedObject<This>, This>;
-    embedUnionList(name: string): Object<NestedObject<This>, This>;
+    unionSet(name: string): Object<NestedObject<This>, This>;
     interface(name: string): Object<NestedObject<This>, This>;
     interfaceSet(name: string): Object<NestedObject<This>, This>;
     onEntity(typename: string): InlineFragment<This>;

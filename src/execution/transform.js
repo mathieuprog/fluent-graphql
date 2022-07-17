@@ -52,7 +52,6 @@ function doTransform(meta, data) {
     switch (object.type) {
       case ObjectType.UNION:
       case ObjectType.INTERFACE:
-      case ObjectType.EMBED_UNION:
         if (data[propName] !== null) {
           if (!object.inlineFragments[data[propName].__typename]) {
             throw new Error();
@@ -61,9 +60,8 @@ function doTransform(meta, data) {
         }
         break;
 
-      case ObjectType.UNION_LIST:
+      case ObjectType.UNION_SET:
       case ObjectType.INTERFACE_SET:
-      case ObjectType.EMBED_UNION_LIST:
         data[propName] = data[propName].map((value) => {
           if (!object.inlineFragments[value.__typename]) {
             throw new Error();

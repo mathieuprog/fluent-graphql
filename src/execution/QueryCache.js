@@ -71,7 +71,7 @@ export default class QueryCache {
           break;
 
         case ObjectType.ENTITY_SET:
-        case ObjectType.UNION_LIST:
+        case ObjectType.UNION_SET:
         case ObjectType.INTERFACE_SET:
           if (object.filter) {
             for (let updatedEntity of updates) {
@@ -153,8 +153,6 @@ export default class QueryCache {
 
           case ObjectType.EMBED:
           case ObjectType.EMBED_LIST:
-          case ObjectType.EMBED_UNION:
-          case ObjectType.EMBED_UNION_LIST:
             if (areValuesEqual(entity[propName], updatedEntity[propName])) {
               continue;
             }
@@ -180,7 +178,7 @@ export default class QueryCache {
             break;
 
           case ObjectType.ENTITY_SET:
-          case ObjectType.UNION_LIST:
+          case ObjectType.UNION_SET:
           case ObjectType.INTERFACE_SET:
             const currentIds = entity[propName].map(({ id }) => id);
             const updatedIds = updatedEntity[propName].map(({ id }) => id);
@@ -265,8 +263,6 @@ export default class QueryCache {
 
         case ObjectType.EMBED:
         case ObjectType.EMBED_LIST:
-        case ObjectType.EMBED_UNION:
-        case ObjectType.EMBED_UNION_LIST:
           newEntity[propName] = entity[propName];
           break;
 
@@ -279,7 +275,7 @@ export default class QueryCache {
           break;
 
         case ObjectType.ENTITY_SET:
-        case ObjectType.UNION_LIST:
+        case ObjectType.UNION_SET:
         case ObjectType.INTERFACE_SET:
           newEntity[propName] = entity[propName].map((entity) => this.addEntity(object, entity));
           break;

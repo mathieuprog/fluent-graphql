@@ -48,22 +48,10 @@ export default class Object {
     return this.object_(name, ObjectType.UNION);
   }
 
-  unionList(name) {
+  unionSet(name) {
     this.rejectAddingEntityInEmbed();
     this.rejectAddingFieldsInUnion();
-    return this.object_(name, ObjectType.UNION_LIST);
-  }
-
-  embedUnion(name) {
-    this.rejectAddingEntityInEmbed();
-    this.rejectAddingFieldsInUnion();
-    return this.object_(name, ObjectType.EMBED_UNION);
-  }
-
-  embedUnionList(name) {
-    this.rejectAddingEntityInEmbed();
-    this.rejectAddingFieldsInUnion();
-    return this.object_(name, ObjectType.EMBED_UNION_LIST);
+    return this.object_(name, ObjectType.UNION_SET);
   }
 
   interface(name) {
@@ -80,7 +68,6 @@ export default class Object {
 
   onEntity(typename) {
     this.rejectAddingInlineFragmentInObject();
-    this.rejectAddingInlineEntityFragmentInEmbedUnion();
     const inlineFragment = Document.createInlineFragment(this, ObjectType.INLINE_FRAGMENT_ENTITY, typename);
     this.inlineFragments[typename] = inlineFragment;
     return inlineFragment;
@@ -144,7 +131,7 @@ export default class Object {
   }
 
   overrideElements() {
-    if (![ObjectType.ENTITY_SET, ObjectType.UNION_LIST, ObjectType.INTERFACE_SET].includes(this.type)) {
+    if (![ObjectType.ENTITY_SET, ObjectType.UNION_SET, ObjectType.INTERFACE_SET].includes(this.type)) {
       throw new Error();
     }
     this.areElementsToBeOverridden = true;
@@ -152,7 +139,7 @@ export default class Object {
   }
 
   removeElements() {
-    if (![ObjectType.ENTITY_SET, ObjectType.UNION_LIST, ObjectType.INTERFACE_SET].includes(this.type)) {
+    if (![ObjectType.ENTITY_SET, ObjectType.UNION_SET, ObjectType.INTERFACE_SET].includes(this.type)) {
       throw new Error();
     }
     if (this.getOperationType() !== OperationType.MUTATION) {
@@ -163,7 +150,7 @@ export default class Object {
   }
 
   deleteElements() {
-    if (![ObjectType.ENTITY_SET, ObjectType.UNION_LIST, ObjectType.INTERFACE_SET].includes(this.type)) {
+    if (![ObjectType.ENTITY_SET, ObjectType.UNION_SET, ObjectType.INTERFACE_SET].includes(this.type)) {
       throw new Error();
     }
     if (this.getOperationType() !== OperationType.MUTATION) {
@@ -197,31 +184,16 @@ export default class Object {
   rejectAddingEntityInEmbed() {
     if ([
       ObjectType.EMBED,
-      ObjectType.EMBED_LIST,
-      ObjectType.EMBED_UNION,
-      ObjectType.EMBED_UNION_LIST
+      ObjectType.EMBED_LIST
     ].includes(this.type)) {
       throw new Error('embeds may not contain entities');
     }
-  }
-
-  rejectAddingInlineEntityFragmentInEmbedUnion() {
-    if ([
-      ObjectType.EMBED_UNION,
-      ObjectType.EMBED_UNION_LIST
-    ].includes(this.type)) {
-      throw new Error('embeds may not contain entities');
+    if (this.getOperationType() === OperationType.MUTATION) {
+      return;
     }
   }
 
   rejectAddingInlineTypedObjectInQuery() {
-    if ([
-      ObjectType.EMBED_UNION,
-      ObjectType.EMBED_UNION_LIST
-    ].includes(this.type)) {
-      return;
-    }
-
     if (this.getOperationType() !== OperationType.MUTATION) {
       throw new Error();
     }
@@ -230,9 +202,7 @@ export default class Object {
   rejectAddingFieldsInUnion() {
     if ([
       ObjectType.UNION,
-      ObjectType.UNION_LIST,
-      ObjectType.EMBED_UNION,
-      ObjectType.EMBED_UNION_LIST
+      ObjectType.UNION_SET
     ].includes(this.type)) {
       throw new Error('unions may not contain fields outside an inline fragment');
     }
@@ -241,11 +211,9 @@ export default class Object {
   rejectAddingInlineFragmentInObject() {
     if (![
       ObjectType.UNION,
-      ObjectType.UNION_LIST,
+      ObjectType.UNION_SET,
       ObjectType.INTERFACE,
-      ObjectType.INTERFACE_SET,
-      ObjectType.EMBED_UNION,
-      ObjectType.EMBED_UNION_LIST
+      ObjectType.INTERFACE_SET
     ].includes(this.type)) {
       throw new Error('inline fragments may only be added into unions or interfaces');
     }
@@ -265,9 +233,7 @@ export default class Object {
 
     if ([
       ObjectType.UNION,
-      ObjectType.UNION_LIST,
-      ObjectType.EMBED_UNION,
-      ObjectType.EMBED_UNION_LIST
+      ObjectType.UNION_SET
     ].includes(type)) {
       this.scalar('__typename');
       return;
@@ -275,7 +241,7 @@ export default class Object {
 
     if ([
       ObjectType.UNION,
-      ObjectType.UNION_LIST
+      ObjectType.UNION_SET
     ].includes(parentType) && type === ObjectType.INLINE_FRAGMENT_ENTITY) {
       this.scalar('id');
       return;

@@ -10,7 +10,7 @@ test('normalize entities', () => {
             .removeElements()._
           .entity('appointment')
             ._
-          .unionList('union')
+          .unionSet('union')
             .onTypedObject('Type1')
               .scalar('foo')._
             .onEntity('Type2')

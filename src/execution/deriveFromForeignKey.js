@@ -55,7 +55,7 @@ async function doDeriveFromForeignKey(meta, data, variables) {
         break;
 
       case ObjectType.ENTITY_SET:
-      case ObjectType.UNION_LIST:
+      case ObjectType.UNION_SET:
       case ObjectType.INTERFACE_SET:
         data[propName] = await Promise.all(data[propName].map((entity) => doDeriveFromForeignKey(object, entity, variables)));
         break;
@@ -127,8 +127,6 @@ async function buildDataGraph(meta, dataToDeriveFrom, variables, result = {}) {
 
       case ObjectType.EMBED:
       case ObjectType.EMBED_LIST:
-      case ObjectType.EMBED_UNION:
-      case ObjectType.EMBED_UNION_LIST:
         result[propName] = dataToDeriveFrom[propName];
         break;
 
@@ -141,7 +139,7 @@ async function buildDataGraph(meta, dataToDeriveFrom, variables, result = {}) {
         break;
 
       case ObjectType.ENTITY_SET:
-      case ObjectType.UNION_LIST:
+      case ObjectType.UNION_SET:
       case ObjectType.INTERFACE_SET:
         result[propName] = await Promise.all(dataToDeriveFrom[propName].map((entity) => buildDataGraph(object, entity, variables)));
         break;

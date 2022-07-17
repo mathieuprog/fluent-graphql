@@ -70,7 +70,7 @@ function doNormalizeEntities(meta, data, normalizedEntities = []) {
         }
         break;
 
-      case ObjectType.UNION_LIST:
+      case ObjectType.UNION_SET:
       case ObjectType.INTERFACE_SET:
         data[propName].forEach((value) => {
           if (!object.inlineFragments[value.__typename]) {

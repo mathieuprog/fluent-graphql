@@ -9,7 +9,7 @@ test('transform', () => {
         .scalar('int', Number)
         .entity('foo')
           .scalar('int', Number)
-          .unionList('union')
+          .unionSet('union')
             .onTypedObject('Type1')
               .scalar('int', Number)._
             .onEntity('Type2')
