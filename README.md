@@ -99,7 +99,7 @@ The `http` object must contain a `url` property specifying the URL of the API, a
 The `ws` object must also contain the `url` property as well as additional properties required by the `createClient` function of `graphql-ws`:<br>
 https://github.com/enisdenjo/graphql-ws/blob/master/docs/modules/client.md
 
-The client may also be a promise, which is useful when dealing with CSRF tokens.
+The client may also be a promise, which is useful for dealing with CSRF tokens.
 
 <details>
   <summary>Advanced example handling CSRF tokens</summary>
