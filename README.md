@@ -179,7 +179,7 @@ A fluent API allows us to describe the document graph:
 * `embed(name)` an object containing only scalars or nested embeds, but no entities
 * `embedList(name)` a list of embeds
 * `union(name)` a union which resolves to an entity or an object with a `__typename`
-* `unionList(name)` a list of unions
+* `unionSet(name)` a list of unions
 * `interface(name)` an interface which resolves to an entity
 * `interfaceSet(name)` a list of interfaces
 * `onEntity(typename)` used in a union or interface to discriminate by type
