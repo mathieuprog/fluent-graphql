@@ -6,6 +6,7 @@ import OperationExecutor from '../execution/OperationExecutor';
 
 export default class Document {
   static defaultClient = null;
+  static maybeSimulateNetworkDelayGlobally = () => false;
 
   constructor(operationType, operationName) {
     this.operationType = operationType;
@@ -17,6 +18,7 @@ export default class Document {
     this.clearAfterDuration = null;
     this.pollAfterDuration = null;
     this.executor = null;
+    this.maybeSimulateNetworkDelay = () => false;
   }
 
   static query(operationName = null) {
@@ -35,8 +37,25 @@ export default class Document {
     Document.defaultClient = client;
   }
 
+  static simulateNetworkDelayGlobally(min, max) {
+    Document.maybeSimulateNetworkDelayGlobally =
+      () => Document.doSimulateNetworkDelay(min, max);
+  }
+
+  static async doSimulateNetworkDelay(min, max) {
+    const delay = Math.round(Math.random() * (max - min) + min);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    return delay;
+  }
+
   static createInlineFragment(parent, type, typename) { // added this here to avoid a cyclic dependency error
     return new InlineFragment(parent, type, typename);
+  }
+
+  simulateNetworkDelay(min, max) {
+    this.maybeSimulateNetworkDelay =
+      () => Document.doSimulateNetworkDelay(min, max);
+    return this;
   }
 
   getQueryString() {

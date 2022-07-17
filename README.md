@@ -329,6 +329,30 @@ Document
   .pollAfter(Temporal.Duration.from({ hours: 1 }));
 ```
 
+### Simulate slower network requests
+
+When developing and running the app in localhost, requests execute nearly instantly. In order to simulate a network delay (eg to have the UI behave closer to its behavior in production, to simulate poor network conditions, to have a better glance at spinners, etc.) you may call the static function `simulateNetworkDelay(min, max)`:
+
+```javascript
+Document.simulateNetworkDelayGlobally(1000, 3000);
+```
+
+The call above will add to every network request a delay between 1 and 3 seconds.
+
+Example using Vite:
+
+```javascript
+if (import.meta.env.DEV) {
+  Document.simulateNetworkDelayGlobally(1000, 3000);
+}
+```
+
+You may also specify the delay for a specific document (which overrides the global configured delay if any for this document):
+
+```javascript
+document.simulateNetworkDelay(1000, 3000);
+```
+
 ## Limitations
 
 * IDs must be unique globally (e.g. UUIDs)

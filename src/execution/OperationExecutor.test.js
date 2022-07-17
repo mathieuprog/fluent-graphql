@@ -251,7 +251,7 @@ test('clear and poll', async () => {
 
   expect(request1).toHaveBeenCalledTimes(1);
 
-  const sleep = (ms) => new Promise((resolve => setTimeout(resolve, ms)));
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   await sleep(60);
 
   expect(request1).toHaveBeenCalledTimes(1);
