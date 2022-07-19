@@ -331,7 +331,7 @@ Document
 
 ### Simulate slower network requests
 
-When developing and running the app in localhost, requests execute nearly instantly. In order to simulate a network delay (eg to have the UI behave closer to its behavior in production, to simulate poor network conditions, to have a better glance at spinners, etc.) you may call the static function `simulateNetworkDelay(min, max)`:
+When developing and running the app in localhost, requests execute nearly instantly. In order to simulate a network delay (eg to have the UI behave closer to its behavior in production, to simulate poor network conditions, to have a better glance at spinners, etc.) you may call the static function `simulateNetworkDelayGlobally(min, max)`:
 
 ```javascript
 Document.simulateNetworkDelayGlobally(1000, 3000);
