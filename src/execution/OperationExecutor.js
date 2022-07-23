@@ -155,6 +155,7 @@ export default class OperationExecutor {
   }
 
   getClient() {
-    return this.maybeClient ?? Document.defaultClient;
+    const client = this.maybeClient ?? Document.defaultClient;
+    return (typeof client === 'function') ? client() : client;
   }
 }
