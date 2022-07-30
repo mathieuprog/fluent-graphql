@@ -9,6 +9,6 @@ export {
   Document,
   FetchStrategy,
   GraphQLError,
-  NotFoundInCacheError,
-  findGraphQLError
+  findGraphQLError,
+  NotFoundInCacheError
 }

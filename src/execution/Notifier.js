@@ -13,13 +13,13 @@ export default class Notifier {
     };
   }
 
-  static notify(data, metadata = null) {
+  static notify(data) {
     if (isEmptyObjectLiteral(data)) {
       return;
     }
 
     for (const { subscriber } of Notifier.subscribers) {
-      subscriber.updateCache(data, metadata);
+      subscriber.updateCache(data);
     }
   }
 }

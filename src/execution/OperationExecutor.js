@@ -53,7 +53,7 @@ export default class OperationExecutor {
           returnUnsubscriber(unsubscribe);
         }
 
-        await queryForVars.fetchByStrategy(fetchStrategy, Notifier.notify);
+        await queryForVars.fetchByStrategy(fetchStrategy);
 
         queryForVars.listen(() => Notifier.subscribe(queryForVars));
 
@@ -93,6 +93,8 @@ export default class OperationExecutor {
 
     const entities = normalizeEntities(this.document, data);
 
+    console.log(entities);
+
     handleUpdates && handleUpdates(entities);
 
     return data;
@@ -114,8 +116,7 @@ export default class OperationExecutor {
           this.document,
           variables,
           () => this.executeRequest(variables, Notifier.notify),
-          () => this.removeQueryForVars(variables),
-          Notifier.notify
+          () => this.removeQueryForVars(variables)
         );
     }
 
