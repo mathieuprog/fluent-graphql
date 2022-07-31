@@ -93,8 +93,6 @@ export default class OperationExecutor {
 
     const entities = normalizeEntities(this.document, data);
 
-    console.log(entities);
-
     handleUpdates && handleUpdates(entities);
 
     return data;
