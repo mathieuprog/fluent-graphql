@@ -72,6 +72,12 @@ export default class OperationExecutor {
     }
   }
 
+  simulateNetworkRequest(data) {
+    data = transform(this.document, data);
+    const entities = normalizeEntities(this.document, data);
+    Notifier.notify(entities);
+  }
+
   async executeRequest(variables, handleUpdates) {
     await this.maybeSimulateNetworkDelay();
 
