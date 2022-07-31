@@ -350,7 +350,7 @@ if (import.meta.env.DEV) {
 You may also specify the delay for a specific document (which overrides any global configured delay for this document):
 
 ```javascript
-document.simulateNetworkDelay(1000, 3000);
+Document.simulateNetworkDelay(1000, 3000);
 ```
 
 ## Limitations
