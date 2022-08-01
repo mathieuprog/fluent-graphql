@@ -116,7 +116,10 @@ export default class QueryForVars {
             return;
           }
 
-          this.unsubscriber && this.unsubscriber();
+          if (this.unsubscriber) {
+            this.unsubscriber();
+            this.unsubscriber = null;
+          }
           clearTimeout(this.timeoutClear);
           clearTimeout(this.intervalPoll);
           this.clear();
