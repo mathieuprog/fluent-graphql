@@ -133,6 +133,11 @@ export default class OperationExecutor {
 
   removeQueryForVars(variables) {
     const stringifiedVars = JSON.stringify(sortProperties(variables));
+    const queryForVars = this.queriesForVars[stringifiedVars];
+    if (queryForVars) {
+      queryForVars.onClear = null;
+      queryForVars.clear();
+    }
     delete this.queriesForVars[stringifiedVars];
   }
 

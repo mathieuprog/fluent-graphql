@@ -29,7 +29,7 @@ export default class QueryForVars {
     }
     clearTimeout(this.timeoutClear);
     clearInterval(this.intervalPoll);
-    this.onClear();
+    this.onClear && this.onClear();
   }
 
   subscribe(subscriber) {
