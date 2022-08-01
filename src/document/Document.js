@@ -154,7 +154,7 @@ export default class Document {
       for (const [stringifiedVars, queryForVars] of Object.entries(queriesForVars)) {
         console.group('variables', stringifiedVars);
         console.log('cached data:', !!queryForVars.cache?.transformedData);
-        console.log('listens to network:', !!queryForVars.unsubscriber);
+        console.log('listens network:', !!queryForVars.unsubscriber);
         console.log('subscriber count:', queryForVars.subscribers.size);
         console.groupEnd();
       }

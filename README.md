@@ -353,6 +353,26 @@ You may also specify the delay for a specific document (which overrides any glob
 Document.simulateNetworkDelay(1000, 3000);
 ```
 
+### Simulate a network request
+
+```javascript
+document.simulateNetworkRequest(data);
+```
+
+### Clear a document
+
+Unsubscribe all the queries of a document instance from incoming network data:
+
+```javascript
+document.clear();
+```
+
+### Log status of queries
+
+```javascript
+FluentGraphQL.logStatusQueries();
+```
+
 ## Limitations
 
 * IDs must be unique globally (e.g. UUIDs)
