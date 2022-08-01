@@ -329,6 +329,18 @@ Document
   .pollAfter(Temporal.Duration.from({ hours: 1 }));
 ```
 
+### Clear a document
+
+Unsubscribe all the queries of a document instance from incoming network data:
+
+```javascript
+documentInstance.clear();
+```
+
+### Development utilities
+
+Below are some utility functions for development purposes.
+
 ### Simulate slower network requests
 
 When developing and running the app in localhost, requests execute nearly instantly. In order to simulate a network delay (eg to have the UI behave closer to its behavior in production, to simulate poor network conditions, to have a better glance at spinners, etc.) you may call the static function `simulateNetworkDelayGlobally(min, max)`:
@@ -353,24 +365,33 @@ You may also specify the delay for a specific document (which overrides any glob
 Document.simulateNetworkDelay(1000, 3000);
 ```
 
+### Retrieve a document instance from the console
+
+```javascript
+FluentGraphQL.document('operationName');
+```
+
+### Create a document instance from the console
+
+```javascript
+FluentGraphQL
+  .query('operationName')
+```
+
+```javascript
+FluentGraphQL
+  .mutation('operationName')
+```
+
+```javascript
+FluentGraphQL
+  .subscription('operationName')
+```
+
 ### Simulate a network request
 
 ```javascript
 documentInstance.simulateNetworkRequest(data);
-```
-
-If you need to work from the console, you may use the global `FluentGraphQL` object to access the document:
-
-```javascript
-FluentGraphQL.document('operationName').simulateNetworkRequest(data);
-```
-
-### Clear a document
-
-Unsubscribe all the queries of a document instance from incoming network data:
-
-```javascript
-documentInstance.clear();
 ```
 
 ### Log status of queries
