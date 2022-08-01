@@ -87,9 +87,11 @@ declare module "fluent-graphql" {
       sink: ObjectLiteral,
       options?: ObjectLiteral
     ): Promise<T>;
+    simulateNetworkRequest(data: ObjectLiteral): void;
     transformResponse(fun: (data: any) => unknown): Document
     clearAfter(duration: any): Document // TODO Temporal type
     pollAfter(duration: any): Document
+    clear(): void;
   }
 
   interface GraphQLErrorObject {
