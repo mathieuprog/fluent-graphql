@@ -4,6 +4,12 @@ import FetchStrategy from './execution/FetchStrategy';
 import GraphQLError, { findGraphQLError } from './errors/GraphQLError';
 import NotFoundInCacheError from './errors/NotFoundInCacheError';
 
+globalThis.FluentGraphQL = {
+  logStatusQueries() {
+    Document.logStatusQueries();
+  }
+}
+
 export {
   Client,
   Document,
