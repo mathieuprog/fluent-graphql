@@ -105,6 +105,14 @@ export default class Document {
     return this.executor.execute(...args);
   }
 
+  simulateNetworkRequest(data) {
+    if (!this.executor) {
+      throw new Error('makeExecutable() has not been called');
+    }
+
+    return this.executor.simulateNetworkRequest(data);
+  }
+
   handleReactivity() {
     return this.executor.unsubscribeOnSubsequentCalls();
   }

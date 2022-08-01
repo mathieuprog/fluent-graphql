@@ -8,7 +8,7 @@ globalThis.FluentGraphQL = {
   logStatusQueries() {
     Document.logStatusQueries();
   }
-}
+};
 
 export {
   Client,
