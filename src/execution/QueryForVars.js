@@ -8,6 +8,7 @@ export default class QueryForVars {
     this.variables = variables;
     this.executeRequest = executeRequest;
     this.onClear = onClear;
+    this.cleared = false;
     this.pendingPromise = null;
     this.cache = null;
     this.unsubscriber = null;
@@ -30,6 +31,7 @@ export default class QueryForVars {
     clearTimeout(this.timeoutClear);
     clearInterval(this.intervalPoll);
     this.onClear && this.onClear();
+    this.cleared = true;
   }
 
   subscribe(subscriber) {
@@ -59,6 +61,9 @@ export default class QueryForVars {
   }
 
   updateCache(updates) {
+    if (this.cleared) {
+      throw new Error();
+    }
     if (this.cache.update(updates)) {
       this.notifySubscribers(this.cache.transformedData);
     }

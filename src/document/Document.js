@@ -5,6 +5,7 @@ import stringify from './stringify';
 import OperationExecutor from '../execution/OperationExecutor';
 
 export default class Document {
+  static instances = [];
   static defaultClient = null;
   static maybeSimulateNetworkDelayGlobally = () => false;
 
@@ -21,16 +22,28 @@ export default class Document {
     this.maybeSimulateNetworkDelay = () => false;
   }
 
+  clear() {
+    this.executor.clear();
+    this.executor = null;
+    Document.instances = Document.instances.filter((instance) => instance !== this);
+  }
+
   static query(operationName = null) {
-    return (new Document(OperationType.QUERY, operationName)).rootObject;
+    const document = new Document(OperationType.QUERY, operationName);
+    Document.instances.push(document);
+    return document.rootObject;
   }
 
   static mutation(operationName) {
-    return (new Document(OperationType.MUTATION, operationName)).rootObject;
+    const document = new Document(OperationType.MUTATION, operationName);
+    Document.instances.push(document);
+    return document.rootObject;
   }
 
   static subscription(operationName) {
-    return (new Document(OperationType.SUBSCRIPTION, operationName)).rootObject;
+    const document = new Document(OperationType.SUBSCRIPTION, operationName);
+    Document.instances.push(document);
+    return document.rootObject;
   }
 
   static setDefaultClient(client) {
