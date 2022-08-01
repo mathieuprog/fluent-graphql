@@ -1,4 +1,4 @@
-import { hasObjectProperty } from 'object-array-utils';
+import { hasObjectProperty, sortProperties } from 'object-array-utils';
 import Document from '../document/Document';
 import OperationType from '../document/OperationType';
 import QueryForVars from './QueryForVars';
@@ -112,7 +112,7 @@ export default class OperationExecutor {
   }
 
   getQueryForVars(variables) {
-    const stringifiedVars = JSON.stringify(variables);
+    const stringifiedVars = JSON.stringify(sortProperties(variables));
 
     if (!this.queriesForVars[stringifiedVars]) {
       this.queriesForVars[stringifiedVars] =
@@ -128,16 +128,16 @@ export default class OperationExecutor {
   }
 
   hasQueryForVars(variables) {
-    return !!this.queriesForVars[JSON.stringify(variables)];
+    return !!this.queriesForVars[JSON.stringify(sortProperties(variables))];
   }
 
   removeQueryForVars(variables) {
-    const stringifiedVars = JSON.stringify(variables);
+    const stringifiedVars = JSON.stringify(sortProperties(variables));
     delete this.queriesForVars[stringifiedVars];
   }
 
   getCache(variables) {
-    const stringifiedVars = JSON.stringify(variables);
+    const stringifiedVars = JSON.stringify(sortProperties(variables));
     return this.queriesForVars[stringifiedVars]?.cache?.transformedData || null;
   }
 
