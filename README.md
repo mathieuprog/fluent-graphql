@@ -356,7 +356,13 @@ Document.simulateNetworkDelay(1000, 3000);
 ### Simulate a network request
 
 ```javascript
-document.simulateNetworkRequest(data);
+documentInstance.simulateNetworkRequest(data);
+```
+
+If you need to work from the console, you may use the global `FluentGraphQL` object to access the document:
+
+```javascript
+FluentGraphQL.document('operationName').simulateNetworkRequest(data);
 ```
 
 ### Clear a document
@@ -364,7 +370,7 @@ document.simulateNetworkRequest(data);
 Unsubscribe all the queries of a document instance from incoming network data:
 
 ```javascript
-document.clear();
+documentInstance.clear();
 ```
 
 ### Log status of queries
