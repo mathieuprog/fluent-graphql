@@ -8,8 +8,8 @@ globalThis.FluentGraphQL = {
   logStatusQueries() {
     Document.logStatusQueries();
   },
-  document(name) {
-    const document = Document.instances.filter((document) => document.operationName === name);
+  document(operationName) {
+    const document = Document.instances.filter((document) => document.operationName === operationName);
     if (document.length === 0) {
       return null;
     }
@@ -17,6 +17,15 @@ globalThis.FluentGraphQL = {
       throw new Error('More than one document instance found for the same operation name');
     }
     return document[0];
+  },
+  query(operationName = null) {
+    return Document.query(operationName);
+  },
+  mutation(operationName) {
+    return Document.mutation(operationName);
+  },
+  subscription(operationName) {
+    return Document.subscription(operationName);
   }
 };
 
