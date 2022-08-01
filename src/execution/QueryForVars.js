@@ -3,11 +3,11 @@ import getFetchStrategyAlgorithm from './getFetchStrategyAlgorithm';
 import FetchStrategy from './FetchStrategy';
 
 export default class QueryForVars {
-  constructor(document, variables, executeRequest, clear) {
+  constructor(document, variables, executeRequest, onClear) {
     this.document = document;
     this.variables = variables;
     this.executeRequest = executeRequest;
-    this.clear = clear;
+    this.onClear = onClear;
     this.pendingPromise = null;
     this.cache = null;
     this.unsubscriber = null;
@@ -15,8 +15,18 @@ export default class QueryForVars {
     this.solicitedAt = null;
     this.clearAfterDuration = null;
     this.pollAfterDuration = null;
-    this.initTimeoutClear();
-    this.initIntervalPoll();
+    this.timeoutClear = this.initTimeoutClear();
+    this.intervalPoll = this.initIntervalPoll();
+  }
+
+  clear() {
+    if (this.unsubscriber) {
+      this.unsubscriber();
+      this.unsubscriber = null;
+    }
+    clearTimeout(this.timeoutClear);
+    clearInterval(this.intervalPoll);
+    this.onClear();
   }
 
   subscribe(subscriber) {
@@ -41,7 +51,7 @@ export default class QueryForVars {
 
     if (this.subscribers.size > 0) {
       this.solicitedAt = new Date();
-      this.initTimeoutClear();
+      this.timeoutClear = this.initTimeoutClear();
     }
   }
 
@@ -53,7 +63,7 @@ export default class QueryForVars {
 
   async fetchByStrategy(fetchStrategy) {
     this.solicitedAt = new Date();
-    this.initTimeoutClear();
+    this.timeoutClear = this.initTimeoutClear();
 
     await getFetchStrategyAlgorithm(fetchStrategy)({
       fetchData: this.fetchData.bind(this),
@@ -63,7 +73,7 @@ export default class QueryForVars {
   }
 
   async fetchData() {
-    this.initIntervalPoll();
+    this.intervalPoll = this.initIntervalPoll();
 
     return await this.executePromiseOrWaitPending(this.executeRequest);
   }
@@ -96,7 +106,7 @@ export default class QueryForVars {
 
   initTimeoutClear() {
     if (!this.document.clearAfterDuration) {
-      return;
+      return null;
     }
 
     if (!this.clearAfterDuration) {
@@ -108,29 +118,22 @@ export default class QueryForVars {
 
     clearTimeout(this.timeoutClear);
 
-    this.timeoutClear =
-      setTimeout(
-        () => {
-          if (this.pendingPromise || this.subscribers.size > 0) {
-            this.initTimeoutClear();
-            return;
-          }
+    return setTimeout(
+      () => {
+        if (this.pendingPromise || this.subscribers.size > 0) {
+          this.timeoutClear = this.initTimeoutClear();
+          return;
+        }
 
-          if (this.unsubscriber) {
-            this.unsubscriber();
-            this.unsubscriber = null;
-          }
-          clearTimeout(this.timeoutClear);
-          clearTimeout(this.intervalPoll);
-          this.clear();
-        },
-        this.clearAfterDuration.total({ unit: 'millisecond' })
-      );
+        this.clear();
+      },
+      this.clearAfterDuration.total({ unit: 'millisecond' })
+    );
   }
 
   initIntervalPoll() {
     if (!this.document.pollAfterDuration) {
-      return;
+      return null;
     }
 
     if (!this.pollAfterDuration) {
@@ -142,8 +145,7 @@ export default class QueryForVars {
 
     clearInterval(this.intervalPoll)
 
-    this.intervalPoll =
-      setInterval(
+    return setInterval(
         () => this.fetchByStrategy(FetchStrategy.FETCH_FROM_NETWORK),
         this.pollAfterDuration.total({ unit: 'millisecond' })
       );
