@@ -20,6 +20,9 @@ export default class QueryForVars {
   }
 
   clear() {
+    if (this.subscribers.size > 0) {
+      throw new Error('Cannot clear query that has active subscribers');
+    }
     if (this.unsubscriber) {
       this.unsubscriber();
       this.unsubscriber = null;
@@ -143,11 +146,11 @@ export default class QueryForVars {
           : this.document.pollAfterDuration;
     }
 
-    clearInterval(this.intervalPoll)
+    clearInterval(this.intervalPoll);
 
     return setInterval(
-        () => this.fetchByStrategy(FetchStrategy.FETCH_FROM_NETWORK),
-        this.pollAfterDuration.total({ unit: 'millisecond' })
-      );
+      () => this.fetchByStrategy(FetchStrategy.FETCH_FROM_NETWORK),
+      this.pollAfterDuration.total({ unit: 'millisecond' })
+    );
   }
 }
