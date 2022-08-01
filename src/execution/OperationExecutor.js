@@ -19,6 +19,12 @@ export default class OperationExecutor {
     this.queriesForVars = {};
   }
 
+  clear() {
+    Object.values(this.queriesForVars).forEach((queryForVars) => {
+      queryForVars.clear();
+    });
+  }
+
   unsubscribeOnSubsequentCalls() {
     return new AutoUnsubscriber(this);
   }
