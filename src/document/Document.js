@@ -142,14 +142,14 @@ export default class Document {
     console.group('Fluent GraphQL queries');
 
     for (let document of this.instances) {
-      if (!document.executor) {
+      if (document.operationType !== OperationType.QUERY || !document.executor) {
         continue;
       }
-      console.group('document', document.name);
+      console.group('document', document.operationName);
 
       const queriesForVars = document.executor.queriesForVars;
 
-      console.log(Object.keys(queriesForVars).length, 'queries');
+      console.log('query count:', Object.keys(queriesForVars).length);
 
       for (const [stringifiedVars, queryForVars] of Object.entries(queriesForVars)) {
         console.group('variables', stringifiedVars);
