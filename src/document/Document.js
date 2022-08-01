@@ -129,4 +129,31 @@ export default class Document {
     this.pollAfterDuration = duration;
     return this;
   }
+
+  static logStatusQueries() {
+    console.group('Fluent GraphQL queries');
+
+    for (let document of this.instances) {
+      if (!document.executor) {
+        continue;
+      }
+      console.group('document', document.name);
+
+      const queriesForVars = document.executor.queriesForVars;
+
+      console.log(Object.keys(queriesForVars).length, 'queries');
+
+      for (let stringifiedVars in queriesForVars) {
+        console.group('variables', stringifiedVars);
+        console.log('cached data:', !!queriesForVars.cache?.transformedData);
+        console.log('listens to network:', !!queriesForVars.unsubscriber);
+        console.log('subscriber count:', queriesForVars.subscribers.size);
+        console.groupEnd();
+      }
+
+      console.groupEnd();
+    }
+
+    console.groupEnd();
+  }
 }
