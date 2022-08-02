@@ -394,10 +394,14 @@ FluentGraphQL
 documentInstance.simulateNetworkRequest(data);
 ```
 
-### Log status of queries
+### Inspection
 
 ```javascript
 FluentGraphQL.logStatusQueries();
+```
+
+```javascript
+FluentGraphQL.logConsolidatedCaches();
 ```
 
 ## Limitations
