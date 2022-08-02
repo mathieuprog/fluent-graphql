@@ -3,7 +3,7 @@ import Document from './document/Document';
 import FetchStrategy from './execution/FetchStrategy';
 import GraphQLError, { findGraphQLError } from './errors/GraphQLError';
 import NotFoundInCacheError from './errors/NotFoundInCacheError';
-import {default as logStatusQueries_} from './debug/logStatusQueries';
+import {default as logStatusQueries_} from './inspection/logStatusQueries';
 
 globalThis.FluentGraphQL = {
   logStatusQueries() {
