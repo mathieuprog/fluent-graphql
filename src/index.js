@@ -4,10 +4,14 @@ import FetchStrategy from './execution/FetchStrategy';
 import GraphQLError, { findGraphQLError } from './errors/GraphQLError';
 import NotFoundInCacheError from './errors/NotFoundInCacheError';
 import {default as logStatusQueries_} from './inspection/logStatusQueries';
+import {default as logConsolidatedCaches_} from './inspection/logConsolidatedCaches';
 
 globalThis.FluentGraphQL = {
   logStatusQueries() {
     logStatusQueries_();
+  },
+  logConsolidatedCaches() {
+    logConsolidatedCaches_();
   },
   document(operationName) {
     const document = Document.instances.filter((document) => document.operationName === operationName);
