@@ -17,9 +17,10 @@ export default class QueryCache {
   }
 
   update(updates) {
-    const updated = this.doUpdate(updates, this.data, this.document.rootObject);
+    const { data, updated } = this.doUpdate(updates, this.data, this.document.rootObject);
 
-    this.transformedData = this.document.transform(this.data);
+    this.data = data;
+    this.transformedData = this.document.transform(data);
 
     return updated;
   }
@@ -28,6 +29,8 @@ export default class QueryCache {
     if (!isObjectLiteral(data)) {
       throw new Error();
     }
+
+    data = { ...data };
 
     const objects =
       (data.__typename && meta.inlineFragments[data.__typename])
@@ -41,7 +44,9 @@ export default class QueryCache {
 
       switch (object.type) {
         case ObjectType.VIEWER_OBJECT:
-          updated = this.doUpdate(updates, data[propName], object, updated);
+          const { data: data_, updated: updated_ } = this.doUpdate(updates, data[propName], object, updated);
+          data[propName] = data_;
+          updated = updated || updated_;
           break;
 
         case ObjectType.ENTITY:
@@ -66,7 +71,9 @@ export default class QueryCache {
           }
 
           if (data[propName] !== null) {
-            updated = this.doUpdate(updates, data[propName], object, updated);
+            const { data: data_, updated: updated_ } = this.doUpdate(updates, data[propName], object, updated);
+            data[propName] = data_;
+            updated = updated || updated_;
           }
           break;
 
@@ -94,17 +101,22 @@ export default class QueryCache {
               })
               .filter((entity) => entity);
 
-          data[propName].forEach((entity) => {
-            updated = this.doUpdate(updates, entity, object, updated);
-          });
+          data[propName] =
+            data[propName].map((entity) => {
+              const { data, updated: updated_ } = this.doUpdate(updates, entity, object, updated);
+              updated = updated || updated_;
+              return data;
+            });
           break;
       }
     }
 
-    return updated;
+    return { data, updated };
   }
 
   updateEntity(entity, meta, updates) {
+    entity = { ...entity };
+
     let updated = false;
 
     if (entity.__added) {
