@@ -1,4 +1,5 @@
 import Document from "../document/Document";
+import OperationType from "../document/OperationType";
 
 export default function logStatusQueries() {
   console.group('Fluent GraphQL queries');
