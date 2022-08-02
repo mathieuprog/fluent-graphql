@@ -159,7 +159,3 @@ test('normalizeEntities', () => {
   expect(normalizedEntities.length).toBe(10);
   expect(normalizedEntities.every((entity) => entity.foo)).toBeTruthy();
 });
-
-test('consolidatedCaches', () => {
-
-});
