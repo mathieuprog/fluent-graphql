@@ -3,10 +3,11 @@ import Document from './document/Document';
 import FetchStrategy from './execution/FetchStrategy';
 import GraphQLError, { findGraphQLError } from './errors/GraphQLError';
 import NotFoundInCacheError from './errors/NotFoundInCacheError';
+import {default as logStatusQueries_} from './debug/logStatusQueries';
 
 globalThis.FluentGraphQL = {
   logStatusQueries() {
-    Document.logStatusQueries();
+    logStatusQueries_();
   },
   document(operationName) {
     const document = Document.instances.filter((document) => document.operationName === operationName);
