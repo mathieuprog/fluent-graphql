@@ -16,8 +16,8 @@ export default class QueryCache {
     this.variables = variables;
   }
 
-  update(updates) {
-    const { data, updated } = this.doUpdate(updates, this.data, this.document.rootObject);
+  update(newData) {
+    const { data, updated } = this.doUpdate(newData, this.data, this.document.rootObject);
 
     this.data = data;
     this.transformedData = this.document.transform(data);
@@ -25,7 +25,7 @@ export default class QueryCache {
     return updated;
   }
 
-  doUpdate(updates, data, meta, updated = false) {
+  doUpdate(newData, data, meta, updated = false) {
     if (!isObjectLiteral(data)) {
       throw new Error();
     }
@@ -44,7 +44,7 @@ export default class QueryCache {
 
       switch (object.type) {
         case ObjectType.VIEWER_OBJECT:
-          const { data: data_, updated: updated_ } = this.doUpdate(updates, data[propName], object, updated);
+          const { data: data_, updated: updated_ } = this.doUpdate(newData, data[propName], object, updated);
           data[propName] = data_;
           updated = updated || updated_;
           break;
@@ -53,25 +53,25 @@ export default class QueryCache {
         case ObjectType.UNION:
         case ObjectType.INTERFACE:
           if (object.filter) {
-            for (let updatedEntity of updates) {
+            for (let entity of newData) {
               if (
-                data[propName]?.id !== updatedEntity.id
-                && object.filter[updatedEntity.__typename]?.(updatedEntity, this.variables)
+                data[propName]?.id !== entity.id
+                && object.filter[entity.__typename]?.(entity, this.variables)
               ) {
                 updated = true;
-                data[propName] = this.addEntity(object, updatedEntity);
+                data[propName] = this.addEntity(object, entity);
               }
             }
           }
 
           if (data[propName] !== null) {
-            const { entity, updated: updated_ } = this.updateEntity(data[propName], object, updates);
+            const { entity, updated: updated_ } = this.updateEntity(data[propName], object, newData);
             data[propName] = entity;
             updated = updated || updated_;
           }
 
           if (data[propName] !== null) {
-            const { data: data_, updated: updated_ } = this.doUpdate(updates, data[propName], object, updated);
+            const { data: data_, updated: updated_ } = this.doUpdate(newData, data[propName], object, updated);
             data[propName] = data_;
             updated = updated || updated_;
           }
@@ -81,13 +81,13 @@ export default class QueryCache {
         case ObjectType.UNION_SET:
         case ObjectType.INTERFACE_SET:
           if (object.filter) {
-            for (let updatedEntity of updates) {
+            for (let entity of newData) {
               if (
-                !data[propName].some(({ id }) => id === updatedEntity.id)
-                && object.filter[updatedEntity.__typename]?.(updatedEntity, this.variables)
+                !data[propName].some(({ id }) => id === entity.id)
+                && object.filter[entity.__typename]?.(entity, this.variables)
               ) {
                 updated = true;
-                data[propName] = data[propName].concat(this.addEntity(object, updatedEntity));
+                data[propName] = data[propName].concat(this.addEntity(object, entity));
               }
             }
           }
@@ -95,7 +95,7 @@ export default class QueryCache {
           data[propName] =
             data[propName]
               .map((entity) => {
-                const { entity: entity_, updated: updated_ } = this.updateEntity(entity, object, updates);
+                const { entity: entity_, updated: updated_ } = this.updateEntity(entity, object, newData);
                 updated = updated || updated_;
                 return entity_;
               })
@@ -103,7 +103,7 @@ export default class QueryCache {
 
           data[propName] =
             data[propName].map((entity) => {
-              const { data, updated: updated_ } = this.doUpdate(updates, entity, object, updated);
+              const { data, updated: updated_ } = this.doUpdate(newData, entity, object, updated);
               updated = updated || updated_;
               return data;
             });
@@ -114,7 +114,7 @@ export default class QueryCache {
     return { data, updated };
   }
 
-  updateEntity(entity, meta, updates) {
+  updateEntity(entity, meta, newData) {
     entity = { ...entity };
 
     let updated = false;
@@ -124,12 +124,12 @@ export default class QueryCache {
       return { entity, updated: true };
     }
 
-    for (let updatedEntity of updates) {
-      if (updatedEntity.id !== entity.id) {
+    for (let latestEntity of newData) {
+      if (latestEntity.id !== entity.id) {
         continue;
       }
 
-      if (updatedEntity.__meta.isToBeDeleted) {
+      if (latestEntity.__meta.isToBeDeleted) {
         return { entity: null, updated: true };
       }
 
@@ -139,11 +139,11 @@ export default class QueryCache {
         : meta.scalars;
 
       for (let propName of Object.keys(scalars)) {
-        if (propName in updatedEntity) {
-          if (areValuesEqual(entity[propName], updatedEntity[propName])) {
+        if (propName in latestEntity) {
+          if (areValuesEqual(entity[propName], latestEntity[propName])) {
             continue;
           }
-          entity[propName] = updatedEntity[propName];
+          entity[propName] = latestEntity[propName];
           updated = true;
         }
       }
@@ -154,7 +154,7 @@ export default class QueryCache {
         : meta.objects;
 
       for (const [propName, object] of Object.entries(objects)) {
-        if (propName in updatedEntity === false) {
+        if (propName in latestEntity === false) {
           continue;
         }
 
@@ -165,65 +165,65 @@ export default class QueryCache {
 
           case ObjectType.EMBED:
           case ObjectType.EMBED_LIST:
-            if (areValuesEqual(entity[propName], updatedEntity[propName])) {
+            if (areValuesEqual(entity[propName], latestEntity[propName])) {
               continue;
             }
-            entity[propName] = updatedEntity[propName];
+            entity[propName] = latestEntity[propName];
             updated = true;
             break;
 
           case ObjectType.ENTITY:
           case ObjectType.UNION:
           case ObjectType.INTERFACE:
-            if (entity[propName]?.id === updatedEntity[propName]?.id) {
+            if (entity[propName]?.id === latestEntity[propName]?.id) {
               continue;
             }
 
-            if (updatedEntity[propName] === null) {
+            if (latestEntity[propName] === null) {
               entity[propName] = null;
               updated = true;
               continue;
             }
 
-            entity[propName] = this.addEntity(object, updatedEntity[propName]);
+            entity[propName] = this.addEntity(object, latestEntity[propName]);
             updated = true;
             break;
 
           case ObjectType.ENTITY_SET:
           case ObjectType.UNION_SET:
           case ObjectType.INTERFACE_SET:
-            const currentIds = entity[propName].map(({ id }) => id);
-            const updatedIds = updatedEntity[propName].map(({ id }) => id);
+            const cachedIds = entity[propName].map(({ id }) => id);
+            const latestIds = latestEntity[propName].map(({ id }) => id);
 
-            if (areValuesEqual(currentIds, updatedIds)) {
+            if (areValuesEqual(cachedIds, latestIds)) {
               continue;
             }
 
-            if (isEmptyArray(updatedEntity[propName])) {
-              if (updatedEntity.__meta.objects[propName].areElementsToBeOverridden) {
+            if (isEmptyArray(latestEntity[propName])) {
+              if (latestEntity.__meta.objects[propName].areElementsToBeOverridden) {
                 entity[propName] = [];
                 updated = true;
               }
               continue;
             }
 
-            if (updatedEntity.__meta.objects[propName].areElementsToBeRemoved) {
-              const idsToBeRemoved = updatedEntity[propName].map(({ id }) => id);
+            if (latestEntity.__meta.objects[propName].areElementsToBeRemoved) {
+              const idsToBeRemoved = latestEntity[propName].map(({ id }) => id);
               entity[propName] = entity[propName].filter(({ id }) => !idsToBeRemoved.includes(id));
               updated = true;
               continue;
             }
 
             const entitiesToBeAdded =
-              updatedEntity[propName]
+            latestEntity[propName]
                 .filter((entity) => (
-                  !currentIds.includes(entity.id)
+                  !cachedIds.includes(entity.id)
                   && (!object.filter || object.filter[entity.__typename]?.(entity, this.variables))
                 ))
                 .map((entity) => this.addEntity(object, entity));
 
-            if (updatedEntity.__meta.objects[propName].areElementsToBeOverridden) {
-              entity[propName] = entity[propName].filter(({ id }) => updatedIds.includes(id));
+            if (latestEntity.__meta.objects[propName].areElementsToBeOverridden) {
+              entity[propName] = entity[propName].filter(({ id }) => latestIds.includes(id));
               entity[propName] = entity[propName].concat(entitiesToBeAdded);
               updated = true;
               continue;
