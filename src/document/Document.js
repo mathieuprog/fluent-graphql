@@ -30,29 +30,29 @@ export default class Document {
 
   static query(operationName = null) {
     const document = new Document(OperationType.QUERY, operationName);
-    Document.instances.push(document);
+    this.instances.push(document);
     return document.rootObject;
   }
 
   static mutation(operationName) {
     const document = new Document(OperationType.MUTATION, operationName);
-    Document.instances.push(document);
+    this.instances.push(document);
     return document.rootObject;
   }
 
   static subscription(operationName) {
     const document = new Document(OperationType.SUBSCRIPTION, operationName);
-    Document.instances.push(document);
+    this.instances.push(document);
     return document.rootObject;
   }
 
   static setDefaultClient(client) {
-    Document.defaultClient = client;
+    this.defaultClient = client;
   }
 
   static simulateNetworkDelayGlobally(min, max) {
-    Document.maybeSimulateNetworkDelayGlobally =
-      () => Document.doSimulateNetworkDelay(min, max);
+    this.maybeSimulateNetworkDelayGlobally =
+      () => this.doSimulateNetworkDelay(min, max);
   }
 
   static async doSimulateNetworkDelay(min, max) {
