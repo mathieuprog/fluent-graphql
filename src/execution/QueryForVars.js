@@ -1,4 +1,4 @@
-import QueryCache from './QueryCache';
+import QueryCache from './cache/QueryCache';
 import getFetchStrategyAlgorithm from './getFetchStrategyAlgorithm';
 import FetchStrategy from './FetchStrategy';
 
@@ -60,11 +60,14 @@ export default class QueryForVars {
     }
   }
 
-  updateCache(updates) {
+  updateCache(newData) {
     if (this.cleared) {
       throw new Error();
     }
-    if (this.cache.update(updates)) {
+
+    const updated = this.cache.update(newData);
+
+    if (updated) {
       this.notifySubscribers(this.cache.transformedData);
     }
   }

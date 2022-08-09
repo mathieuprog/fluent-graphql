@@ -13,14 +13,24 @@ function doTransform(meta, data) {
     throw new Error();
   }
 
-  data = { ...data };
+  const updatePropImmutably = ((original) => {
+    let data = original;
+    return (prop, value) => {
+      data = (original === data) ? { ...data } : data;
+      data[prop] = value;
+      return data;
+    };
+  })(data);
 
   for (const [propName, { transformer }] of Object.entries(meta.scalars)) {
     if (propName in data === false) {
       throw new Error();
     }
 
-    data[propName] = transformer(data[propName]);
+    const transformedData = transformer(data[propName]);
+    if (data[propName] !== transformedData) {
+      data = updatePropImmutably(propName, transformedData);
+    }
   }
 
   for (const [propName, object] of Object.entries(meta.objects)) {
@@ -38,14 +48,27 @@ function doTransform(meta, data) {
       case ObjectType.EMBED:
       case ObjectType.INTERFACE:
         if (data[propName] !== null) {
-          data[propName] = doTransform(object, data[propName]);
+          const transformedData = doTransform(object, data[propName]);
+          if (data[propName] !== transformedData) {
+            data = updatePropImmutably(propName, transformedData);
+          }
         }
         break;
 
       case ObjectType.ENTITY_SET:
       case ObjectType.EMBED_LIST:
       case ObjectType.INTERFACE_SET:
-        data[propName] = data[propName].map((value) => doTransform(object, value));
+        let updated = false;
+        const newData =
+          data[propName].map((value) => {
+            const transformedData = doTransform(object, value);
+            updated = updated || (transformedData !== value);
+            return transformedData;
+          });
+
+        if (updated) {
+          data = updatePropImmutably(propName, newData);
+        }
         break;
     }
 
@@ -56,18 +79,29 @@ function doTransform(meta, data) {
           if (!object.inlineFragments[data[propName].__typename]) {
             throw new Error();
           }
-          data[propName] = doTransform(object.inlineFragments[data[propName].__typename], data[propName]);
+          const transformedData = doTransform(object.inlineFragments[data[propName].__typename], data[propName]);
+          if (data[propName] !== transformedData) {
+            data = updatePropImmutably(propName, transformedData);
+          }
         }
         break;
 
       case ObjectType.UNION_SET:
       case ObjectType.INTERFACE_SET:
-        data[propName] = data[propName].map((value) => {
-          if (!object.inlineFragments[value.__typename]) {
-            throw new Error();
-          }
-          return doTransform(object.inlineFragments[value.__typename], value);
-        });
+        let updated = false;
+        const newData =
+          data[propName].map((value) => {
+            if (!object.inlineFragments[value.__typename]) {
+              throw new Error();
+            }
+            const transformedData = doTransform(object.inlineFragments[value.__typename], value);
+            updated = updated || (transformedData !== value);
+            return transformedData;
+          });
+
+        if (updated) {
+          data = updatePropImmutably(propName, newData);
+        }
         break;
     }
   }
