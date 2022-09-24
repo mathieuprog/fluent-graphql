@@ -30,11 +30,12 @@ const data = await document.execute({});
 
 * Watch for data updates
 * Subscriptions using WebSockets
-* Derive data from other queries
+* Compose queries from other queries
 * Multiple fetch strategies
 * Trivial data transformations
-* Cache refresh (polling) and clearing
 * TypeScript support
+* Cache refresh (polling)
+* Cache clearing (free memory)
 
 ## Why?
 
@@ -58,8 +59,8 @@ const query = `
 However, this doesn't say anything about how to handle the data received from the server response.
 
 * How do we transform the `age` and `duration` fields into integers?
-* Did we receive the full list of services (in which case we have to delete previously fetched services not included in this list from cached data) or do we deal with a non-exhaustive list?
-* Is the user to be deleted?
+* How do we cache the list of `services`? (do we need to replace existing cached services or add to the list?)
+* In case this would be a mutation, is the user to be deleted or updated?
 * etcetera
 
 Other frameworks will provide an API allowing to specify how to transform data, how to update the cache, etc. through different framework components.
@@ -93,7 +94,8 @@ The `Client` constructor receives an object containing an `http` property and `w
 
 HTTP requests are executed by the [ky](https://github.com/sindresorhus/ky) library and WebSocket requests by the [graphql-ws](https://github.com/enisdenjo/graphql-ws) library.
 
-The `http` object must contain a `url` property specifying the URL of the API, as well as the settings to apply to the request used by the Fetch API:<br>https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#supplying_request_options
+The `http` object must contain a `url` property specifying the URL of the API, as well as the settings to apply to the request used by the Fetch API:<br>
+https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#supplying_request_options
 
 The `ws` object must also contain the `url` property as well as additional properties required by the `createClient` function of `graphql-ws`:<br>
 https://github.com/enisdenjo/graphql-ws/blob/master/docs/modules/client.md
@@ -233,7 +235,7 @@ Document
   .makeExecutable();
 ```
 
-Remove entities from an array that are not included in the exhaustive list:
+Replace entities in an array:
 
 ```javascript
 Document
@@ -407,7 +409,7 @@ FluentGraphQL.logConsolidatedCaches();
 ## Limitations
 
 * IDs must be unique globally (e.g. UUIDs)
-* lists of entities are sets, i.e. they may not contain duplicates (may add support for arrays)
+* lists of entities are sets, i.e. they may not contain duplicates (may add support for arrays in the future)
 
 ## Install!
 
