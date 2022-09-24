@@ -1,9 +1,9 @@
 import { isObjectLiteral } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
-import { checkInstanceOfDocumentArg } from './helpers';
+import { throwIfNotInstanceOfDocument } from './helpers';
 
 export default function transform(document, data) {
-  checkInstanceOfDocumentArg(document);
+  throwIfNotInstanceOfDocument(document);
 
   return doTransform(document.rootObject, data);
 }

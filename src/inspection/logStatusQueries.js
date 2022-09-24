@@ -1,5 +1,5 @@
-import Document from "../document/Document";
-import OperationType from "../document/OperationType";
+import Document from '../document/Document';
+import OperationType from '../document/OperationType';
 
 export default function logStatusQueries() {
   console.group('Fluent GraphQL queries');
@@ -10,15 +10,15 @@ export default function logStatusQueries() {
     }
     console.group('document', document.operationName);
 
-    const queriesForVars = document.executor.queriesForVars;
+    const queryRegistry = document.executor.queryRegistry.registry;
 
-    console.log('query count:', Object.keys(queriesForVars).length);
+    console.log('query count:', Object.keys(queryRegistry).length);
 
-    for (const [stringifiedVars, queryForVars] of Object.entries(queriesForVars)) {
+    for (const [stringifiedVars, query] of Object.entries(queryRegistry)) {
       console.group('variables', stringifiedVars);
-      console.log('cached data:', !!queryForVars.cache?.transformedData);
-      console.log('listens network:', !!queryForVars.unsubscriber);
-      console.log('subscriber count:', queryForVars.subscribers.size);
+      console.log('cached data:', !!query.getCachedData());
+      console.log('listens network:', !!query.unsubscriber);
+      console.log('subscriber count:', query.cacheStrategy?.subscribers.size);
       console.groupEnd();
     }
 

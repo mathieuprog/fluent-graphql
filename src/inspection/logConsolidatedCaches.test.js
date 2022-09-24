@@ -1,5 +1,5 @@
-import { deepFreeze } from "object-array-utils";
-import { normalizeEntities, normalizeEntity } from "./logConsolidatedCaches";
+import { deepFreeze } from 'object-array-utils';
+import { normalizeEntities, normalizeEntity } from './logConsolidatedCaches';
 
 test('normalizeEntity', () => {
   const entity = deepFreeze({

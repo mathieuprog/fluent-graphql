@@ -1,6 +1,6 @@
-import { areValuesEqual, filterProperties, isArray, isObjectLiteral } from "object-array-utils";
-import Document from "../document/Document";
-import OperationType from "../document/OperationType";
+import { areValuesEqual, filterProperties, isArray, isObjectLiteral } from 'object-array-utils';
+import Document from '../document/Document';
+import OperationType from '../document/OperationType';
 
 export default function logConsolidatedCaches() {
   console.dir(consolidatedCaches(), { depth: null });
@@ -14,12 +14,13 @@ function consolidatedCaches() {
       continue;
     }
 
-    for (let queryForVars of Object.values(document.executor.queriesForVars)) {
-      if (!queryForVars.cache?.transformedData) {
-        continue;
-      }
+    const allCachedData =
+      Object.values(document.executor.queryRegistry.registry)
+        .map((query) => query.getCachedData())
+        .filter((data) => data);
 
-      normalizedEntities = normalizedEntities.concat(normalizeEntities(queryForVars.cache.transformedData));
+    for (let data of allCachedData) {
+      normalizedEntities = normalizedEntities.concat(normalizeEntities(data));
     }
   }
 

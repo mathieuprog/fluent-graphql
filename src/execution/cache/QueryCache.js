@@ -1,16 +1,20 @@
 import { isObjectLiteral } from 'object-array-utils';
 import ObjectType from '../../document/ObjectType';
-import { checkInstanceOfDocumentArg } from '../helpers';
+import { throwIfNotInstanceOfDocument } from '../helpers';
 import copyEntity from './copyEntity';
 import refreshEntity from './refreshEntity';
 
 export default class QueryCache {
   constructor(document, data, variables) {
-    checkInstanceOfDocumentArg(document);
+    throwIfNotInstanceOfDocument(document);
     this.document = document;
     this.data = data;
     this.transformedData = document.transform(data);
     this.variables = variables;
+  }
+
+  getData() {
+    return this.transformedData;
   }
 
   update(freshEntities) {

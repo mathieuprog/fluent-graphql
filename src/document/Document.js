@@ -3,10 +3,12 @@ import InlineFragment from './InlineFragment';
 import OperationType from './OperationType';
 import stringify from './stringify';
 import OperationExecutor from '../execution/OperationExecutor';
+import DefaultCacheStrategy from '../execution/cache/strategies/DefaultCacheStrategy';
 
 export default class Document {
   static instances = [];
   static defaultClient = null;
+  static cacheStrategyClass = DefaultCacheStrategy;
   static maybeSimulateNetworkDelayGlobally = () => false;
 
   constructor(operationType, operationName) {
@@ -50,6 +52,10 @@ export default class Document {
     this.defaultClient = client;
   }
 
+  static setCacheStrategy(className) {
+    this.cacheStrategyClass = className;
+  }
+
   static simulateNetworkDelayGlobally(min, max) {
     this.maybeSimulateNetworkDelayGlobally =
       () => this.doSimulateNetworkDelay(min, max);
@@ -72,19 +78,19 @@ export default class Document {
   }
 
   getQueryString() {
-    if (!this.queryString) {
-      this.queryString = stringify(this);
-    }
+    this.prepareQueryString();
     return this.queryString;
   }
 
   prepareQueryString() {
-    this.getQueryString();
+    if (!this.queryString) {
+      this.queryString = stringify(this);
+    }
     return this;
   }
 
   makeExecutable(client = null) {
-    this.getQueryString();
+    this.prepareQueryString();
     this.executor = new OperationExecutor(this, client);
     return this;
   }
@@ -95,6 +101,10 @@ export default class Document {
     }
 
     return this.executor;
+  }
+
+  setExecutor(executor) {
+    this.executor = executor;
   }
 
   execute(...args) {
@@ -111,10 +121,6 @@ export default class Document {
     }
 
     return this.executor.simulateNetworkRequest(data);
-  }
-
-  handleReactivity() {
-    return this.executor.unsubscribeOnSubsequentCalls();
   }
 
   transformResponse(fun) {

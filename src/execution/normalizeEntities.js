@@ -1,9 +1,9 @@
 import { filterProperties, isObjectLiteral } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
-import { checkInstanceOfDocumentArg } from './helpers';
+import { throwIfNotInstanceOfDocument } from './helpers';
 
 export default function normalizeEntities(document, data) {
-  checkInstanceOfDocumentArg(document);
+  throwIfNotInstanceOfDocument(document);
 
   return doNormalizeEntities(document.rootObject, data);
 }

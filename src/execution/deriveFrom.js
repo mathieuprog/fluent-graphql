@@ -1,9 +1,9 @@
 import { isObjectLiteral } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
-import { checkInstanceOfDocumentArg } from './helpers';
+import { throwIfNotInstanceOfDocument } from './helpers';
 
 export default function deriveFrom(document, data, variables) {
-  checkInstanceOfDocumentArg(document);
+  throwIfNotInstanceOfDocument(document);
 
   return doDeriveFrom(document.rootObject, data, variables);
 }

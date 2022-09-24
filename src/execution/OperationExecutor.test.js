@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals';
 import { Temporal } from '@js-temporal/polyfill';
 import Document from '../document/Document';
+import AutoUnsubscriber from './cache/strategies/AutoUnsubscriber';
 import FetchStrategy from './FetchStrategy';
 import OperationExecutor from './OperationExecutor';
 
@@ -43,7 +44,7 @@ test('OperationExecutor', async () => {
     }
   };
 
-  const operationExecutor1 = new OperationExecutor(document1, client1).unsubscribeOnSubsequentCalls();
+  const operationExecutor1 = new AutoUnsubscriber(new OperationExecutor(document1, client1));
 
   await operationExecutor1.execute({}, subscriber1, returnUnsubscriber1);
 
@@ -69,7 +70,7 @@ test('OperationExecutor', async () => {
     }
   };
 
-  const operationExecutor2 = new OperationExecutor(document2, client2).unsubscribeOnSubsequentCalls();
+  const operationExecutor2 = new AutoUnsubscriber(new OperationExecutor(document2, client2));
 
   await operationExecutor2.execute({ foo: 1 }, subscriber2, returnUnsubscriber2);
 
@@ -144,7 +145,7 @@ test('OperationExecutor', async () => {
     }
   };
 
-  const operationExecutor3 = new OperationExecutor(document3, client3).unsubscribeOnSubsequentCalls();
+  const operationExecutor3 = new AutoUnsubscriber(new OperationExecutor(document3, client3));
 
   await operationExecutor3.execute({}, subscriber3, returnUnsubscriber3);
 
@@ -259,7 +260,7 @@ test('clear and poll', async () => {
 
   await sleep(100);
 
-  clearInterval(operationExecutor.getQueryForVars({}).intervalPoll);
+  clearInterval(operationExecutor.queryRegistry.get({}).intervalPoll);
 
   expect(request1).toHaveBeenCalledTimes(2);
   expect(operationExecutor.getCache({})).toBeTruthy();

@@ -1,80 +1,69 @@
-import { hasObjectProperty, sortProperties } from 'object-array-utils';
 import Document from '../document/Document';
 import OperationType from '../document/OperationType';
-import QueryForVars from './QueryForVars';
 import Notifier from './Notifier';
 import transform from './transform';
 import deriveFrom from './deriveFrom';
 import deriveFromForeignKey from './deriveFromForeignKey';
 import normalizeEntities from './normalizeEntities';
-import AutoUnsubscriber from './AutoUnsubscriber';
+import AutoUnsubscriber from './cache/strategies/AutoUnsubscriber';
+import { throwIfNotInstanceOfDocument } from './helpers';
+import QueryRegistry from './QueryRegistry';
 import FetchStrategy from './FetchStrategy';
-import { checkInstanceOfDocumentArg } from './helpers';
 
 export default class OperationExecutor {
   constructor(document, client) {
-    checkInstanceOfDocumentArg(document);
+    throwIfNotInstanceOfDocument(document);
     this.document = document;
     this.maybeClient = client;
-    this.queriesForVars = {};
+    this.queryRegistry =
+      new QueryRegistry(
+        document,
+        Document.cacheStrategyClass,
+        this.executeRequest.bind(this));
   }
 
   clear() {
-    Object.values(this.queriesForVars).forEach((queryForVars) => queryForVars.clear());
-    this.queriesForVars = {};
+    this.queryRegistry.removeAll();
   }
 
-  unsubscribeOnSubsequentCalls() {
-    return new AutoUnsubscriber(this);
-  }
-
-  async execute(...args) {
-    const [variables, arg2, arg3, arg4] = args;
-
+  execute(...args) {
     switch (this.document.operationType) {
       case OperationType.QUERY:
-        let subscriber;
-        let returnUnsubscriber;
-        let options;
-
-        if (typeof arg2 === 'function') {
-          subscriber = arg2;
-          returnUnsubscriber = arg3;
-          options = this.validateExecuteOptions(arg4);
-        } else {
-          options = this.validateExecuteOptions(arg2);
-        }
-
-        const fetchStrategy = options?.fetchStrategy || FetchStrategy.FETCH_FROM_CACHE_OR_FALLBACK_NETWORK;
-
-        if (fetchStrategy === FetchStrategy.FETCH_FROM_NETWORK && !this.hasQueryForVars(variables)) {
-          return this.document.transform(await this.executeRequest(variables));
-        }
-
-        const queryForVars = this.getQueryForVars(variables);
-
-        if (subscriber) {
-          const unsubscribe = queryForVars.subscribe(subscriber);
-          returnUnsubscriber(unsubscribe);
-        }
-
-        await queryForVars.fetchByStrategy(fetchStrategy);
-
-        queryForVars.listen(() => Notifier.subscribe(queryForVars));
-
-        return queryForVars.cache.transformedData;
+        return this.executeQuery(args);
 
       case OperationType.MUTATION:
-        return this.document.transform(await this.executeRequest(variables, Notifier.notify));
+        return this.executeMutation(args);
 
-      case OperationType.SUBSCRIPTION: {
-        const sink = arg2;
-        const options = this.validateExecuteOptions(arg3);
-
-        const client = await this.getClient();
-        await client.subscribe(this.document.getQueryString(), variables, sink, options || {});
-      } return;
+      case OperationType.SUBSCRIPTION:
+        return this.executeSubscription(args);
     }
+  }
+
+  async executeQuery(args) {
+    const [variables, ...rest] = args;
+
+    const fetchStrategy = rest.at(-1)?.fetchStrategy;
+
+    if (fetchStrategy === FetchStrategy.FETCH_FROM_NETWORK && !this.queryRegistry.has(variables)) {
+      return this.document.transform(await this.executeRequest(variables));
+    }
+
+    const query = this.queryRegistry.getOrCreate(variables);
+
+    return await query.fetch(args, fetchStrategy);
+  }
+
+  async executeMutation(args) {
+    const [variables] = args;
+
+    return this.document.transform(await this.executeRequest(variables, Notifier.notify));
+  }
+
+  async executeSubscription(args) {
+    const [variables, sink, options] = args;
+
+    const client = await this.getClient();
+    await client.subscribe(this.document.getQueryString(), variables, sink, options || {});
   }
 
   simulateNetworkRequest(data) {
@@ -116,57 +105,13 @@ export default class OperationExecutor {
     }
   }
 
-  getQueryForVars(variables) {
-    const stringifiedVars = JSON.stringify(sortProperties(variables));
-
-    if (!this.queriesForVars[stringifiedVars]) {
-      this.queriesForVars[stringifiedVars] =
-        new QueryForVars(
-          this.document,
-          variables,
-          () => this.executeRequest(variables, Notifier.notify),
-          () => this.removeQueryForVars(variables)
-        );
-    }
-
-    return this.queriesForVars[stringifiedVars];
-  }
-
-  hasQueryForVars(variables) {
-    return !!this.queriesForVars[JSON.stringify(sortProperties(variables))];
-  }
-
-  removeQueryForVars(variables) {
-    const stringifiedVars = JSON.stringify(sortProperties(variables));
-    const queryForVars = this.queriesForVars[stringifiedVars];
-    if (queryForVars) {
-      queryForVars.onClear = null;
-      queryForVars.clear();
-    }
-    delete this.queriesForVars[stringifiedVars];
-  }
-
   getCache(variables) {
-    const stringifiedVars = JSON.stringify(sortProperties(variables));
-    return this.queriesForVars[stringifiedVars]?.cache?.transformedData || null;
-  }
-
-  validateExecuteOptions(options = {}) {
-    if (!hasObjectProperty(options, 'fetchStrategy')) {
-      return options;
+    const query = this.queryRegistry.get(variables);
+    if (!query) {
+      return null;
     }
 
-    switch (options.fetchStrategy) {
-      case FetchStrategy.FETCH_FROM_CACHE_AND_NETWORK:
-      case FetchStrategy.FETCH_FROM_CACHE_OR_FALLBACK_NETWORK:
-      case FetchStrategy.FETCH_FROM_CACHE_OR_THROW:
-      case FetchStrategy.FETCH_FROM_NETWORK:
-        break;
-      default:
-        throw new Error();
-    }
-
-    return options;
+    return query.getCachedData();
   }
 
   getClient() {

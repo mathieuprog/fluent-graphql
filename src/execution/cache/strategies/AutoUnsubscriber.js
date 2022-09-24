@@ -9,12 +9,12 @@ export default class AutoUnsubscriber {
       this.prevUnsubscriber();
     }
 
-    const getUnsubscriber = (unsubscriber) => {
+    const returnUnsubscriber_ = (unsubscriber) => {
       this.prevUnsubscriber = unsubscriber;
       returnUnsubscriber(unsubscriber);
     };
 
-    return this.operationExecutor.execute(variables, subscriber, getUnsubscriber, options);
+    return this.operationExecutor.execute(variables, subscriber, returnUnsubscriber_, options);
   }
 
   getCache(variables) {
