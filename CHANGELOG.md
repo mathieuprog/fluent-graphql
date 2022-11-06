@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.7
+
+  * Add license
+
+## 0.0.6
+
+  * Refactor query cache again
+
+## 0.0.5
+
+  * Refactor query cache
+
 ## 0.0.4
 
   * Allow simulating a random network delay
