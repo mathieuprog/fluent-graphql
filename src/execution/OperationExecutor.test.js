@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 import { Temporal } from '@js-temporal/polyfill';
 import Document from '../document/Document';
-import AutoUnsubscriber from './cache/strategies/AutoUnsubscriber';
+import AutoUnsubscriber from './AutoUnsubscriber';
 import FetchStrategy from './FetchStrategy';
 import OperationExecutor from './OperationExecutor';
 
