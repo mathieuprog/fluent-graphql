@@ -58,7 +58,7 @@ const query = `
 `
 ```
 
-However, this approach does not provide information on how to handle the the server response data.
+However, this approach does not provide information on how to handle the server response data.
 
 * How do we transform the `age` and `duration` fields into integers?
 * Should we replace the existing cached `services` or add to the list?
