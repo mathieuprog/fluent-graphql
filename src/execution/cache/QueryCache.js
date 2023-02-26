@@ -63,11 +63,11 @@ export default class QueryCache {
         case ObjectType.UNION:
         case ObjectType.INTERFACE:
           let addedEntity = false;
-          if (object.filter) {
+          if (object.filterFunctionsByTypename) {
             for (let entity of freshEntities) {
               if (
                 data[propName]?.id !== entity.id
-                && object.filter[entity.__typename]?.(entity, this.variables)
+                && object.filterFunctionsByTypename[entity.__typename]?.(entity, this.variables)
               ) {
                 data = updatePropImmutably(propName, copyEntity(object, entity));
                 addedEntity = true;
@@ -115,11 +115,11 @@ export default class QueryCache {
             data = updatePropImmutably(propName, newData);
           }
 
-          if (object.filter) {
+          if (object.filterFunctionsByTypename) {
             for (let entity of freshEntities) {
               if (
                 !data[propName].some(({ id }) => id === entity.id)
-                && object.filter[entity.__typename]?.(entity, this.variables)
+                && object.filterFunctionsByTypename[entity.__typename]?.(entity, this.variables)
               ) {
                 const entityToAdd = copyEntity(object, entity);
                 data = updatePropImmutably(propName, data[propName].concat(entityToAdd));

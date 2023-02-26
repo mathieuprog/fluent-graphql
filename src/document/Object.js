@@ -15,7 +15,7 @@ export default class Object {
     this.objects = {};
     this.derivedFromForeignKey = null;
     this.derivedFrom = null;
-    this.filter = null;
+    this.filterFunctionsByTypename = null;
     this.isToBeDeleted = false;
     this.areElementsToBeOverridden = false;
     this.areElementsToBeRemoved = false;
@@ -116,7 +116,7 @@ export default class Object {
     if (filter.typename) {
       filter.typename = [].concat(filter.typename);
     }
-    this.filter = filter;
+    this.filterFunctionsByTypename = filter;
     return this;
   }
 

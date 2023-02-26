@@ -100,7 +100,7 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
             freshEntity[propName]
               .filter((entity) => (
                 !cachedIds.includes(entity.id)
-                && (!object.filter || object.filter[entity.__typename]?.(entity, variables))
+                && (!object.filterFunctionsByTypename || object.filterFunctionsByTypename[entity.__typename]?.(entity, variables))
               ))
               .map((entity) => copyEntity(object, entity));
 
