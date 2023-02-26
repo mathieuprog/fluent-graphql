@@ -5,7 +5,6 @@ import transform from './transform';
 import deriveFrom from './deriveFrom';
 import deriveFromForeignKey from './deriveFromForeignKey';
 import normalizeEntities from './normalizeEntities';
-import AutoUnsubscriber from './cache/strategies/AutoUnsubscriber';
 import { throwIfNotInstanceOfDocument } from './helpers';
 import QueryRegistry from './QueryRegistry';
 import FetchStrategy from './FetchStrategy';
