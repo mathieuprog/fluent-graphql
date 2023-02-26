@@ -47,7 +47,7 @@ declare module "fluent-graphql" {
     viewer(name: string): Object<NestedObject<This>, This>;
     useVariables(variables: ObjectLiteral): Object<This, Parent>;
     replaceEntity(filter: ObjectLiteral): Object<This, Parent>;
-    filterEntity(filter: ObjectLiteral): Object<This, Parent>;
+    addEntity(filter: ObjectLiteral): Object<This, Parent>;
     deriveFromForeignKey(foreignKey: string, fetch: (foreignKey: string | number, variables: ObjectLiteral) => ObjectLiteral): Object<This, Parent>;
     deriveFrom(fetch: (variables: ObjectLiteral) => ObjectLiteral): Object<This, Parent>;
     overrideElements(): Object<This, Parent>;

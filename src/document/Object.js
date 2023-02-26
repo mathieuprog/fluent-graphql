@@ -109,10 +109,10 @@ export default class Object {
   }
 
   replaceEntity(filter) {
-    return this.filterEntity(filter);
+    return this.addEntity(filter);
   }
 
-  filterEntity(filter) {
+  addEntity(filter) {
     if (filter.typename) {
       filter.typename = [].concat(filter.typename);
     }

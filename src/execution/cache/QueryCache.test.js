@@ -869,7 +869,7 @@ test('filter entity with callback', () => {
           .entitySet('articles')
             .useVariables({ minVoteCount: 'minVoteCount' })
             .scalar('voteCount', Number)
-            .filterEntity({
+            .addEntity({
               Article: (article, { minVoteCount }) => article.voteCount >= minVoteCount
             })._._._;
 
@@ -933,7 +933,7 @@ test('add entity with callback', () => {
         .entitySet('articles')
           .useVariables({ minVoteCount: 'minVoteCount' })
           .scalar('voteCount', Number)
-          .filterEntity({
+          .addEntity({
             Article: (article, { minVoteCount }) => article.voteCount >= minVoteCount
           })._._;
 
