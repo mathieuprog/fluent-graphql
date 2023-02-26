@@ -204,7 +204,7 @@ Document
 
 ### Update query caches
 
-Query caches are updated automatically upon fetching new data. However, there are situations where we need to provide explicit instructions on how to update the caches held by our queries. The following functions provide a way to specify the updates that should be made to the query caches based on the new data fetched from the server:
+Query caches are updated automatically upon fetching new data. However, there are situations where we need to provide explicit instructions on how to update the caches held by our queries. The following functions provide a way to specify the updates that should be made to the query caches, based on the new data fetched from the server:
 
 #### Delete an entity
 
