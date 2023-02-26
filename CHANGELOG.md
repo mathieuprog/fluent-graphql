@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.8
+
+  * Rename `filterEntity` to `addEntity`
+  * Improve documentation
+
 ## 0.0.7
 
   * Add license

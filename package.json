@@ -1,6 +1,6 @@
 {
   "name": "fluent-graphql",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "JavaScript GraphQL client",
   "funding": "https://github.com/mathieuprog/fluent-graphql?sponsor=1",
   "scripts": {
