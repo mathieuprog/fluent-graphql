@@ -9,14 +9,14 @@ export default class Client {
 
   request(query, variables) {
     if (!this.httpClient) {
-      throw new Error('no http client configured');
+      throw new Error('no HTTP client configured');
     }
     return this.httpClient.request(query, variables);
   }
 
   subscribe(query, variables, sink, options = {}) {
     if (!this.wsClient) {
-      throw new Error('no ws client configured');
+      throw new Error('no WebSocket client configured');
     }
     return this.wsClient.subscribe(query, variables, sink, options);
   }
