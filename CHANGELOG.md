@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.9 (upcoming)
+
+  * Improve error messages
+
 ## 0.0.8
 
   * Rename `filterEntity` to `addEntity`
