@@ -172,6 +172,15 @@ export default class Object {
     return this;
   }
 
+  getDocument() {
+    let document = this._;
+    while (document instanceof Document === false) {
+      document = document._;
+    }
+
+    return document;
+  }
+
   getOperationType() {
     let document = this._;
     while (document instanceof Document === false) {
