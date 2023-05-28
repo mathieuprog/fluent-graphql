@@ -92,6 +92,7 @@ declare module "fluent-graphql" {
     clearAfter(duration: any): Document // TODO Temporal type
     pollAfter(duration: any): Document
     clear(): void;
+    getQueryString(): string;
   }
 
   interface GraphQLErrorObject {
