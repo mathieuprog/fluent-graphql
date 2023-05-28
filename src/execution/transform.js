@@ -77,7 +77,8 @@ function doTransform(meta, data) {
       case ObjectType.INTERFACE:
         if (data[propName] !== null) {
           if (!object.inlineFragments[data[propName].__typename]) {
-            throw new Error();
+            const { operationName, operationType } = object.getDocument();
+            throw new Error(`property '${propName}' returned the type '${data[propName].__typename}', but this type is not defined in the document for operation '${operationType}' with the name '${operationName}'`);
           }
           const transformedData = doTransform(object.inlineFragments[data[propName].__typename], data[propName]);
           if (data[propName] !== transformedData) {
