@@ -110,25 +110,39 @@ Developers can also use a Promise as the client, which can be particularly helpf
   ```javascript
   import { Client } from 'fluent-graphql';
 
-  const httpUrl = 'http://myapp.localhost:4000/api';
+  interface ClientURLs {
+    httpUrl: string;
+    wsUrl: string;
+    csrfUrl: string;
+  }
 
-  const csrfTokenResponse = await fetch(`${httpUrl}/csrf`, { credentials: 'include' });
-  const csrfToken = await csrfTokenResponse.text();
+  let csrfTokenPromise: Promise<string>;
 
-  const wsUrl = 'ws://myapp.localhost:4000/api/ws?_csrf_token=${csrfToken}';
-
-  const client = new Client({
-    http: {
-      url: httpUrl,
-      credentials: 'include',
-      headers: { 'x-csrf-token': csrfToken }
-    },
-    ws: {
-      url: wsUrl
+  export default async function getClient({ httpUrl, wsUrl, csrfUrl }: ClientURLs) {
+    if (!csrfTokenPromise) {
+      csrfTokenPromise = fetchCsrfToken(csrfUrl);
     }
-  });
 
-  export default client;
+    const csrfToken = await csrfTokenPromise;
+
+    wsUrl = `${wsUrl}${csrfToken}`;
+
+    return new Client({
+      http: {
+        url: httpUrl,
+        credentials: 'include',
+        headers: { 'x-csrf-token': csrfToken }
+      },
+      ws: {
+        url: wsUrl
+      }
+    });
+  }
+
+  async function fetchCsrfToken(csrfUrl: string) {
+    const csrfTokenResponse = await fetch(csrfUrl, { credentials: 'include' });
+    return await csrfTokenResponse.text();
+  }
   ```
 </details>
 
