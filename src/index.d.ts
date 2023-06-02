@@ -31,38 +31,38 @@ declare module "fluent-graphql" {
 
   class GraphQLError extends Error {}
 
-  class Object<This, Parent> {
+  class Node<This, Parent> {
     _: Parent
-    scalar(name: string, transformer?: (v: unknown) => unknown): Object<This, Parent>;
-    entity(name: string): Object<NestedObject<This>, This>;
-    entitySet(name: string): Object<NestedObject<This>, This>;
-    union(name: string): Object<NestedObject<This>, This>;
-    unionSet(name: string): Object<NestedObject<This>, This>;
-    interface(name: string): Object<NestedObject<This>, This>;
-    interfaceSet(name: string): Object<NestedObject<This>, This>;
+    scalar(name: string, transformer?: (v: unknown) => unknown): Node<This, Parent>;
+    entity(name: string): Node<NestedNode<This>, This>;
+    entitySet(name: string): Node<NestedNode<This>, This>;
+    union(name: string): Node<NestedNode<This>, This>;
+    unionSet(name: string): Node<NestedNode<This>, This>;
+    interface(name: string): Node<NestedNode<This>, This>;
+    interfaceSet(name: string): Node<NestedNode<This>, This>;
     onEntity(typename: string): InlineFragment<This>;
     onTypedObject(typename: string): InlineFragment<This>;
-    embed(name: string): Object<NestedObject<This>, This>;
-    embedList(name: string): Object<NestedObject<This>, This>;
-    viewer(name: string): Object<NestedObject<This>, This>;
-    useVariables(variables: ObjectLiteral): Object<This, Parent>;
-    replaceEntity(filter: ObjectLiteral): Object<This, Parent>;
-    addEntity(filter: ObjectLiteral): Object<This, Parent>;
-    deriveFromForeignKey(foreignKey: string, fetch: (foreignKey: string | number, variables: ObjectLiteral) => ObjectLiteral): Object<This, Parent>;
-    deriveFrom(fetch: (variables: ObjectLiteral) => ObjectLiteral): Object<This, Parent>;
-    overrideElements(): Object<This, Parent>;
-    removeElements(): Object<This, Parent>;
-    deleteElements(): Object<This, Parent>;
-    delete(): Object<This, Parent>;
+    embed(name: string): Node<NestedNode<This>, This>;
+    embedList(name: string): Node<NestedNode<This>, This>;
+    viewer(name: string): Node<NestedNode<This>, This>;
+    useVariables(variables: ObjectLiteral): Node<This, Parent>;
+    replaceEntity(filter: ObjectLiteral): Node<This, Parent>;
+    addEntity(filter: ObjectLiteral): Node<This, Parent>;
+    deriveFromForeignKey(foreignKey: string, fetch: (foreignKey: string | number, variables: ObjectLiteral) => ObjectLiteral): Node<This, Parent>;
+    deriveFrom(fetch: (variables: ObjectLiteral) => ObjectLiteral): Node<This, Parent>;
+    overrideElements(): Node<This, Parent>;
+    removeElements(): Node<This, Parent>;
+    deleteElements(): Node<This, Parent>;
+    delete(): Node<This, Parent>;
   }
 
-  class NestedObject<Parent> extends Object<NestedObject<Parent>, Parent> {}
+  class NestedNode<Parent> extends Node<NestedNode<Parent>, Parent> {}
 
-  class RootObject extends Object<RootObject, Document> {
+  class RootObject extends Node<RootObject, Document> {
     variableDefinitions(variableDefinitions: ObjectLiteral): RootObject;
   }
 
-  class InlineFragment<Parent> extends Object<InlineFragment<Parent>, Parent> {}
+  class InlineFragment<Parent> extends Node<InlineFragment<Parent>, Parent> {}
 
   class Document {
     static query(operationName?: string): RootObject;

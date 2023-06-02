@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import Document from '../document/Document';
 import normalizeEntities from './normalizeEntities';
 

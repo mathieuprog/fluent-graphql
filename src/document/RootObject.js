@@ -1,8 +1,8 @@
 import { isObjectLiteral } from 'object-array-utils';
 import ObjectType from './ObjectType';
-import Object from './Object';
+import Node from './Node';
 
-export default class RootObject extends Object {
+export default class RootObject extends Node {
   constructor(document) {
     super(document, ObjectType.ROOT_OBJECT, null);
     this.document = document;

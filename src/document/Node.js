@@ -3,7 +3,7 @@ import Document from './Document';
 import ObjectType from './ObjectType';
 import OperationType from './OperationType';
 
-export default class Object {
+export default class Node {
   constructor(parent, type, name) {
     this._ = parent;
     this.type = type;
@@ -93,7 +93,7 @@ export default class Object {
   }
 
   object_(name, type) {
-    const object = new Object(this, type, name);
+    const object = new Node(this, type, name);
     this.objects[name] = object;
     return object;
   }

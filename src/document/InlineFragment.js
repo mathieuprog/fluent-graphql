@@ -1,6 +1,6 @@
-import Object from './Object';
+import Node from './Node';
 
-export default class InlineFragment extends Object {
+export default class InlineFragment extends Node {
   constructor(parent, type, typename) {
     super(parent, type, null);
     this._ = parent;

@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import Document from './Document';
 
 test('query: throw if inline fragment doesn\'t contain id', () => {

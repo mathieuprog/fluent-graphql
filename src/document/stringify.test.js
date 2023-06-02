@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import Document from './Document';
 
 test('stringify', () => {

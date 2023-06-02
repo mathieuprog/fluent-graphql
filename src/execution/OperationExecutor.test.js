@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { expect, test, vi } from 'vitest';
 import { Temporal } from '@js-temporal/polyfill';
 import Document from '../document/Document';
 import AutoUnsubscriber from './AutoUnsubscriber';
@@ -6,15 +6,15 @@ import FetchStrategy from './FetchStrategy';
 import OperationExecutor from './OperationExecutor';
 
 test('OperationExecutor', async () => {
-  const request1 = jest.fn();
-  const request2 = jest.fn();
-  const request3 = jest.fn();
-  const subscriber1 = jest.fn();
-  const subscriber2 = jest.fn();
-  const subscriber3 = jest.fn();
-  const returnUnsubscriber1 = jest.fn();
-  const returnUnsubscriber2 = jest.fn();
-  const returnUnsubscriber3 = jest.fn();
+  const request1 = vi.fn();
+  const request2 = vi.fn();
+  const request3 = vi.fn();
+  const subscriber1 = vi.fn();
+  const subscriber2 = vi.fn();
+  const subscriber3 = vi.fn();
+  const returnUnsubscriber1 = vi.fn();
+  const returnUnsubscriber2 = vi.fn();
+  const returnUnsubscriber3 = vi.fn();
 
   const document1 =
     Document
@@ -223,7 +223,7 @@ test('network', async () => {
 });
 
 test('clear and poll', async () => {
-  const request1 = jest.fn();
+  const request1 = vi.fn();
 
   const document =
     Document

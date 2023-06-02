@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { deepFreeze } from 'object-array-utils';
 import { normalizeEntities, normalizeEntity } from './logConsolidatedCaches';
 
