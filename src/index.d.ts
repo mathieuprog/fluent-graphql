@@ -110,4 +110,5 @@ declare module "fluent-graphql" {
   }
 
   function findGraphQLError(error: Error, find: (error: GraphQLErrorObject) => boolean): GraphQLErrorObject | null;
+  function findGraphQLErrorByCode(error: Error, code: string): GraphQLErrorObject | null;
 }

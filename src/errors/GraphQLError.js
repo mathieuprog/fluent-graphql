@@ -17,3 +17,10 @@ export function findGraphQLError(error, find) {
 
   return error.graphQLErrors.find(find);
 }
+
+export function findGraphQLErrorByCode(error, code) {
+  return findGraphQLError(error, (graphQLError) =>  {
+    return graphQLError.code === code
+        || graphQLError.extensions?.code === code;
+  });
+}

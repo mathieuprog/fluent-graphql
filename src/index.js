@@ -1,7 +1,7 @@
 import Client from './client/Client';
 import Document from './document/Document';
 import FetchStrategy from './execution/FetchStrategy';
-import GraphQLError, { findGraphQLError } from './errors/GraphQLError';
+import GraphQLError, { findGraphQLError, findGraphQLErrorByCode } from './errors/GraphQLError';
 import NotFoundInCacheError from './errors/NotFoundInCacheError';
 import {default as logStatusQueries_} from './inspection/logStatusQueries';
 import {default as logConsolidatedCaches_} from './inspection/logConsolidatedCaches';
@@ -40,5 +40,6 @@ export {
   FetchStrategy,
   GraphQLError,
   findGraphQLError,
+  findGraphQLErrorByCode,
   NotFoundInCacheError
 }

@@ -2,6 +2,7 @@
 
 ## 0.0.9 (upcoming)
 
+  * Added findGraphQLErrorByCode
   * Improve error messages
 
 ## 0.0.8
