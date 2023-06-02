@@ -4,6 +4,7 @@
 
   * Added findGraphQLErrorByCode
   * Improve error messages
+  * Migrate from Jest to Vitest
 
 ## 0.0.8
 
