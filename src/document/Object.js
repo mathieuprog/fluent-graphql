@@ -5,7 +5,6 @@ import OperationType from './OperationType';
 
 export default class Object {
   constructor(parent, type, name) {
-    // use of _ to refer to parent node was inspired by https://github.com/djeang/parent-chaining
     this._ = parent;
     this.type = type;
     this.name = name;
