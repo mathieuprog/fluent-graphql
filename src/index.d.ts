@@ -64,6 +64,9 @@ declare module "fluent-graphql" {
 
   class InlineFragment<Parent> extends Node<InlineFragment<Parent>, Parent> {}
 
+  type Subscriber = (data: T) => void;
+  type Unsubscriber = () => void;
+
   class Document {
     static query(operationName?: string): RootObject;
     static mutation(operationName: string): RootObject;
@@ -78,12 +81,6 @@ declare module "fluent-graphql" {
     ): Promise<T>;
     execute<T>(
       variables: ObjectLiteral,
-      subscriber: (data: T) => void,
-      returnUnsubscriber: (unsubscriber: () => void) => void,
-      options?: ObjectLiteral
-    ): Promise<T>;
-    execute<T>(
-      variables: ObjectLiteral,
       sink: ObjectLiteral,
       options?: ObjectLiteral
     ): Promise<T>;
@@ -93,6 +90,7 @@ declare module "fluent-graphql" {
     pollAfter(duration: any): Document
     clear(): void;
     getQueryString(): string;
+    subscribe(variables: ObjectLiteral, subscriber: Subscriber): Unsubscriber;
   }
 
   interface GraphQLErrorObject {
