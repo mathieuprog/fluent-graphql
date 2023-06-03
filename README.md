@@ -170,22 +170,23 @@ While the return line and indentation above may seem superfluous, they are actua
 ### Describe the document graph
 
 ```javascript
-Document
-  .query()
-    .entity('user')
-      .scalar('name')
-      .scalar('age', Number)
-      .entitySet('services')
+const document =
+  Document
+    .query()
+      .entity('user')
         .scalar('name')
-        .scalar('duration', Number)._._
-    .entity('organization')
-      .scalar('name')
-      .entitySet('locations')
+        .scalar('age', Number)
+        .entitySet('services')
+          .scalar('name')
+          .scalar('duration', Number)._._
+      .entity('organization')
         .scalar('name')
-        .embed('address')
-          .scalar('city')
-          .scalar('street')._._._._
-  .makeExecutable();
+        .entitySet('locations')
+          .scalar('name')
+          .embed('address')
+            .scalar('city')
+            .scalar('street')._._._._
+    .makeExecutable();
 ```
 
 Once we have a Document instance, we can use the following methods to build our GraphQL document:
@@ -207,13 +208,38 @@ The character `_` (underscore) character is a reference to the parent object. It
 ### Declare variables
 
 ```javascript
-Document
-  .query('UserList')
-    .variableDefinitions({ organizationId: 'ID!' })
-    .entity('users')
-      .useVariables({ organizationId: 'organizationId' })
-      .scalar('name')._._
-  .makeExecutable();
+const document =
+  Document
+    .query('UserList')
+      .variableDefinitions({ organizationId: 'ID!' })
+      .entity('users')
+        .useVariables({ organizationId: 'organizationId' })
+        .scalar('name')._._
+    .makeExecutable();
+```
+
+### Execute a request
+
+```javascript
+const data = await document.execute({ organizationId: 1 });
+```
+
+```javascript
+const data = await document.execute({}); // if the query doesn't utilize any variable
+```
+
+### Watch for refreshed data
+
+```javascript
+const data = await document.execute({ foo: 1 });
+
+function subscriber(refreshedData) {
+  data = refreshedData;
+}
+
+const unsubscriber = document.subscribe({ foo: 1 }, subscriber);
+
+onCleanup(unsubscriber); // provided that the framework component includes a lifecycle callback such as onCleanup, onDestroy, etc.
 ```
 
 ### Update query caches
