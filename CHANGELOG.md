@@ -2,6 +2,7 @@
 
 ## 0.0.9 (upcoming)
 
+  * Refactor watching for queries
   * Added findGraphQLErrorByCode
   * Improve error messages
   * Migrate from Jest to Vitest
