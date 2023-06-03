@@ -65,7 +65,7 @@ However, this approach does not provide information on how to handle the server 
 * If this were a mutation, is the user to be deleted or updated?
 * And so on.
 
-Other frameworks offer APIs that allow developers to specify how to transform data, update the cache, and perform other actions through various framework components.
+Those frameworks would offer APIs that allow developers to specify how to transform data, update the cache, and perform other actions through various framework components.
 
 Fluent GraphQL takes a different approach by providing a single fluent API that allows developers to write the GraphQL query, specify all data transformations, and handle caching, all in one go.
 
