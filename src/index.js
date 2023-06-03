@@ -13,14 +13,20 @@ globalThis.FluentGraphQL = {
   logConsolidatedCaches() {
     logConsolidatedCaches_();
   },
-  document(operationName) {
-    const document = Document.instances.filter((document) => document.operationName === operationName);
+  document(operationType, operationName) {
+    const document = Document.instances.filter((document) => {
+      return document.operationType === operationType
+          && document.operationName === operationName;
+    });
+
     if (document.length === 0) {
       return null;
     }
+
     if (document.length > 1) {
       throw new Error('More than one document instance found for the same operation name');
     }
+
     return document[0];
   },
   query(operationName = null) {

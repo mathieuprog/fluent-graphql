@@ -2,10 +2,16 @@ declare module "fluent-graphql" {
   type ObjectLiteral = { [key: string]: unknown };
 
   enum FetchStrategy {
-    FetchFromCacheOrThrow = "FETCH_FROM_CACHE_OR_THROW",
-    FetchFromCacheOrFallbackNetwork = "FETCH_FROM_CACHE_OR_FALLBACK_NETWORK",
-    FetchFromCacheAndNetwork = "FETCH_FROM_CACHE_AND_NETWORK",
-    FetchFromNetwork = "FETCH_FROM_NETWORK",
+    FetchFromCacheOrThrow = 'FETCH_FROM_CACHE_OR_THROW',
+    FetchFromCacheOrFallbackNetwork = 'FETCH_FROM_CACHE_OR_FALLBACK_NETWORK',
+    FetchFromCacheAndNetwork = 'FETCH_FROM_CACHE_AND_NETWORK',
+    FetchFromNetwork = 'FETCH_FROM_NETWORK'
+  }
+
+  enum OperationType {
+    Query = 'QUERY',
+    Mutation = 'MUTATION',
+    Subscription = 'SUBSCRIPTION'
   }
 
   interface ClientConfig {
