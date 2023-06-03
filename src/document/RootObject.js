@@ -4,7 +4,7 @@ import Node from './Node';
 
 export default class RootObject extends Node {
   constructor(document) {
-    super(document, ObjectType.ROOT_OBJECT, null);
+    super(document, ObjectType.RootObject, null);
     this.document = document;
   }
 

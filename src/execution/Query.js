@@ -39,7 +39,7 @@ export default class Query {
 
   async fetch(fetchStrategy) {
     if (fetchStrategy === undefined) {
-      fetchStrategy = FetchStrategy.FETCH_FROM_CACHE_OR_FALLBACK_NETWORK;
+      fetchStrategy = FetchStrategy.FetchFromCacheOrFallbackNetwork;
     }
 
     await this.doFetch(fetchStrategy);
@@ -72,13 +72,13 @@ export default class Query {
       default:
         throw new Error(`unknown strategy ${fetchStrategy}`);
 
-      case FetchStrategy.FETCH_FROM_CACHE_OR_FALLBACK_NETWORK:
+      case FetchStrategy.FetchFromCacheOrFallbackNetwork:
         if (!cached) {
           createCache(await fetch());
         }
         break;
 
-      case FetchStrategy.FETCH_FROM_CACHE_AND_NETWORK:
+      case FetchStrategy.FetchFromCacheAndNetwork:
         if (!cached) {
           createCache(await fetch());
         } else {
@@ -86,7 +86,7 @@ export default class Query {
         }
         break;
 
-      case FetchStrategy.FETCH_FROM_NETWORK:
+      case FetchStrategy.FetchFromNetwork:
         if (!cached) {
           createCache(await fetch());
         } else {
@@ -94,7 +94,7 @@ export default class Query {
         }
         break;
 
-      case FetchStrategy.FETCH_FROM_CACHE_OR_THROW:
+      case FetchStrategy.FetchFromCacheOrThrow:
         if (!cached) {
           throw new NotFoundInCacheError('not found in cache');
         }
@@ -172,7 +172,7 @@ export default class Query {
     clearInterval(this.intervalPoll);
 
     return setInterval(
-      () => this.doFetch(FetchStrategy.FETCH_FROM_NETWORK),
+      () => this.doFetch(FetchStrategy.FetchFromNetwork),
       this.pollAfterDuration.total({ unit: 'millisecond' })
     );
   }

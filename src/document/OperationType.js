@@ -1,5 +1,5 @@
 export default Object.freeze({
-  QUERY: 'QUERY',
-  MUTATION: 'MUTATION',
-  SUBSCRIPTION: 'SUBSCRIPTION'
+  Query: 'QUERY',
+  Mutation: 'MUTATION',
+  Subscription: 'SUBSCRIPTION'
 });

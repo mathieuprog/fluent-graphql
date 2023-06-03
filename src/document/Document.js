@@ -32,19 +32,19 @@ export default class Document {
   }
 
   static query(operationName = null) {
-    const document = new Document(OperationType.QUERY, operationName);
+    const document = new Document(OperationType.Query, operationName);
     this.instances.push(document);
     return document.rootObject;
   }
 
   static mutation(operationName) {
-    const document = new Document(OperationType.MUTATION, operationName);
+    const document = new Document(OperationType.Mutation, operationName);
     this.instances.push(document);
     return document.rootObject;
   }
 
   static subscription(operationName) {
-    const document = new Document(OperationType.SUBSCRIPTION, operationName);
+    const document = new Document(OperationType.Subscription, operationName);
     this.instances.push(document);
     return document.rootObject;
   }
@@ -101,7 +101,7 @@ export default class Document {
   }
 
   getQueryExecutor(variables) {
-    if (this.operationType !== OperationType.QUERY) {
+    if (this.operationType !== OperationType.Query) {
       throw new Error();
     }
 

@@ -28,26 +28,26 @@ export default function copyEntity(meta, entity) {
     }
 
     switch (object.type) {
-      case ObjectType.VIEWER_OBJECT:
-      case ObjectType.ROOT_OBJECT:
+      case ObjectType.ViewerObject:
+      case ObjectType.RootObject:
         throw new Error();
 
-      case ObjectType.EMBED:
-      case ObjectType.EMBED_LIST:
+      case ObjectType.Embed:
+      case ObjectType.EmbedList:
         newEntity[propName] = entity[propName];
         break;
 
-      case ObjectType.ENTITY:
-      case ObjectType.UNION:
-      case ObjectType.INTERFACE:
+      case ObjectType.Entity:
+      case ObjectType.Union:
+      case ObjectType.Interface:
         newEntity[propName] = (entity[propName] !== null)
           ? copyEntity(object, entity[propName])
           : null;
         break;
 
-      case ObjectType.ENTITY_SET:
-      case ObjectType.UNION_SET:
-      case ObjectType.INTERFACE_SET:
+      case ObjectType.EntitySet:
+      case ObjectType.UnionSet:
+      case ObjectType.InterfaceSet:
         newEntity[propName] = entity[propName].map((entity) => copyEntity(object, entity));
         break;
     }

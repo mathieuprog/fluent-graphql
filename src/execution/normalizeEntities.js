@@ -19,31 +19,31 @@ function doNormalizeEntities(meta, data, normalizedEntities = []) {
     }
 
     switch (object.type) {
-      case ObjectType.VIEWER_OBJECT:
+      case ObjectType.ViewerObject:
         doNormalizeEntities(object, data[propName], normalizedEntities);
         break;
 
-      case ObjectType.ENTITY:
+      case ObjectType.Entity:
         if (data[propName] !== null) {
           normalizedEntities.push({ ...data[propName], ...buildMeta(object) });
           doNormalizeEntities(object, data[propName], normalizedEntities);
         }
         break;
 
-      case ObjectType.ENTITY_SET:
+      case ObjectType.EntitySet:
         data[propName].forEach((entity) => {
           normalizedEntities.push({ ...entity, ...buildMeta(object) });
           doNormalizeEntities(object, entity, normalizedEntities);
         });
         break;
 
-      case ObjectType.INTERFACE:
+      case ObjectType.Interface:
         if (data[propName] !== null) {
           doNormalizeEntities(object, data[propName], normalizedEntities);
         }
         break;
 
-      case ObjectType.INTERFACE_SET:
+      case ObjectType.InterfaceSet:
         data[propName].forEach((value) => {
           doNormalizeEntities(object, value, normalizedEntities);
         });
@@ -51,38 +51,38 @@ function doNormalizeEntities(meta, data, normalizedEntities = []) {
     }
 
     switch (object.type) {
-      case ObjectType.UNION:
-      case ObjectType.INTERFACE:
+      case ObjectType.Union:
+      case ObjectType.Interface:
         if (data[propName] !== null) {
           if (!object.inlineFragments[data[propName].__typename]) {
             throw new Error();
           }
           switch (object.inlineFragments[data[propName].__typename].type) {
-            case ObjectType.INLINE_FRAGMENT_ENTITY:
+            case ObjectType.InlineFragmentEntity:
               normalizedEntities.push({ ...data[propName], ...buildMeta(object.inlineFragments[data[propName].__typename]) });
               doNormalizeEntities(object.inlineFragments[data[propName].__typename], data[propName], normalizedEntities);
               break;
 
-            case ObjectType.INLINE_FRAGMENT_TYPED_OBJECT:
+            case ObjectType.InlineFragmentTypedObject:
               doNormalizeEntities(object.inlineFragments[data[propName].__typename], data[propName], normalizedEntities);
               break;
           }
         }
         break;
 
-      case ObjectType.UNION_SET:
-      case ObjectType.INTERFACE_SET:
+      case ObjectType.UnionSet:
+      case ObjectType.InterfaceSet:
         data[propName].forEach((value) => {
           if (!object.inlineFragments[value.__typename]) {
             throw new Error();
           }
           switch (object.inlineFragments[value.__typename].type) {
-            case ObjectType.INLINE_FRAGMENT_ENTITY:
+            case ObjectType.InlineFragmentEntity:
               normalizedEntities.push({ ...value, ...buildMeta(object.inlineFragments[value.__typename]) });
               doNormalizeEntities(object.inlineFragments[value.__typename], value, normalizedEntities);
               break;
 
-            case ObjectType.INLINE_FRAGMENT_TYPED_OBJECT:
+            case ObjectType.InlineFragmentTypedObject:
               doNormalizeEntities(object.inlineFragments[value.__typename], value, normalizedEntities);
               break;
           }

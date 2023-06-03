@@ -52,16 +52,16 @@ export default class QueryCache {
       }
 
       switch (object.type) {
-        case ObjectType.VIEWER_OBJECT:
+        case ObjectType.ViewerObject:
           const transformedData = this.doUpdate(data[propName], object, freshEntities);
           if (data[propName] !== transformedData) {
             data = updatePropImmutably(propName, transformedData);
           }
           break;
 
-        case ObjectType.ENTITY:
-        case ObjectType.UNION:
-        case ObjectType.INTERFACE:
+        case ObjectType.Entity:
+        case ObjectType.Union:
+        case ObjectType.Interface:
           let addedEntity = false;
           if (object.filterFunctionsByTypename) {
             for (let entity of freshEntities) {
@@ -93,9 +93,9 @@ export default class QueryCache {
           }
           break;
 
-        case ObjectType.ENTITY_SET:
-        case ObjectType.UNION_SET:
-        case ObjectType.INTERFACE_SET:
+        case ObjectType.EntitySet:
+        case ObjectType.UnionSet:
+        case ObjectType.InterfaceSet:
           let updated = false;
           const newData =
             data[propName]

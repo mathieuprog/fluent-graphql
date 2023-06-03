@@ -10,7 +10,7 @@ function consolidatedCaches() {
   let normalizedEntities = [];
 
   for (let document of Document.instances) {
-    if (document.operationType !== OperationType.QUERY || !document.executor) {
+    if (document.operationType !== OperationType.Query || !document.executor) {
       continue;
     }
 

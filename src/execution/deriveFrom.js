@@ -29,11 +29,11 @@ async function doDeriveFrom(meta, data, variables) {
       const { fetch } = object.derivedFrom;
 
       switch (object.type) {
-        case ObjectType.ENTITY:
+        case ObjectType.Entity:
           data[propName] = buildDataGraph(object, await fetch(variables));
           break;
 
-        case ObjectType.ENTITY_SET:
+        case ObjectType.EntitySet:
           data[propName] = (await fetch(variables)).map((entity) => buildDataGraph(object, entity));
           break;
       }
@@ -42,18 +42,18 @@ async function doDeriveFrom(meta, data, variables) {
     }
 
     switch (object.type) {
-      case ObjectType.VIEWER_OBJECT:
-      case ObjectType.ENTITY:
-      case ObjectType.UNION:
-      case ObjectType.INTERFACE:
+      case ObjectType.ViewerObject:
+      case ObjectType.Entity:
+      case ObjectType.Union:
+      case ObjectType.Interface:
         data[propName] = (data[propName] !== null)
           ? await doDeriveFrom(object, data[propName], variables)
           : null;
         break;
 
-      case ObjectType.ENTITY_SET:
-      case ObjectType.UNION_SET:
-      case ObjectType.INTERFACE_SET:
+      case ObjectType.EntitySet:
+      case ObjectType.UnionSet:
+      case ObjectType.InterfaceSet:
         data[propName] = await Promise.all(data[propName].map((entity) => doDeriveFrom(object, entity, variables)));
         break;
     }
@@ -105,26 +105,26 @@ function buildDataGraph(meta, dataToDeriveFrom, result = {}) {
     }
 
     switch (object.type) {
-      case ObjectType.VIEWER_OBJECT:
-      case ObjectType.ROOT_OBJECT:
+      case ObjectType.ViewerObject:
+      case ObjectType.RootObject:
         throw new Error();
 
-      case ObjectType.EMBED:
-      case ObjectType.EMBED_LIST:
+      case ObjectType.Embed:
+      case ObjectType.EmbedList:
         result[propName] = dataToDeriveFrom[propName];
         break;
 
-      case ObjectType.ENTITY:
-      case ObjectType.UNION:
-      case ObjectType.INTERFACE:
+      case ObjectType.Entity:
+      case ObjectType.Union:
+      case ObjectType.Interface:
         result[propName] = (dataToDeriveFrom[propName] !== null)
           ? buildDataGraph(object, dataToDeriveFrom[propName])
           : null;
         break;
 
-      case ObjectType.ENTITY_SET:
-      case ObjectType.UNION_SET:
-      case ObjectType.INTERFACE_SET:
+      case ObjectType.EntitySet:
+      case ObjectType.UnionSet:
+      case ObjectType.InterfaceSet:
         result[propName] = dataToDeriveFrom[propName].map((entity) => buildDataGraph(object, entity));
         break;
     }

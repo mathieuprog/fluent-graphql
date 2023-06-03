@@ -44,21 +44,21 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
       }
 
       switch (object.type) {
-        case ObjectType.VIEWER_OBJECT:
-        case ObjectType.ROOT_OBJECT:
+        case ObjectType.ViewerObject:
+        case ObjectType.RootObject:
           throw new Error();
 
-        case ObjectType.EMBED:
-        case ObjectType.EMBED_LIST:
+        case ObjectType.Embed:
+        case ObjectType.EmbedList:
           if (areValuesEqual(entity[propName], freshEntity[propName])) {
             continue;
           }
           entity = updatePropImmutably(propName, freshEntity[propName]);
           break;
 
-        case ObjectType.ENTITY:
-        case ObjectType.UNION:
-        case ObjectType.INTERFACE:
+        case ObjectType.Entity:
+        case ObjectType.Union:
+        case ObjectType.Interface:
           if (entity[propName]?.id === freshEntity[propName]?.id) {
             continue;
           }
@@ -71,9 +71,9 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
           entity = updatePropImmutably(propName, copyEntity(object, freshEntity[propName]));
           break;
 
-        case ObjectType.ENTITY_SET:
-        case ObjectType.UNION_SET:
-        case ObjectType.INTERFACE_SET:
+        case ObjectType.EntitySet:
+        case ObjectType.UnionSet:
+        case ObjectType.InterfaceSet:
           const cachedIds = entity[propName].map(({ id }) => id);
           const freshIds = freshEntity[propName].map(({ id }) => id);
 

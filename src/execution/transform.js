@@ -43,10 +43,10 @@ function doTransform(meta, data) {
     }
 
     switch (object.type) {
-      case ObjectType.VIEWER_OBJECT:
-      case ObjectType.ENTITY:
-      case ObjectType.EMBED:
-      case ObjectType.INTERFACE:
+      case ObjectType.ViewerObject:
+      case ObjectType.Entity:
+      case ObjectType.Embed:
+      case ObjectType.Interface:
         if (data[propName] !== null) {
           const transformedData = doTransform(object, data[propName]);
           if (data[propName] !== transformedData) {
@@ -55,9 +55,9 @@ function doTransform(meta, data) {
         }
         break;
 
-      case ObjectType.ENTITY_SET:
-      case ObjectType.EMBED_LIST:
-      case ObjectType.INTERFACE_SET:
+      case ObjectType.EntitySet:
+      case ObjectType.EmbedList:
+      case ObjectType.InterfaceSet:
         let updated = false;
         const newData =
           data[propName].map((value) => {
@@ -73,8 +73,8 @@ function doTransform(meta, data) {
     }
 
     switch (object.type) {
-      case ObjectType.UNION:
-      case ObjectType.INTERFACE:
+      case ObjectType.Union:
+      case ObjectType.Interface:
         if (data[propName] !== null) {
           if (!object.inlineFragments[data[propName].__typename]) {
             const { operationName, operationType } = object.getDocument();
@@ -87,8 +87,8 @@ function doTransform(meta, data) {
         }
         break;
 
-      case ObjectType.UNION_SET:
-      case ObjectType.INTERFACE_SET:
+      case ObjectType.UnionSet:
+      case ObjectType.InterfaceSet:
         let updated = false;
         const newData =
           data[propName].map((value) => {

@@ -5,7 +5,7 @@ export default function logStatusQueries() {
   console.group('Fluent GraphQL queries');
 
   for (let document of Document.instances) {
-    if (document.operationType !== OperationType.QUERY || !document.executor) {
+    if (document.operationType !== OperationType.Query || !document.executor) {
       continue;
     }
     console.group('document', document.operationName);

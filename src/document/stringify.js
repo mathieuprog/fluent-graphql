@@ -5,17 +5,17 @@ export default function stringify(document) {
   let str = '';
 
   switch (document.operationType) {
-    case OperationType.QUERY:
+    case OperationType.Query:
       if (document.variableDefinitions || document.operationName) {
         str += 'query';
       }
       break;
 
-    case OperationType.MUTATION:
+    case OperationType.Mutation:
       str += 'mutation';
       break;
 
-    case OperationType.SUBSCRIPTION:
+    case OperationType.Subscription:
       str += 'subscription';
       break;
   }

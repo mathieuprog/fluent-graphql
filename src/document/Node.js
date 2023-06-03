@@ -32,42 +32,42 @@ export default class Node {
   entity(name) {
     this.rejectAddingEntityInEmbed();
     this.rejectAddingFieldsInUnion();
-    return this.object_(name, ObjectType.ENTITY);
+    return this.object_(name, ObjectType.Entity);
   }
 
   entitySet(name) {
     this.rejectAddingEntityInEmbed();
     this.rejectAddingFieldsInUnion();
-    return this.object_(name, ObjectType.ENTITY_SET);
+    return this.object_(name, ObjectType.EntitySet);
   }
 
   union(name) {
     this.rejectAddingEntityInEmbed();
     this.rejectAddingFieldsInUnion();
-    return this.object_(name, ObjectType.UNION);
+    return this.object_(name, ObjectType.Union);
   }
 
   unionSet(name) {
     this.rejectAddingEntityInEmbed();
     this.rejectAddingFieldsInUnion();
-    return this.object_(name, ObjectType.UNION_SET);
+    return this.object_(name, ObjectType.UnionSet);
   }
 
   interface(name) {
     this.rejectAddingEntityInEmbed();
     this.rejectAddingFieldsInUnion();
-    return this.object_(name, ObjectType.INTERFACE);
+    return this.object_(name, ObjectType.Interface);
   }
 
   interfaceSet(name) {
     this.rejectAddingEntityInEmbed();
     this.rejectAddingFieldsInUnion();
-    return this.object_(name, ObjectType.INTERFACE_SET);
+    return this.object_(name, ObjectType.InterfaceSet);
   }
 
   onEntity(typename) {
     this.rejectAddingInlineFragmentInObject();
-    const inlineFragment = Document.createInlineFragment(this, ObjectType.INLINE_FRAGMENT_ENTITY, typename);
+    const inlineFragment = Document.createInlineFragment(this, ObjectType.InlineFragmentEntity, typename);
     this.inlineFragments[typename] = inlineFragment;
     return inlineFragment;
   }
@@ -75,21 +75,21 @@ export default class Node {
   onTypedObject(typename) {
     this.rejectAddingInlineFragmentInObject();
     this.rejectAddingInlineTypedObjectInQuery();
-    const inlineFragment = Document.createInlineFragment(this, ObjectType.INLINE_FRAGMENT_TYPED_OBJECT, typename);
+    const inlineFragment = Document.createInlineFragment(this, ObjectType.InlineFragmentTypedObject, typename);
     this.inlineFragments[typename] = inlineFragment;
     return inlineFragment;
   }
 
   embed(name) {
-    return this.object_(name, ObjectType.EMBED);
+    return this.object_(name, ObjectType.Embed);
   }
 
   embedList(name) {
-    return this.object_(name, ObjectType.EMBED_LIST);
+    return this.object_(name, ObjectType.EmbedList);
   }
 
   viewer(name) {
-    return this.object_(name, ObjectType.VIEWER_OBJECT);
+    return this.object_(name, ObjectType.ViewerObject);
   }
 
   object_(name, type) {
@@ -130,7 +130,7 @@ export default class Node {
   }
 
   overrideElements() {
-    if (![ObjectType.ENTITY_SET, ObjectType.UNION_SET, ObjectType.INTERFACE_SET].includes(this.type)) {
+    if (![ObjectType.EntitySet, ObjectType.UnionSet, ObjectType.InterfaceSet].includes(this.type)) {
       throw new Error();
     }
     this.areElementsToBeOverridden = true;
@@ -138,10 +138,10 @@ export default class Node {
   }
 
   removeElements() {
-    if (![ObjectType.ENTITY_SET, ObjectType.UNION_SET, ObjectType.INTERFACE_SET].includes(this.type)) {
+    if (![ObjectType.EntitySet, ObjectType.UnionSet, ObjectType.InterfaceSet].includes(this.type)) {
       throw new Error();
     }
-    if (this.getOperationType() !== OperationType.MUTATION) {
+    if (this.getOperationType() !== OperationType.Mutation) {
       throw new Error();
     }
     this.areElementsToBeRemoved = true;
@@ -149,10 +149,10 @@ export default class Node {
   }
 
   deleteElements() {
-    if (![ObjectType.ENTITY_SET, ObjectType.UNION_SET, ObjectType.INTERFACE_SET].includes(this.type)) {
+    if (![ObjectType.EntitySet, ObjectType.UnionSet, ObjectType.InterfaceSet].includes(this.type)) {
       throw new Error();
     }
-    if (this.getOperationType() !== OperationType.MUTATION) {
+    if (this.getOperationType() !== OperationType.Mutation) {
       throw new Error();
     }
     this.isToBeDeleted = true;
@@ -161,10 +161,10 @@ export default class Node {
   }
 
   delete() {
-    if (![ObjectType.ENTITY, ObjectType.INLINE_FRAGMENT_ENTITY].includes(this.type)) {
+    if (![ObjectType.Entity, ObjectType.InlineFragmentEntity].includes(this.type)) {
       throw new Error();
     }
-    if (this.getOperationType() !== OperationType.MUTATION) {
+    if (this.getOperationType() !== OperationType.Mutation) {
       throw new Error();
     }
     this.isToBeDeleted = true;
@@ -191,26 +191,26 @@ export default class Node {
 
   rejectAddingEntityInEmbed() {
     if ([
-      ObjectType.EMBED,
-      ObjectType.EMBED_LIST
+      ObjectType.Embed,
+      ObjectType.EmbedList
     ].includes(this.type)) {
       throw new Error('embeds may not contain entities');
     }
-    if (this.getOperationType() === OperationType.MUTATION) {
+    if (this.getOperationType() === OperationType.Mutation) {
       return;
     }
   }
 
   rejectAddingInlineTypedObjectInQuery() {
-    if (this.getOperationType() !== OperationType.MUTATION) {
+    if (this.getOperationType() !== OperationType.Mutation) {
       throw new Error();
     }
   }
 
   rejectAddingFieldsInUnion() {
     if ([
-      ObjectType.UNION,
-      ObjectType.UNION_SET
+      ObjectType.Union,
+      ObjectType.UnionSet
     ].includes(this.type)) {
       throw new Error('unions may not contain fields outside an inline fragment');
     }
@@ -218,10 +218,10 @@ export default class Node {
 
   rejectAddingInlineFragmentInObject() {
     if (![
-      ObjectType.UNION,
-      ObjectType.UNION_SET,
-      ObjectType.INTERFACE,
-      ObjectType.INTERFACE_SET
+      ObjectType.Union,
+      ObjectType.UnionSet,
+      ObjectType.Interface,
+      ObjectType.InterfaceSet
     ].includes(this.type)) {
       throw new Error('inline fragments may only be added into unions or interfaces');
     }
@@ -229,10 +229,10 @@ export default class Node {
 
   addDefaultScalars(type, parentType) {
     if ([
-      ObjectType.ENTITY,
-      ObjectType.ENTITY_SET,
-      ObjectType.INTERFACE,
-      ObjectType.INTERFACE_SET
+      ObjectType.Entity,
+      ObjectType.EntitySet,
+      ObjectType.Interface,
+      ObjectType.InterfaceSet
     ].includes(type)) {
       this.scalar('id');
       this.scalar('__typename');
@@ -240,17 +240,17 @@ export default class Node {
     }
 
     if ([
-      ObjectType.UNION,
-      ObjectType.UNION_SET
+      ObjectType.Union,
+      ObjectType.UnionSet
     ].includes(type)) {
       this.scalar('__typename');
       return;
     }
 
     if ([
-      ObjectType.UNION,
-      ObjectType.UNION_SET
-    ].includes(parentType) && type === ObjectType.INLINE_FRAGMENT_ENTITY) {
+      ObjectType.Union,
+      ObjectType.UnionSet
+    ].includes(parentType) && type === ObjectType.InlineFragmentEntity) {
       this.scalar('id');
       return;
     }

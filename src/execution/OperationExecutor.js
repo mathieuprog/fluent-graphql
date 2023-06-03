@@ -26,13 +26,13 @@ export default class OperationExecutor {
 
   execute(...args) {
     switch (this.document.operationType) {
-      case OperationType.QUERY:
+      case OperationType.Query:
         return this.executeQuery(args);
 
-      case OperationType.MUTATION:
+      case OperationType.Mutation:
         return this.executeMutation(args);
 
-      case OperationType.SUBSCRIPTION:
+      case OperationType.Subscription:
         return this.executeSubscription(args);
     }
   }
@@ -41,7 +41,7 @@ export default class OperationExecutor {
     const [variables, options] = args;
     const { fetchStrategy } = options || {};
 
-    if (fetchStrategy === FetchStrategy.FETCH_FROM_NETWORK && !this.queryRegistry.has(variables)) {
+    if (fetchStrategy === FetchStrategy.FetchFromNetwork && !this.queryRegistry.has(variables)) {
       return this.document.transform(await this.executeRequest(variables));
     }
 

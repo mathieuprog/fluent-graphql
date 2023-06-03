@@ -97,7 +97,7 @@ test('OperationExecutor', async () => {
 
   await operationExecutor1.execute({});
 
-  await operationExecutor2.execute({ foo: 1 }, { fetchStrategy: FetchStrategy.FETCH_FROM_NETWORK });
+  await operationExecutor2.execute({ foo: 1 }, { fetchStrategy: FetchStrategy.FetchFromNetwork });
 
   expect(operationExecutor1.getCache({}).me.user.name).toBe('Jane');
   expect(operationExecutor2.getCache({ foo: 1 }).users[0].name).toBe('Jane');
@@ -220,7 +220,7 @@ test('network', async () => {
 
   const operationExecutor = new OperationExecutor(document, client);
 
-  const data = await operationExecutor.execute({}, { fetchStrategy: FetchStrategy.FETCH_FROM_NETWORK });
+  const data = await operationExecutor.execute({}, { fetchStrategy: FetchStrategy.FetchFromNetwork });
 
   expect(operationExecutor.getCache({})).toBeNull();
 
