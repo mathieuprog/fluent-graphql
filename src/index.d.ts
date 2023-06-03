@@ -90,6 +90,7 @@ declare module "fluent-graphql" {
       sink: ObjectLiteral,
       options?: ObjectLiteral
     ): Promise<T>;
+    getQueryExecutor(variables: ObjectLiteral): QueryExecutor;
     simulateNetworkRequest(data: ObjectLiteral): void;
     transformResponse(fun: (data: any) => unknown): Document
     clearAfter(duration: any): Document // TODO Temporal type
@@ -97,6 +98,12 @@ declare module "fluent-graphql" {
     clear(): void;
     getQueryString(): string;
     subscribe(variables: ObjectLiteral, subscriber: Subscriber): Unsubscriber;
+  }
+
+  class QueryExecutor {
+    constructor(document: Document, variables: ObjectLiteral);
+    execute<T>(options?: ObjectLiteral): Promise<T>;
+    subscribe(subscriber: Subscriber): Unsubscriber;
   }
 
   interface GraphQLErrorObject {

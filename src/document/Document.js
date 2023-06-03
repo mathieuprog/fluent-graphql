@@ -1,8 +1,10 @@
+import { sortProperties } from 'object-array-utils';
 import RootObject from './RootObject';
 import InlineFragment from './InlineFragment';
 import OperationType from './OperationType';
 import stringify from './stringify';
 import OperationExecutor from '../execution/OperationExecutor';
+import QueryExecutor from '../execution/QueryExecutor';
 
 export default class Document {
   static instances = [];
@@ -19,6 +21,7 @@ export default class Document {
     this.clearAfterDuration = null;
     this.pollAfterDuration = null;
     this.executor = null;
+    this.queryExecutors = {};
     this.maybeSimulateNetworkDelay = () => false;
   }
 
@@ -95,6 +98,25 @@ export default class Document {
     }
 
     return this.executor;
+  }
+
+  getQueryExecutor(variables) {
+    if (this.operationType !== OperationType.QUERY) {
+      throw new Error();
+    }
+
+    if (!this.executor) {
+      throw new Error('makeExecutable() has not been called');
+    }
+
+    const variablesAsString = JSON.stringify(sortProperties(variables));
+
+    let queryExecutor = this.queryExecutors[variablesAsString];
+    if (!queryExecutor) {
+      queryExecutor = new QueryExecutor(this, variables);
+    }
+
+    return queryExecutor;
   }
 
   setExecutor(executor) {
