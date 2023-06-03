@@ -3,12 +3,10 @@ import InlineFragment from './InlineFragment';
 import OperationType from './OperationType';
 import stringify from './stringify';
 import OperationExecutor from '../execution/OperationExecutor';
-import DefaultCacheStrategy from '../execution/cache/strategies/DefaultCacheStrategy';
 
 export default class Document {
   static instances = [];
   static defaultClient = null;
-  static cacheStrategyClass = DefaultCacheStrategy;
   static maybeSimulateNetworkDelayGlobally = () => false;
 
   constructor(operationType, operationName) {
@@ -50,10 +48,6 @@ export default class Document {
 
   static setDefaultClient(client) {
     this.defaultClient = client;
-  }
-
-  static setCacheStrategy(className) {
-    this.cacheStrategyClass = className;
   }
 
   static simulateNetworkDelayGlobally(min, max) {
@@ -113,6 +107,14 @@ export default class Document {
     }
 
     return this.executor.execute(...args);
+  }
+
+  subscribe(variables, subscriber) {
+    if (!this.executor) {
+      throw new Error('makeExecutable() has not been called');
+    }
+
+    return this.executor.addSubscriber(variables, subscriber);
   }
 
   simulateNetworkRequest(data) {

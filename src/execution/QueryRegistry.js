@@ -1,11 +1,11 @@
 import { sortProperties } from 'object-array-utils';
 import Notifier from './Notifier';
 import Query from './Query';
+import QueryCache from './cache/QueryCache';
 
 export default class QueryRegistry {
-  constructor(document, cacheStrategyClass, executeRequest) {
+  constructor(document, executeRequest) {
     this.document = document;
-    this.cacheStrategyClass = cacheStrategyClass;
     this.executeRequest = executeRequest;
     this.registry = {};
   }
@@ -16,8 +16,6 @@ export default class QueryRegistry {
     if (this.registry[key]) {
       return this.registry[key];
     }
-
-    const cacheStrategy = new this.cacheStrategyClass(this.document, variables);
 
     const clearAfterDuration =
       (typeof this.document.clearAfterDuration === 'function')
@@ -30,7 +28,7 @@ export default class QueryRegistry {
         : this.document.pollAfterDuration;
 
     const query = new Query(
-      cacheStrategy,
+      (data) => new QueryCache(this.document, data, this.variables),
       () => this.executeRequest(variables, Notifier.notify),
       () => this.remove(variables),
       clearAfterDuration,

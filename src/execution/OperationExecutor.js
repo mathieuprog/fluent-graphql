@@ -17,7 +17,6 @@ export default class OperationExecutor {
     this.queryRegistry =
       new QueryRegistry(
         document,
-        Document.cacheStrategyClass,
         this.executeRequest.bind(this));
   }
 
@@ -39,9 +38,8 @@ export default class OperationExecutor {
   }
 
   async executeQuery(args) {
-    const [variables, ...rest] = args;
-
-    const fetchStrategy = rest.at(-1)?.fetchStrategy;
+    const [variables, options] = args;
+    const { fetchStrategy } = options || {};
 
     if (fetchStrategy === FetchStrategy.FETCH_FROM_NETWORK && !this.queryRegistry.has(variables)) {
       return this.document.transform(await this.executeRequest(variables));
@@ -49,7 +47,7 @@ export default class OperationExecutor {
 
     const query = this.queryRegistry.getOrCreate(variables);
 
-    return await query.fetch(args, fetchStrategy);
+    return await query.fetch(fetchStrategy);
   }
 
   async executeMutation(args) {
@@ -63,6 +61,11 @@ export default class OperationExecutor {
 
     const client = await this.getClient();
     await client.subscribe(this.document.getQueryString(), variables, sink, options || {});
+  }
+
+  subscribe(variables, subscriber) {
+    const query = this.queryRegistry.getOrCreate(variables);
+    return query.addSubscriber(subscriber);
   }
 
   simulateNetworkRequest(data) {

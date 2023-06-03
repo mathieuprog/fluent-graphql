@@ -2,8 +2,8 @@ import FetchStrategy from './FetchStrategy';
 import Notifier from './Notifier';
 
 export default class Query {
-  constructor(cacheStrategy, executeRequest, onClear, clearAfterDuration, pollAfterDuration) {
-    this.cacheStrategy = cacheStrategy;
+  constructor(createQueryCache, executeRequest, onClear, clearAfterDuration, pollAfterDuration) {
+    this.createQueryCache = createQueryCache;
     this.executeRequest = executeRequest;
     this.onClear = onClear;
     this.cleared = false;
@@ -13,10 +13,12 @@ export default class Query {
     this.pollAfterDuration = pollAfterDuration;
     this.timeoutClear = this.initTimeoutClear();
     this.intervalPoll = this.initIntervalPoll();
+    this.cache = null;
+    this.subscribers = new Set();
   }
 
   getCachedData() {
-    return this.cacheStrategy.getCachedData();
+    return this.cache?.getData() || null;
   }
 
   updateCache(freshEntities) {
@@ -24,16 +26,18 @@ export default class Query {
       throw new Error();
     }
 
-    const updated = this.cacheStrategy.updateCache(freshEntities);
+    const updated = this.cache.update(freshEntities);
 
-    if (updated && !this.cacheStrategy.isClearable()) {
+    if (updated) {
+      this.notifySubscribers(this.cache.getData());
+    }
+
+    if (updated && this.subscribers.size > 0) {
       this.timeoutClear = this.initTimeoutClear();
     }
   }
 
-  async fetch(args, fetchStrategy) {
-    this.cacheStrategy.beforeFetch(args);
-
+  async fetch(fetchStrategy) {
     if (fetchStrategy === undefined) {
       fetchStrategy = FetchStrategy.FETCH_FROM_CACHE_OR_FALLBACK_NETWORK;
     }
@@ -44,7 +48,7 @@ export default class Query {
       this.unsubscriber = Notifier.subscribe(this);
     }
 
-    return this.cacheStrategy.cache.getData();
+    return this.cache.getData();
   }
 
   async doFetch(fetchStrategy) {
@@ -55,11 +59,14 @@ export default class Query {
       return this.executePromiseOrWaitPending();
     };
 
-    const createCache = (data) => {
-      this.cacheStrategy.createCache(data);
-    };
+    const cached = !!this.cache?.getData();
 
-    const cached = !!this.cacheStrategy.getCachedData();
+    const createCache = (data) => {
+      if (this.cache) {
+        throw new Error('cache already created');
+      }
+      this.cache = this.createQueryCache(data);
+    };
 
     switch (fetchStrategy) {
       default:
@@ -120,7 +127,9 @@ export default class Query {
       return;
     }
 
-    this.cacheStrategy.clear();
+    if (this.subscribers.size > 0) {
+      throw new Error('Cannot clear query that has active subscribers');
+    }
 
     if (this.unsubscriber) {
       this.unsubscriber();
@@ -144,7 +153,7 @@ export default class Query {
 
     return setTimeout(
       () => {
-        if (this.pendingPromise || !this.cacheStrategy.isClearable()) {
+        if (this.pendingPromise || this.subscribers.size > 0) {
           this.timeoutClear = this.initTimeoutClear();
           return;
         }
@@ -166,5 +175,24 @@ export default class Query {
       () => this.doFetch(FetchStrategy.FETCH_FROM_NETWORK),
       this.pollAfterDuration.total({ unit: 'millisecond' })
     );
+  }
+
+  addSubscriber(subscriber) {
+    if (typeof subscriber !== 'function') {
+      throw new Error(`subscriber is not a function: ${JSON.stringify(subscriber)}`);
+    }
+
+    const item = { subscriber };
+    this.subscribers.add(item);
+
+    return () => {
+      this.subscribers.delete(item);
+    };
+  }
+
+  notifySubscribers(data) {
+    for (const { subscriber } of this.subscribers) {
+      subscriber(data);
+    }
   }
 }

@@ -1,7 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Temporal } from '@js-temporal/polyfill';
 import Document from '../document/Document';
-import AutoUnsubscriber from './AutoUnsubscriber';
 import FetchStrategy from './FetchStrategy';
 import OperationExecutor from './OperationExecutor';
 
@@ -12,9 +11,6 @@ test('OperationExecutor', async () => {
   const subscriber1 = vi.fn();
   const subscriber2 = vi.fn();
   const subscriber3 = vi.fn();
-  const returnUnsubscriber1 = vi.fn();
-  const returnUnsubscriber2 = vi.fn();
-  const returnUnsubscriber3 = vi.fn();
 
   const document1 =
     Document
@@ -44,16 +40,16 @@ test('OperationExecutor', async () => {
     }
   };
 
-  const operationExecutor1 = new AutoUnsubscriber(new OperationExecutor(document1, client1));
+  const operationExecutor1 = new OperationExecutor(document1, client1);
 
-  await operationExecutor1.execute({}, subscriber1, returnUnsubscriber1);
+  await operationExecutor1.execute({});
+  let unsubscribeSubscriber1 = operationExecutor1.subscribe({}, subscriber1);
 
   expect(operationExecutor1.getCache({}).me.user.name).toBe('John');
   expect(operationExecutor1.getCache({ var: 1 })).toBeNull();
 
   expect(request1).toHaveBeenCalledTimes(1);
   expect(subscriber1).toHaveBeenCalledTimes(0);
-  expect(returnUnsubscriber1).toHaveBeenCalledTimes(1);
 
   const document2 =
     Document
@@ -70,9 +66,10 @@ test('OperationExecutor', async () => {
     }
   };
 
-  const operationExecutor2 = new AutoUnsubscriber(new OperationExecutor(document2, client2));
+  const operationExecutor2 = new OperationExecutor(document2, client2);
 
-  await operationExecutor2.execute({ foo: 1 }, subscriber2, returnUnsubscriber2);
+  await operationExecutor2.execute({ foo: 1 });
+  operationExecutor2.subscribe({ foo: 1 }, subscriber2);
 
   expect(operationExecutor1.getCache({}).me.user.name).toBe('James');
   expect(operationExecutor2.getCache({ foo: 1 }).users[0].name).toBe('James');
@@ -82,9 +79,11 @@ test('OperationExecutor', async () => {
   expect(subscriber2).toHaveBeenCalledTimes(0);
   expect(subscriber1).toHaveBeenCalledTimes(1);
 
-  await operationExecutor1.execute({}, subscriber1, returnUnsubscriber1);
-  await operationExecutor2.execute({ foo: 1 }, subscriber2, returnUnsubscriber2);
-  await operationExecutor2.execute({ foo: 1 }, subscriber2, returnUnsubscriber2);
+  await operationExecutor1.execute({});
+
+  await operationExecutor2.execute({ foo: 1 });
+
+  await operationExecutor2.execute({ foo: 1 });
 
   expect(operationExecutor1.getCache({}).me.user.name).toBe('James');
   expect(operationExecutor2.getCache({ foo: 1 }).users[0].name).toBe('James');
@@ -96,8 +95,9 @@ test('OperationExecutor', async () => {
 
   user1.name = 'Jane';
 
-  await operationExecutor1.execute({}, subscriber1, returnUnsubscriber1);
-  await operationExecutor2.execute({ foo: 1 }, subscriber2, returnUnsubscriber2, { fetchStrategy: FetchStrategy.FETCH_FROM_NETWORK });
+  await operationExecutor1.execute({});
+
+  await operationExecutor2.execute({ foo: 1 }, { fetchStrategy: FetchStrategy.FETCH_FROM_NETWORK });
 
   expect(operationExecutor1.getCache({}).me.user.name).toBe('Jane');
   expect(operationExecutor2.getCache({ foo: 1 }).users[0].name).toBe('Jane');
@@ -107,7 +107,9 @@ test('OperationExecutor', async () => {
   expect(subscriber2).toHaveBeenCalledTimes(1);
   expect(subscriber1).toHaveBeenCalledTimes(2);
 
-  await operationExecutor1.execute({ bar: 1 }, subscriber1, returnUnsubscriber1);
+  await operationExecutor1.execute({ bar: 1 });
+  unsubscribeSubscriber1();
+  unsubscribeSubscriber1 = operationExecutor1.subscribe({ bar: 1 }, subscriber1);
 
   expect(operationExecutor1.getCache({}).me.user.name).toBe('Jane');
   expect(operationExecutor1.getCache({ bar: 1 }).me.user.name).toBe('Jane');
@@ -118,7 +120,9 @@ test('OperationExecutor', async () => {
   expect(subscriber2).toHaveBeenCalledTimes(1);
   expect(subscriber1).toHaveBeenCalledTimes(2);
 
-  await operationExecutor1.execute({ baz: 1 }, subscriber1, returnUnsubscriber1);
+  await operationExecutor1.execute({ baz: 1 });
+  unsubscribeSubscriber1();
+  operationExecutor1.subscribe({ baz: 1 }, subscriber1);
 
   expect(operationExecutor1.getCache({}).me.user.name).toBe('Jane');
   expect(operationExecutor1.getCache({ bar: 1 }).me.user.name).toBe('Jane');
@@ -145,9 +149,10 @@ test('OperationExecutor', async () => {
     }
   };
 
-  const operationExecutor3 = new AutoUnsubscriber(new OperationExecutor(document3, client3));
+  const operationExecutor3 = new OperationExecutor(document3, client3);
 
-  await operationExecutor3.execute({}, subscriber3, returnUnsubscriber3);
+  await operationExecutor3.execute({});
+  operationExecutor3.subscribe({}, subscriber3);
 
   expect(operationExecutor1.getCache({}).me.user.name).toBe('Jack');
   expect(operationExecutor1.getCache({ bar: 1 }).me.user.name).toBe('Jack');

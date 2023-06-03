@@ -18,7 +18,7 @@ export default function logStatusQueries() {
       console.group('variables', stringifiedVars);
       console.log('cached data:', !!query.getCachedData());
       console.log('listens network:', !!query.unsubscriber);
-      console.log('subscriber count:', query.cacheStrategy?.subscribers.size);
+      console.log('subscriber count:', query.subscribers.size);
       console.groupEnd();
     }
 
