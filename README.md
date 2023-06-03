@@ -422,7 +422,7 @@ Document.simulateNetworkDelay(1000, 3000);
 ### Retrieve a document instance from the console
 
 ```javascript
-FluentGraphQL.document('operationName');
+FluentGraphQL.document(OperationType.Query, 'operationName');
 ```
 
 ### Create a document instance from the console
