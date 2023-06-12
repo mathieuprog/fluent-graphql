@@ -39,7 +39,7 @@ declare module "fluent-graphql" {
 
   class Node<This, Parent> {
     _: Parent
-    scalar(name: string, transformer?: (v: unknown) => unknown): Node<This, Parent>;
+    scalar(name: string, transformer?: (v: unknown) => unknown, variables?: ObjectLiteral): Node<This, Parent>;
     entity(name: string): Node<NestedNode<This>, This>;
     entitySet(name: string): Node<NestedNode<This>, This>;
     union(name: string): Node<NestedNode<This>, This>;
