@@ -118,25 +118,27 @@ Developers can also use a Promise as the client, which can be particularly helpf
 
   let csrfTokenPromise: Promise<string>;
 
-  export default async function getClient({ httpUrl, wsUrl, csrfUrl }: ClientURLs) {
-    if (!csrfTokenPromise) {
-      csrfTokenPromise = fetchCsrfToken(csrfUrl);
-    }
-
-    const csrfToken = await csrfTokenPromise;
-
-    wsUrl = `${wsUrl}${csrfToken}`;
-
-    return new Client({
-      http: {
-        url: httpUrl,
-        credentials: 'include',
-        headers: { 'x-csrf-token': csrfToken }
-      },
-      ws: {
-        url: wsUrl
+  export default function createClient({ httpUrl, wsUrl, csrfUrl }: ClientURLs) {
+    return async () => {
+      if (!csrfTokenPromise) {
+        csrfTokenPromise = fetchCsrfToken(csrfUrl);
       }
-    });
+
+      const csrfToken = await csrfTokenPromise;
+
+      wsUrl = `${wsUrl}${csrfToken}`;
+
+      return new Client({
+        http: {
+          url: httpUrl,
+          credentials: 'include',
+          headers: { 'x-csrf-token': csrfToken }
+        },
+        ws: {
+          url: wsUrl
+        }
+      });
+    };
   }
 
   async function fetchCsrfToken(csrfUrl: string) {
