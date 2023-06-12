@@ -51,7 +51,16 @@ function doStringify(str, objects) {
       str += `(${Object.entries(object.variables).map(([name, variable]) => `${name}:\$${variable}`).join(',')})`;
     }
 
-    str += `{${Object.keys(object.scalars).join(' ')}`;
+    str += `{`;
+
+    let delimiter = '';
+    for (let [name, { variables }] of Object.entries(object.scalars)) {
+      str += delimiter + name;
+      if (variables && !isEmptyObjectLiteral(variables)) {
+        str += `(${Object.entries(variables).map(([name, variable]) => `${name}:\$${variable}`).join(',')})`;
+      }
+      delimiter = ' ';
+    }
 
     const { filtered: derivedObjects, rejected: nestedObjects } = takeProperties(object.objects, (_key, o) => o.derivedFromForeignKey);
 
