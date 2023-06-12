@@ -94,7 +94,7 @@ export default new Client({
 
 The `Client` constructor receives an object containing an `http` property and `ws` property to configure the HTTP client and WebSocket client, respectively.
 
-internally HTTP requests are executed by the [ky](https://github.com/sindresorhus/ky) library, while WebSocket requests are handled by the [graphql-ws](https://github.com/enisdenjo/graphql-ws) library.
+Internally HTTP requests are executed by the [ky](https://github.com/sindresorhus/ky) library, while WebSocket requests are handled by the [graphql-ws](https://github.com/enisdenjo/graphql-ws) library.
 
 The `http` object must contain a `url` property specifying the URL of the API, as well as any settings to be applied to the request used by the Fetch API:<br>
 https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#supplying_request_options
