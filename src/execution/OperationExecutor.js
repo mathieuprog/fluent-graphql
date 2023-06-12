@@ -118,6 +118,11 @@ export default class OperationExecutor {
 
   getClient() {
     const client = this.maybeClient ?? Document.defaultClient;
+
+    if (!client) {
+      throw new Error(`no client specified for ${this.document.operationName} document and no default client found`);
+    }
+
     return (typeof client === 'function') ? client() : client;
   }
 }
