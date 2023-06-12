@@ -5,7 +5,7 @@ test('stringify', () => {
   const document =
     Document.mutation('operationName')
       .variableDefinitions({ calendarId: 'ID!', dateRange: 'DateRange!' })
-      .scalar('foo', Number)
+      .scalar('foo', Number, { calendarId: 'calendarId', dateRange: 'dateRange' })
       .entity('user')
         .scalar('name')
         .entity('account')
@@ -45,7 +45,7 @@ test('stringify', () => {
       .prepareQueryString();
 
   let expectedDocumentString = 'mutation operationName($calendarId:ID!,$dateRange:DateRange!)';
-  expectedDocumentString += '{foo user{';
+  expectedDocumentString += '{foo(calendarId:$calendarId,dateRange:$dateRange) user{';
   expectedDocumentString += 'id __typename name accountId appointments(calendarId:$calendarId,dateRange:$dateRange){';
   expectedDocumentString += 'id __typename date time bar{';
   expectedDocumentString += 'name';
