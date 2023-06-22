@@ -1,15 +1,17 @@
-import { isObjectLiteral } from 'object-array-utils';
+import { isArray, isObjectLiteral } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from './helpers';
 
 export default function transform(document, data) {
   throwIfNotInstanceOfDocument(document);
-
   return doTransform(document.rootObject, data);
 }
 
 function doTransform(meta, data) {
   if (!isObjectLiteral(data)) {
+    if (isArray(data) && meta.type === ObjectType.Entity) {
+      throw new Error(`${meta.name} was expected to be an entity, but found an array (operation ${meta.getDocument().operationName})`);
+    }
     throw new Error();
   }
 
