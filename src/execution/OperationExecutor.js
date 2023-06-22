@@ -41,8 +41,8 @@ export default class OperationExecutor {
     const [variables, options] = args;
     const { fetchStrategy } = options || {};
 
-    if (fetchStrategy === FetchStrategy.FetchFromNetwork && !this.queryRegistry.has(variables)) {
-      return this.document.transform(await this.executeRequest(variables));
+    if (fetchStrategy === FetchStrategy.FetchFromNetwork) {
+      return this.document.transform(await this.executeRequest(variables, Notifier.notify));
     }
 
     const query = this.queryRegistry.getOrCreate(variables);
