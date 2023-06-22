@@ -44,7 +44,7 @@ export default class Query {
 
     await this.doFetch(fetchStrategy);
 
-    if (!this.unsubscriber) {
+    if (!this.unsubscriber && fetchStrategy !== FetchStrategy.FetchFromNetworkAndSkipCacheUpdates) {
       this.unsubscriber = Notifier.subscribe(this);
     }
 
@@ -92,6 +92,11 @@ export default class Query {
         } else {
           await fetch();
         }
+        break;
+
+
+      case FetchStrategy.FetchFromNetworkAndSkipCacheUpdates:
+        await fetch();
         break;
 
       case FetchStrategy.FetchFromCacheOrThrow:

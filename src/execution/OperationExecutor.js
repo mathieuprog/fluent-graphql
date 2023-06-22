@@ -45,6 +45,10 @@ export default class OperationExecutor {
       return this.document.transform(await this.executeRequest(variables, Notifier.notify));
     }
 
+    if (fetchStrategy === FetchStrategy.FetchFromNetworkAndSkipCacheUpdates) {
+      return this.document.transform(await this.executeRequest(variables));
+    }
+
     const query = this.queryRegistry.getOrCreate(variables);
 
     return await query.fetch(fetchStrategy);
