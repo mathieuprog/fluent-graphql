@@ -3,7 +3,9 @@
 ## 0.0.9 (upcoming)
 
   * Refactor watching for queries
-  * Added findGraphQLErrorByCode
+  * Provide parent entity to `addEntity` and `replaceEntity` callbacks
+  * Add `FetchFromNetworkAndSkipCacheUpdates` strategy
+  * Added `findGraphQLErrorByCode`
   * Improve error messages
   * Migrate from Jest to Vitest
 
