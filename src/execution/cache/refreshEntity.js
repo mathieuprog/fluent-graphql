@@ -100,7 +100,7 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
             freshEntity[propName]
               .filter((entity) => (
                 !cachedIds.includes(entity.id)
-                && (!object.filterFunctionsByTypename || object.filterFunctionsByTypename[entity.__typename]?.(entity, variables))
+                && (!object.filterFunctionsByTypename || object.filterFunctionsByTypename[entity.__typename]?.(entity, variables, freshEntity))
               ))
               .map((entity) => copyEntity(object, entity));
 
@@ -113,6 +113,7 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
           }
 
           if (entitiesToBeAdded.length > 0) {
+              throw new Error()
             entity = updatePropImmutably(propName, entity[propName].concat(entitiesToBeAdded));
           }
           break;

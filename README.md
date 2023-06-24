@@ -310,7 +310,7 @@ Document
       .entitySet('users')
         .useVariables({ orgId: 'orgId' })
         .addEntity({
-          User: (user, { orgId }) => user.orgId === org.id
+          User: (user, { orgId }, _organization) => user.orgId === org.id
         })._._._
   .makeExecutable();
 ```
@@ -327,7 +327,7 @@ Document
       .entity('location')
         .useVariables({ orgId: 'orgId' })
         .replaceEntity({
-          Location: (location, { orgId }) => location.orgId === org.id
+          Location: (location, { orgId }, _organization) => location.orgId === org.id
         })._._._
   .makeExecutable();
 ```
