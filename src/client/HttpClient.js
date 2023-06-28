@@ -18,7 +18,8 @@ export default class HttpClient {
     const { data, errors } = await ky.post(this.url, { json, ...this.params }).json();
 
     if (errors) {
-      throw new GraphQLError(errors);
+      const operationName = query.match(/\b(\w+)(?=[\{\(])/)?.[1];
+      throw new GraphQLError(errors, operationName, variables);
     }
 
     return data;

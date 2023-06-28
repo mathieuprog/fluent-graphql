@@ -1,10 +1,10 @@
-function buildErrorMessage(errorArray) {
-  return errorArray.map(({ message }) => message).join("\n");
+function buildErrorMessage(errorArray, operationName, variables) {
+  return `error in ${operationName} with variables ${JSON.stringify(variables)}:\n${errorArray.map(({ message }) => message).join("\n")}`;
 }
 
 export default class GraphQLError extends Error {
-  constructor(errorArray) {
-    super(buildErrorMessage(errorArray));
+  constructor(errorArray, operationName, variables) {
+    super(buildErrorMessage(errorArray, operationName, variables));
     this.name = 'GraphQLError';
     this.graphQLErrors = errorArray;
   }
