@@ -63,7 +63,7 @@ export default class Query {
 
     const createCache = (data) => {
       if (this.cache) {
-        throw new Error('cache already created');
+        throw new Error(`cache already created but the cache is empty (${JSON.stringify(this.cache?.getData())}). Query operation is ${this.cache?.document.operationName}`);
       }
       this.cache = this.createQueryCache(data);
     };
