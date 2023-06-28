@@ -113,7 +113,6 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
           }
 
           if (entitiesToBeAdded.length > 0) {
-              throw new Error()
             entity = updatePropImmutably(propName, entity[propName].concat(entitiesToBeAdded));
           }
           break;
