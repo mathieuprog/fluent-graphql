@@ -77,7 +77,6 @@ export default class Node {
 
   onTypedObject(typename) {
     this.rejectAddingInlineFragmentInObject();
-    this.rejectAddingInlineTypedObjectInQuery();
     const inlineFragment = Document.createInlineFragment(this, ObjectType.InlineFragmentTypedObject, typename);
     this.inlineFragments[typename] = inlineFragment;
     return inlineFragment;
@@ -201,12 +200,6 @@ export default class Node {
     }
     if (this.getOperationType() === OperationType.Mutation) {
       return;
-    }
-  }
-
-  rejectAddingInlineTypedObjectInQuery() {
-    if (this.getOperationType() !== OperationType.Mutation) {
-      throw new Error();
     }
   }
 
