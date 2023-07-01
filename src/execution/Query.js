@@ -7,7 +7,7 @@ export default class Query {
     this.executeRequest = executeRequest;
     this.onClear = onClear;
     this.cleared = false;
-    this.pendingPromise = null;
+    this.pendingFetchPromise = null;
     this.unsubscriber = null;
     this.clearAfterDuration = clearAfterDuration;
     this.pollAfterDuration = pollAfterDuration;
@@ -42,7 +42,17 @@ export default class Query {
       fetchStrategy = FetchStrategy.FetchFromCacheOrFallbackNetwork;
     }
 
-    await this.doFetch(fetchStrategy);
+    if (this.pendingFetchPromise) {
+      await this.pendingFetchPromise;
+    } else {
+      const promise = this.doFetch(fetchStrategy);
+      this.pendingFetchPromise = promise;
+      try {
+        await promise;
+      } finally {
+        this.pendingFetchPromise = null;
+      }
+    }
 
     if (!this.unsubscriber && fetchStrategy !== FetchStrategy.FetchFromNetworkAndSkipCacheUpdates) {
       this.unsubscriber = Notifier.subscribe(this);
@@ -56,14 +66,14 @@ export default class Query {
 
     const fetch = () => {
       this.intervalPoll = this.initIntervalPoll();
-      return this.executePromiseOrWaitPending();
+      return this.executeRequest();
     };
 
     const cached = !!this.cache?.getData();
 
     const createCache = (data) => {
       if (this.cache) {
-        throw new Error(`cache already created but the cache is empty (${JSON.stringify(this.cache?.getData())}). Query operation is ${this.cache?.document.operationName}`);
+        throw new Error(`cache already created`);
       }
       this.cache = this.createQueryCache(data);
     };
@@ -107,26 +117,6 @@ export default class Query {
     }
   }
 
-  async executePromiseOrWaitPending() {
-    let result;
-
-    if (this.pendingPromise) {
-      result = await this.pendingPromise;
-    } else {
-      const promise = this.executeRequest();
-
-      this.pendingPromise = promise;
-
-      try {
-        result = await promise;
-      } finally {
-        this.pendingPromise = null;
-      }
-    }
-
-    return result;
-  }
-
   clear() {
     if (this.cleared) {
       return;
@@ -158,7 +148,7 @@ export default class Query {
 
     return setTimeout(
       () => {
-        if (this.pendingPromise || this.subscribers.size > 0) {
+        if (this.pendingFetchPromise || this.subscribers.size > 0) {
           this.timeoutClear = this.initTimeoutClear();
           return;
         }
@@ -177,7 +167,7 @@ export default class Query {
     clearInterval(this.intervalPoll);
 
     return setInterval(
-      () => this.doFetch(FetchStrategy.FetchFromNetwork),
+      () => this.fetch(FetchStrategy.FetchFromNetwork),
       this.pollAfterDuration.total({ unit: 'millisecond' })
     );
   }
