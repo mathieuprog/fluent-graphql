@@ -3,6 +3,7 @@
 ## 0.0.9 (upcoming)
 
   * Refactor watching for queries
+  * Allow typed objects in queries
   * Provide parent entity to `addEntity` and `replaceEntity` callbacks
   * Add `FetchFromNetworkAndSkipCacheUpdates` strategy
   * Added `findGraphQLErrorByCode`
