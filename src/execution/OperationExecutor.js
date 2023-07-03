@@ -8,6 +8,7 @@ import normalizeEntities from './normalizeEntities';
 import { throwIfNotInstanceOfDocument } from './helpers';
 import QueryRegistry from './QueryRegistry';
 import FetchStrategy from './FetchStrategy';
+import Logger from '../Logger';
 
 export default class OperationExecutor {
   constructor(document, client) {
@@ -38,30 +39,38 @@ export default class OperationExecutor {
   }
 
   async executeQuery(args) {
-    const [variables, options] = args;
-    const { fetchStrategy } = options || {};
+    const [variables_, options] = args;
+    const variables = variables_ || {};
+    const fetchStrategy = options?.fetchStrategy || Document.defaultFetchStrategy;
 
-    if (fetchStrategy === FetchStrategy.FetchFromNetwork) {
-      return this.document.transform(await this.executeRequest(variables, Notifier.notify));
-    }
+    Logger.info(() => `Executing (${FetchStrategy.toString(fetchStrategy)}) query ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
 
-    if (fetchStrategy === FetchStrategy.FetchFromNetworkAndSkipCacheUpdates) {
+    if (fetchStrategy === FetchStrategy.FetchFromNetworkAndNoCache) {
+      Logger.info('The query won\'t be cached, and cache updates will be skipped');
       return this.document.transform(await this.executeRequest(variables));
     }
 
     const query = this.queryRegistry.getOrCreate(variables);
 
-    return await query.fetch(fetchStrategy);
+    const data = await query.fetch(fetchStrategy);
+    Logger.verbose(() => `Return query data ${JSON.stringify(data, null, 2)}`);
+    return data;
   }
 
   async executeMutation(args) {
-    const [variables] = args;
+    const [variables_] = args;
+    const variables = variables_ || {};
+
+    Logger.info(() => `Executing mutation ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
 
     return this.document.transform(await this.executeRequest(variables, Notifier.notify));
   }
 
   async executeSubscription(args) {
-    const [variables, sink, options] = args;
+    const [variables_, sink, options] = args;
+    const variables = variables_ || {};
+
+    Logger.info(() => `Executing subscription ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
 
     const client = await this.getClient();
     await client.subscribe(this.document.getQueryString(), variables, sink, options || {});
@@ -79,17 +88,16 @@ export default class OperationExecutor {
   }
 
   async executeRequest(variables, handleUpdates) {
+    Logger.info(() => `Executing HTTP request for ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
+
     await this.maybeSimulateNetworkDelay();
 
     const client = await this.getClient();
 
-    const queryString = this.document.getQueryString();
+    let data = await client.request(this.document.getQueryString(), variables);
 
-    let data = {};
-
-    if (queryString) {
-      data = await client.request(this.document.getQueryString(), variables);
-    }
+    Logger.info(() => `HTTP request executed for ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
+    Logger.debug(() => `Raw data: ${JSON.stringify(data, null, 2)}`);
 
     data = transform(this.document, data);
 
@@ -98,6 +106,8 @@ export default class OperationExecutor {
     data = await deriveFrom(this.document, data, variables);
 
     const entities = normalizeEntities(this.document, data);
+
+    Logger.verbose(() => `Transformed data ${JSON.stringify(data, null, 2)}`);
 
     handleUpdates && handleUpdates(entities);
 

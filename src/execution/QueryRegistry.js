@@ -28,7 +28,9 @@ export default class QueryRegistry {
         : this.document.pollAfterDuration;
 
     const query = new Query(
-      (data) => new QueryCache(this.document, data, this.variables),
+      this.document,
+      variables,
+      (data) => new QueryCache(this.document, data, variables),
       () => this.executeRequest(variables, Notifier.notify),
       () => this.remove(variables),
       clearAfterDuration,

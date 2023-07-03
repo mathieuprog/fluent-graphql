@@ -4,8 +4,10 @@
 
   * Refactor watching for queries
   * Allow typed objects in queries
+  * Add logs with configurable log level
+  * Allow to configure default fetch strategy
   * Provide parent entity to `addEntity` and `replaceEntity` callbacks
-  * Add `FetchFromNetworkAndSkipCacheUpdates` strategy
+  * Add `FetchFromNetworkAndNoCache` strategy
   * Added `findGraphQLErrorByCode`
   * Improve error messages
   * Migrate from Jest to Vitest

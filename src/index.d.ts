@@ -6,13 +6,21 @@ declare module "fluent-graphql" {
     FetchFromCacheOrFallbackNetwork = 'FETCH_FROM_CACHE_OR_FALLBACK_NETWORK',
     FetchFromCacheAndNetwork = 'FETCH_FROM_CACHE_AND_NETWORK',
     FetchFromNetwork = 'FETCH_FROM_NETWORK',
-    FetchFromNetworkAndSkipCacheUpdates = 'FETCH_FROM_NETWORK_AND_SKIP_CACHE_UPDATES'
+    FetchFromNetworkAndNoCache = 'FETCH_FROM_NETWORK_AND_NO_CACHE'
   }
 
   enum OperationType {
     Query = 'QUERY',
     Mutation = 'MUTATION',
     Subscription = 'SUBSCRIPTION'
+  }
+
+  enum LogLevel {
+    None = 'NONE',
+    Verbose = 'VERBOSE',
+    Debug = 'DEBUG',
+    Info = 'INFO',
+    Warn = 'WARN'
   }
 
   interface ClientConfig {
@@ -79,6 +87,7 @@ declare module "fluent-graphql" {
     static mutation(operationName: string): RootObject;
     static subscription(operationName: string): RootObject;
     static setDefaultClient(client: Client): void;
+    static setLogLevel(level: LogLevel): void;
     static simulateNetworkDelayGlobally(min: number, max: number): void;
     simulateNetworkDelay(min: number, max: number): Document
     makeExecutable(client?: Client): Document;

@@ -1,13 +1,17 @@
+import Document from '../document/Document';
 import FetchStrategy from './FetchStrategy';
 import Notifier from './Notifier';
+import Logger from '../Logger';
 
 export default class Query {
-  constructor(createQueryCache, executeRequest, onClear, clearAfterDuration, pollAfterDuration) {
+  constructor(document, variables, createQueryCache, executeRequest, onClear, clearAfterDuration, pollAfterDuration) {
+    this.document = document;
+    this.variables = variables;
     this.createQueryCache = createQueryCache;
     this.executeRequest = executeRequest;
     this.onClear = onClear;
     this.cleared = false;
-    this.pendingFetchPromise = null;
+    this.pendingPromise = null;
     this.unsubscriber = null;
     this.clearAfterDuration = clearAfterDuration;
     this.pollAfterDuration = pollAfterDuration;
@@ -38,23 +42,15 @@ export default class Query {
   }
 
   async fetch(fetchStrategy) {
-    if (fetchStrategy === undefined) {
-      fetchStrategy = FetchStrategy.FetchFromCacheOrFallbackNetwork;
+    fetchStrategy = fetchStrategy ?? Document.defaultFetchStrategy;
+
+    if (fetchStrategy === FetchStrategy.FetchFromNetworkAndNoCache) {
+      throw new Error();
     }
 
-    if (this.pendingFetchPromise) {
-      await this.pendingFetchPromise;
-    } else {
-      const promise = this.doFetch(fetchStrategy);
-      this.pendingFetchPromise = promise;
-      try {
-        await promise;
-      } finally {
-        this.pendingFetchPromise = null;
-      }
-    }
+    await this.doFetch(fetchStrategy);
 
-    if (!this.unsubscriber && fetchStrategy !== FetchStrategy.FetchFromNetworkAndSkipCacheUpdates) {
+    if (!this.unsubscriber) {
       this.unsubscriber = Notifier.subscribe(this);
     }
 
@@ -66,55 +62,80 @@ export default class Query {
 
     const fetch = () => {
       this.intervalPoll = this.initIntervalPoll();
-      return this.executeRequest();
+      return this.executePromiseOrWaitPending();
     };
 
     const cached = !!this.cache?.getData();
 
     const createCache = (data) => {
-      if (this.cache) {
-        throw new Error(`cache already created`);
+      // cache may already exist if 2 queries are executed simultaneously
+      if (!this.cache) {
+        this.cache = this.createQueryCache(data);
       }
-      this.cache = this.createQueryCache(data);
     };
 
     switch (fetchStrategy) {
       default:
-        throw new Error(`unknown strategy ${fetchStrategy}`);
+        throw new Error(`unknown or unexpected fetch strategy "${fetchStrategy}"`);
 
       case FetchStrategy.FetchFromCacheOrFallbackNetwork:
         if (!cached) {
+          Logger.debug('Cache miss, fetching from network...');
           createCache(await fetch());
+        } else {
+          Logger.debug('Cache hit, using cached data.');
         }
         break;
 
       case FetchStrategy.FetchFromCacheAndNetwork:
         if (!cached) {
+          Logger.debug('Cache miss, fetching from network and caching data...');
           createCache(await fetch());
         } else {
+          Logger.debug('Cache hit, using cached data and refreshing from network...');
           fetch();
         }
         break;
 
       case FetchStrategy.FetchFromNetwork:
         if (!cached) {
+          Logger.debug('Cache miss, fetching from network and caching data...');
           createCache(await fetch());
         } else {
+          Logger.debug('Cache hit, fetching from network regardless...');
           await fetch();
         }
         break;
 
-
-      case FetchStrategy.FetchFromNetworkAndSkipCacheUpdates:
-        await fetch();
-        break;
-
       case FetchStrategy.FetchFromCacheOrThrow:
         if (!cached) {
+          Logger.debug('Cache miss, throwing error...');
           throw new NotFoundInCacheError('not found in cache');
+        } else {
+          Logger.debug('Cache hit, using cached data.');
         }
         break;
     }
+  }
+
+  async executePromiseOrWaitPending() {
+    let result;
+
+    if (this.pendingPromise) {
+      result = await this.pendingPromise;
+    } else {
+      const promise = this.executeRequest();
+
+      this.pendingPromise = promise;
+
+      try {
+        result = await promise;
+      } finally {
+        this.pendingPromise = null;
+      }
+    }
+
+    return result;
   }
 
   clear() {
@@ -148,7 +169,7 @@ export default class Query {
 
     return setTimeout(
       () => {
-        if (this.pendingFetchPromise || this.subscribers.size > 0) {
+        if (this.pendingPromise || this.subscribers.size > 0) {
           this.timeoutClear = this.initTimeoutClear();
           return;
         }

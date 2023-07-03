@@ -1,5 +1,6 @@
 import Client from './client/Client';
 import Document from './document/Document';
+import LogLevel from './LogLevel';
 import FetchStrategy from './execution/FetchStrategy';
 import GraphQLError, { findGraphQLError, findGraphQLErrorByCode } from './errors/GraphQLError';
 import NotFoundInCacheError from './errors/NotFoundInCacheError';
@@ -43,6 +44,7 @@ globalThis.FluentGraphQL = {
 export {
   Client,
   Document,
+  LogLevel,
   FetchStrategy,
   GraphQLError,
   findGraphQLError,

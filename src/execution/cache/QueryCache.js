@@ -3,6 +3,7 @@ import ObjectType from '../../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from '../helpers';
 import copyEntity from './copyEntity';
 import refreshEntity from './refreshEntity';
+import Logger from '../../Logger';
 
 export default class QueryCache {
   constructor(document, data, variables) {
@@ -11,6 +12,7 @@ export default class QueryCache {
     this.data = data;
     this.transformedData = document.transform(data);
     this.variables = variables;
+    Logger.info(() => `Cached response for operation ${document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
   }
 
   getData() {
@@ -18,13 +20,23 @@ export default class QueryCache {
   }
 
   update(freshEntities) {
+    Logger.debug(() => `Updating ${this.document.operationName} cache with vars ${JSON.stringify(this.variables, null, 2)}`);
+
     const prevData = this.data;
 
     this.data = this.doUpdate(this.data, this.document.rootObject, freshEntities);
 
     this.transformedData = this.document.transform(this.data);
 
-    return prevData !== this.data;
+    const updated = prevData !== this.data;
+
+    if (updated) {
+      Logger.info(() => `Updated ${this.document.operationName} cache with vars ${JSON.stringify(this.variables, null, 2)}`);
+    } else {
+      Logger.debug(() => `Nothing to update for ${this.document.operationName} cache with vars ${JSON.stringify(this.variables, null, 2)}`);
+    }
+
+    return updated;
   }
 
   doUpdate(data, meta, freshEntities) {

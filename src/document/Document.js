@@ -5,10 +5,13 @@ import OperationType from './OperationType';
 import stringify from './stringify';
 import OperationExecutor from '../execution/OperationExecutor';
 import QueryExecutor from '../execution/QueryExecutor';
+import FetchStrategy from '../execution/FetchStrategy';
+import Logger from '../Logger';
 
 export default class Document {
   static instances = [];
   static defaultClient = null;
+  static defaultFetchStrategy = FetchStrategy.FetchFromCacheOrFallbackNetwork;
   static maybeSimulateNetworkDelayGlobally = () => false;
 
   constructor(operationType, operationName) {
@@ -49,8 +52,16 @@ export default class Document {
     return document.rootObject;
   }
 
+  static setLogLevel(level) {
+    Logger.logLevel = level;
+  }
+
   static setDefaultClient(client) {
     this.defaultClient = client;
+  }
+
+  static setDefaultFetchStrategy(strategy) {
+    this.defaultFetchStrategy = strategy;
   }
 
   static simulateNetworkDelayGlobally(min, max) {
@@ -60,6 +71,7 @@ export default class Document {
 
   static async doSimulateNetworkDelay(min, max) {
     const delay = Math.round(Math.random() * (max - min) + min);
+    Logger.debug(`Added ${delay}ms network delay simulation`);
     await new Promise((resolve) => setTimeout(resolve, delay));
     return delay;
   }
