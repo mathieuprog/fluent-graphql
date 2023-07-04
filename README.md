@@ -453,6 +453,10 @@ documentInstance.simulateNetworkRequest(data);
 ### Inspection
 
 ```javascript
+Document.setLogLevel(LogLevel.Verbose);
+```
+
+```javascript
 FluentGraphQL.logStatusQueries();
 ```
 
