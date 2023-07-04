@@ -13,7 +13,7 @@
   "type": "module",
   "devDependencies": {
     "vite": "^4.3.9",
-    "vitest": "^0.32.2"
+    "vitest": "^0.32.4"
   },
   "dependencies": {
     "@js-temporal/polyfill": "^0.4.4",
