@@ -53,7 +53,7 @@ export default class Document {
   }
 
   static setLogLevel(level) {
-    Logger.logLevel = level;
+    Logger.setLogLevel(level);
   }
 
   static setDefaultClient(client) {
@@ -151,12 +151,12 @@ export default class Document {
     return this.executor.addSubscriber(variables, subscriber);
   }
 
-  simulateNetworkRequest(data) {
+  simulateNetworkResponse(data) {
     if (!this.executor) {
       throw new Error('makeExecutable() has not been called');
     }
 
-    return this.executor.simulateNetworkRequest(data);
+    return this.executor.simulateNetworkResponse(data);
   }
 
   transformResponse(fun) {

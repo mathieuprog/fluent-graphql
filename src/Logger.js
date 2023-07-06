@@ -24,6 +24,10 @@ function logMessage(method, message, level, color, fontSize) {
 const Logger = {
   logLevel: LogLevel.None,
 
+  setLogLevel: function(level) {
+    this.logLevel = level.toUpperCase();
+  },
+
   verbose: function(message) {
     logMessage('log', message, LogLevel.Verbose, 'darkgray');
   },
