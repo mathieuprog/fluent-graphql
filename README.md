@@ -470,7 +470,7 @@ fql
 
 ```javascript
 fql.setLogLevel('verbose');
-// other possible values: debug, info, warn, none (disable)
+// possible values are verbose, debug, info, warn, none (disable)
 ```
 
 ```javascript
