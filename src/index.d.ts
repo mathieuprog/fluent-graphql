@@ -101,7 +101,7 @@ declare module "fluent-graphql" {
       options?: ObjectLiteral
     ): Promise<T>;
     getQueryExecutor(variables: ObjectLiteral): QueryExecutor;
-    simulateNetworkRequest(data: ObjectLiteral): void;
+    simulateNetworkResponse(data: ObjectLiteral): void;
     transformResponse(fun: (data: any) => unknown): Document
     clearAfter(duration: any): Document // TODO Temporal type
     pollAfter(duration: any): Document

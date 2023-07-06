@@ -81,7 +81,7 @@ export default class OperationExecutor {
     return query.addSubscriber(subscriber);
   }
 
-  simulateNetworkRequest(data) {
+  simulateNetworkResponse(data) {
     data = transform(this.document, data);
     const entities = normalizeEntities(this.document, data);
     Notifier.notify(entities);
