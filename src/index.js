@@ -1,5 +1,6 @@
 import Client from './client/Client';
 import Document from './document/Document';
+import Logger from './Logger';
 import LogLevel from './LogLevel';
 import FetchStrategy from './execution/FetchStrategy';
 import GraphQLError, { findGraphQLError, findGraphQLErrorByCode } from './errors/GraphQLError';
@@ -10,16 +11,22 @@ import {default as logConsolidatedCaches_} from './inspection/logConsolidatedCac
 globalThis.fql = {
   help() {
     console.log(`%c
+fql - Global utility providing:
+
+fql.setLogLevel(level)
 fql.logStatusQueries()
 fql.logConsolidatedCaches()
 fql.document(operationType, operationName)
 fql.query(operationName)
 fql.mutation(operationName)
 fql.subscription(operationName)
+
+With a document instance, simulate server response:
+documentInstance.simulateNetworkResponse(data)
 `, 'color: aqua');
   },
   setLogLevel(level) {
-    Document.setLogLevel(level);
+    Logger.setLogLevel(level);
   },
   logStatusQueries() {
     logStatusQueries_();
