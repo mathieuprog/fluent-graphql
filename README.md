@@ -447,13 +447,30 @@ fql
 ### Simulate a network request
 
 ```javascript
-documentInstance.simulateNetworkRequest(data);
+documentInstance.simulateNetworkResponse(data);
+```
+
+Example:
+```javascript
+fql
+  .query('SimulateFetchAccount')
+    .entity('account')
+      .scalar('firstName')._._
+  .makeExecutable()
+  .simulateNetworkResponse({
+    account: {
+      __typename: 'Account',
+      firstName: 'John',
+      id: 'd7f4715d-f311-4538-966a-ee6b7e9314d0'
+    }
+  });
 ```
 
 ### Inspection
 
 ```javascript
-Document.setLogLevel(LogLevel.Verbose);
+fql.setLogLevel('verbose');
+// other possible values: debug, info, warn, none (disable)
 ```
 
 ```javascript
