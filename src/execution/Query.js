@@ -147,7 +147,11 @@ export default class Query {
       throw new Error('Cannot clear query that has active subscribers');
     }
 
+    Logger.info(() => `Clearing ${this.document.operationName} query with vars ${JSON.stringify(variables, null, 2)}`);
+
     if (this.unsubscriber) {
+      Logger.debug('Unsubscribing from data updates');
+
       this.unsubscriber();
       this.unsubscriber = null;
     }
@@ -194,6 +198,8 @@ export default class Query {
   }
 
   addSubscriber(subscriber) {
+    Logger.info(() => `Adding subscriber to ${this.document.operationName} query with vars ${JSON.stringify(variables, null, 2)}`);
+
     if (typeof subscriber !== 'function') {
       throw new Error(`subscriber is not a function: ${JSON.stringify(subscriber)}`);
     }
