@@ -147,7 +147,7 @@ export default class Query {
       throw new Error('Cannot clear query that has active subscribers');
     }
 
-    Logger.info(() => `Clearing ${this.document.operationName} query with vars ${JSON.stringify(variables, null, 2)}`);
+    Logger.info(() => `Clearing ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)}`);
 
     if (this.unsubscriber) {
       Logger.debug('Unsubscribing from data updates');
@@ -208,6 +208,7 @@ export default class Query {
     this.subscribers.add(item);
 
     return () => {
+      Logger.info(() => `Unsubscribing ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} from data updates`);
       this.subscribers.delete(item);
     };
   }
