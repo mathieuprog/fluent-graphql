@@ -4,7 +4,7 @@ function prefix() {
   const dateFormatter = new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   const time = dateFormatter.format(new Date());
 
-  return `[fgql][${time}]`;
+  return `[fql][${time}]`;
 }
 
 const levels = [LogLevel.Verbose, LogLevel.Debug, LogLevel.Info, LogLevel.Warn, LogLevel.None];

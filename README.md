@@ -453,15 +453,21 @@ documentInstance.simulateNetworkResponse(data);
 Example:
 ```javascript
 fql
-  .query('SimulateFetchAccount')
-    .entity('account')
-      .scalar('firstName')._._
+  .query()
+    .viewer('me')
+      .entitySet('organizations')
+        .scalar('name')._._._
   .makeExecutable()
+  .transformResponse(({ me: { organizations } }) => organizations)
   .simulateNetworkResponse({
-    account: {
-      __typename: 'Account',
-      firstName: 'John',
-      id: 'd7f4715d-f311-4538-966a-ee6b7e9314d0'
+    me: {
+      organizations: [
+        {
+          __typename: 'Organization',
+          name: 'Foo',
+          id: '32208520-6518-487f-a0ec-a1e2fb74f209'
+        }
+      ]
     }
   });
 ```
