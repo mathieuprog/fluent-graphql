@@ -7,7 +7,20 @@ import NotFoundInCacheError from './errors/NotFoundInCacheError';
 import {default as logStatusQueries_} from './inspection/logStatusQueries';
 import {default as logConsolidatedCaches_} from './inspection/logConsolidatedCaches';
 
-globalThis.FluentGraphQL = {
+globalThis.fql = {
+  help() {
+    console.log(`%c
+fql.logStatusQueries()
+fql.logConsolidatedCaches()
+fql.document(operationType, operationName)
+fql.query(operationName)
+fql.mutation(operationName)
+fql.subscription(operationName)
+`, 'color: aqua');
+  },
+  setLogLevel(level) {
+    Document.setLogLevel(level);
+  },
   logStatusQueries() {
     logStatusQueries_();
   },

@@ -424,23 +424,23 @@ Document.simulateNetworkDelay(1000, 3000);
 ### Retrieve a document instance from the console
 
 ```javascript
-FluentGraphQL.document(OperationType.Query, 'operationName');
+fql.document(OperationType.Query, 'operationName');
 ```
 
 ### Create a document instance from the console
 
 ```javascript
-FluentGraphQL
+fql
   .query('operationName')
 ```
 
 ```javascript
-FluentGraphQL
+fql
   .mutation('operationName')
 ```
 
 ```javascript
-FluentGraphQL
+fql
   .subscription('operationName')
 ```
 
@@ -457,11 +457,11 @@ Document.setLogLevel(LogLevel.Verbose);
 ```
 
 ```javascript
-FluentGraphQL.logStatusQueries();
+fql.logStatusQueries();
 ```
 
 ```javascript
-FluentGraphQL.logConsolidatedCaches();
+fql.logConsolidatedCaches();
 ```
 
 ## Limitations

@@ -9,6 +9,7 @@
   * Provide parent entity to `addEntity` and `replaceEntity` callbacks
   * Add `FetchFromNetworkAndNoCache` strategy
   * Added `findGraphQLErrorByCode`
+  * Changed global property `FluentGraphQL` to `fql`
   * Improve error messages
   * Migrate from Jest to Vitest
 
