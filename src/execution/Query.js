@@ -198,7 +198,7 @@ export default class Query {
   }
 
   addSubscriber(subscriber) {
-    Logger.info(() => `Adding subscriber to ${this.document.operationName} query with vars ${JSON.stringify(variables, null, 2)}`);
+    Logger.info(() => `Adding subscriber to ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)}`);
 
     if (typeof subscriber !== 'function') {
       throw new Error(`subscriber is not a function: ${JSON.stringify(subscriber)}`);
