@@ -8,9 +8,11 @@ export default class Notifier {
     const item = { subscriber };
 
     this.subscribers.add(item);
+    Logger.info(`Added subscriber query for data updates. Total subscriber count: ${this.subscribers.size}`);
 
     return () => {
       this.subscribers.delete(item);
+      Logger.info(`Removed subscriber query from data updates. Total subscriber count: ${this.subscribers.size}`);
     };
   }
 
@@ -24,7 +26,7 @@ export default class Notifier {
         const { __meta, ...entityWithoutMeta } = entity;
         return entityWithoutMeta;
       });
-      return `Notifying ${Notifier.subscribers.size} subscribers with new entities: ${JSON.stringify(entitiesWithoutMeta, null, 2)}`;
+      return `Notifying ${Notifier.subscribers.size} subscribed queries with new entities: ${JSON.stringify(entitiesWithoutMeta, null, 2)}`;
     });
 
     if (isEmptyArray(entities)) {

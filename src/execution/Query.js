@@ -51,6 +51,7 @@ export default class Query {
     await this.doFetch(fetchStrategy);
 
     if (!this.unsubscriber) {
+      Logger.info(() => `Subscribing ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} for data updates`);
       this.unsubscriber = Notifier.subscribe(this);
     }
 
@@ -150,7 +151,7 @@ export default class Query {
     Logger.info(() => `Clearing ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)}`);
 
     if (this.unsubscriber) {
-      Logger.debug('Unsubscribing from data updates');
+      Logger.debug(() => `Unsubscribing ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} from data updates`);
 
       this.unsubscriber();
       this.unsubscriber = null;
@@ -198,22 +199,22 @@ export default class Query {
   }
 
   addSubscriber(subscriber) {
-    Logger.info(() => `Adding subscriber to ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)}`);
-
     if (typeof subscriber !== 'function') {
       throw new Error(`subscriber is not a function: ${JSON.stringify(subscriber)}`);
     }
 
     const item = { subscriber };
     this.subscribers.add(item);
+    Logger.info(() => `Added a subscriber to ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)}. Total subscriber count: ${this.subscribers.size}`);
 
     return () => {
-      Logger.info(() => `Unsubscribing ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} from data updates`);
       this.subscribers.delete(item);
+      Logger.info(() => `Unsubscribed a subscriber to ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)}. ${this.subscribers.size} subscribers left`);
     };
   }
 
   notifySubscribers(data) {
+    Logger.info(() => `Notifying ${this.subscribers.size} subscribers to ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} with new data: ${JSON.stringify(data, null, 2)}`);
     for (const { subscriber } of this.subscribers) {
       subscriber(data);
     }
