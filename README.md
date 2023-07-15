@@ -337,7 +337,7 @@ Document
 ```javascript
 const fetchAccount = async (accountId, variables) => {
   const data = await otherDocument.execute(variables);
-  return data.accounts.find(({ id}) => id === accountId);
+  return data.accounts.find(({ id }) => id === accountId);
 };
 
 Document
