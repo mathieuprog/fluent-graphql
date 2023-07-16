@@ -126,6 +126,7 @@ export default class Document {
     let queryExecutor = this.queryExecutors[variablesAsString];
     if (!queryExecutor) {
       queryExecutor = new QueryExecutor(this, variables);
+      this.queryExecutors[variablesAsString] = queryExecutor;
     }
 
     return queryExecutor;
