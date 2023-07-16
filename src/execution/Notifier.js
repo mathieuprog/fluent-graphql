@@ -21,12 +21,13 @@ export default class Notifier {
       throw new Error();
     }
 
+    Logger.info(`Notifying ${Notifier.subscribers.size} subscribed queries with fetched entities`);
     Logger.verbose(() => {
       const entitiesWithoutMeta = [...entities].map((entity) => {
         const { __meta, ...entityWithoutMeta } = entity;
         return entityWithoutMeta;
       });
-      return `Notifying ${Notifier.subscribers.size} subscribed queries with new entities: ${JSON.stringify(entitiesWithoutMeta, null, 2)}`;
+      return `Fetched entities: ${JSON.stringify(entitiesWithoutMeta, null, 2)}`;
     });
 
     if (isEmptyArray(entities)) {

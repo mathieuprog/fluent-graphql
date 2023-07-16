@@ -214,7 +214,8 @@ export default class Query {
   }
 
   notifySubscribers(data) {
-    Logger.info(() => `Notifying ${this.subscribers.size} subscribers to ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} with new data: ${JSON.stringify(data, null, 2)}`);
+    Logger.info(() => `Notifying ${this.subscribers.size} subscribers to ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} with new data`);
+    Logger.verbose(() => `New data: ${JSON.stringify(data, null, 2)}`);
     for (const { subscriber } of this.subscribers) {
       subscriber(data);
     }
