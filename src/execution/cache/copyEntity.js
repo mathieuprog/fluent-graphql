@@ -11,7 +11,7 @@ export default function copyEntity(meta, entity) {
 
   for (let propName of Object.keys(scalars)) {
     if (propName in entity === false) {
-      throw new Error();
+      throw new Error(`new ${entity.__typename} entity to be added in ${meta.getDocument().operationName} query cache but field ${propName} is missing`);
     }
 
     newEntity[propName] = entity[propName];
@@ -24,7 +24,7 @@ export default function copyEntity(meta, entity) {
 
   for (const [propName, object] of Object.entries(objects)) {
     if (propName in entity === false) {
-      throw new Error();
+      throw new Error(`new ${entity.__typename} entity to be added in ${meta.getDocument().operationName} query cache but field ${propName} is missing`);
     }
 
     switch (object.type) {
