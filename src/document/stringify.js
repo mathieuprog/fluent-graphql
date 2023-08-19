@@ -30,7 +30,7 @@ export default function stringify(document) {
 
   const result = doStringify(str, document.rootObject);
 
-  return (result === str + '{ }')
+  return (result === str + '{}')
     ? null
     : result;
 }
@@ -66,12 +66,13 @@ function doStringify(str, objects) {
 
     if (!isEmptyObjectLiteral(derivedObjects)) {
       for (let key in derivedObjects) {
-        str += ' ' + derivedObjects[key].derivedFromForeignKey.foreignKey;
+        str += delimiter + derivedObjects[key].derivedFromForeignKey.foreignKey;
+        delimiter = ' ';
       }
     }
 
     if (!isEmptyObjectLiteral(nestedObjects)) {
-      str = doStringify(str + ' ', Object.values(nestedObjects));
+      str = doStringify(str + delimiter, Object.values(nestedObjects));
     }
 
     for (let [typename, nestedObject] of Object.entries(object.inlineFragments)) {
