@@ -101,7 +101,7 @@ export default class OperationExecutor {
 
     data = transform(this.document, data);
 
-    data = await deriveFromForeignKey(this.document, data);
+    data = await deriveFromForeignKey(this.document, data, variables);
 
     data = await deriveFrom(this.document, data, variables);
 
