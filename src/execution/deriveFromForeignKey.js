@@ -83,7 +83,7 @@ async function buildDataGraph(meta, dataToDeriveFrom, variables, result = {}) {
 
   for (let propName of Object.keys(scalars)) {
     if (propName in dataToDeriveFrom === false) {
-      throw new Error();
+      throw new Error(`prop name ${propName} not in ${JSON.stringify(dataToDeriveFrom)}`);
     }
 
     result[propName] = dataToDeriveFrom[propName];
