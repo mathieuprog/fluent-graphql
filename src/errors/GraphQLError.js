@@ -1,7 +1,7 @@
 import Logger from '../Logger';
 
 function buildErrorMessage(errorArray, operationName, variables) {
-  return `error in ${operationName} with variables ${JSON.stringify(variables)}:\n${errorArray.map(({ message, path }) => message + (path ? ` @ ${path.join(',')}` : '')).join("\n")}`;
+  return `error in ${operationName} with variables ${JSON.stringify(variables)}:\n${errorArray.map(({ message, path }) => message + (path ? ` @${path.join(',')}` : '')).join("\n")}`;
 }
 
 export default class GraphQLError extends Error {
@@ -9,7 +9,7 @@ export default class GraphQLError extends Error {
     super(buildErrorMessage(errorArray, operationName, variables));
     this.name = 'GraphQLError';
     this.graphQLErrors = errorArray;
-    Logger.warn(() => `GraphQL errors executing ${operationName} with variables ${JSON.stringify(variables, null, 2)}:\n${errorArray.map(({ message, path }) => message + (path ? ` @ ${path.join(',')}` : '')).join("\n")}`);
+    Logger.warn(() => `GraphQL errors executing ${operationName} with variables ${JSON.stringify(variables, null, 2)}:\n${errorArray.map(({ message, path }) => message + (path ? ` @${path.join(',')}` : '')).join("\n")}`);
   }
 }
 
