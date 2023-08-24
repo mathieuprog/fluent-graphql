@@ -22,6 +22,8 @@ export default {
     FetchFromCacheOrFallbackNetwork: 'FETCH_FROM_CACHE_OR_FALLBACK_NETWORK',
     FetchFromCacheAndNetwork: 'FETCH_FROM_CACHE_AND_NETWORK',
     FetchFromNetwork: 'FETCH_FROM_NETWORK',
-    FetchFromNetworkAndNoCache: 'FETCH_FROM_NETWORK_AND_NO_CACHE'
+    FetchFromNetworkAndRecreateCache: 'FETCH_FROM_NETWORK_AND_RECREATE_CACHE',
+    FetchFromNetworkAndNoCache: 'FETCH_FROM_NETWORK_AND_NO_CACHE',
+    FetchFromNetworkAndNoCacheNoCacheUpdates: 'FETCH_FROM_NETWORK_AND_NO_CACHE_NO_CACHE_UPDATES'
   })
 };

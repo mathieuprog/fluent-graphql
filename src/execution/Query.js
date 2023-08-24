@@ -66,32 +66,23 @@ export default class Query {
       return this.executePromiseOrWaitPending();
     };
 
-    const cached = !!this.cache?.getData();
-
-    const createCache = (data) => {
-      // cache may already exist if 2 queries are executed simultaneously
-      if (!this.cache) {
-        this.cache = this.createQueryCache(data);
-      }
-    };
-
     switch (fetchStrategy) {
       default:
         throw new Error(`unknown or unexpected fetch strategy "${fetchStrategy}"`);
 
       case FetchStrategy.FetchFromCacheOrFallbackNetwork:
-        if (!cached) {
+        if (!this.cached()) {
           Logger.debug('Cache miss, fetching from network...');
-          createCache(await fetch());
+          this.createCacheIfNotExists(await fetch());
         } else {
           Logger.debug('Cache hit, using cached data.');
         }
         break;
 
       case FetchStrategy.FetchFromCacheAndNetwork:
-        if (!cached) {
+        if (!this.cached()) {
           Logger.debug('Cache miss, fetching from network and caching data...');
-          createCache(await fetch());
+          this.createCacheIfNotExists(await fetch());
         } else {
           Logger.debug('Cache hit, using cached data and refreshing from network...');
           fetch();
@@ -99,17 +90,22 @@ export default class Query {
         break;
 
       case FetchStrategy.FetchFromNetwork:
-        if (!cached) {
+        if (!this.cached()) {
           Logger.debug('Cache miss, fetching from network and caching data...');
-          createCache(await fetch());
+          this.createCacheIfNotExists(await fetch());
         } else {
           Logger.debug('Cache hit, fetching from network regardless...');
           await fetch();
         }
         break;
 
+      case FetchStrategy.FetchFromNetworkAndRecreateCache:
+        Logger.debug('Fetching from network and recreating cache...');
+        this.createCache(await fetch());
+        break;
+
       case FetchStrategy.FetchFromCacheOrThrow:
-        if (!cached) {
+        if (!this.cached()) {
           Logger.debug('Cache miss, throwing error...');
           throw new NotFoundInCacheError('not found in cache');
         } else {
@@ -117,6 +113,21 @@ export default class Query {
         }
         break;
     }
+  }
+
+  createCacheIfNotExists(data) {
+    // cache may already exist if 2 queries are executed simultaneously
+    if (!this.cache) {
+      this.createCache(data);
+    }
+  }
+
+  createCache(data) {
+    this.cache = this.createQueryCache(data);
+  };
+
+  cached() {
+    return !!this.cache?.getData();
   }
 
   async executePromiseOrWaitPending() {
