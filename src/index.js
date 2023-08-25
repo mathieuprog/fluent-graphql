@@ -1,5 +1,6 @@
 import Client from './client/Client';
 import Document from './document/Document';
+import OperationType from './document/OperationType';
 import Logger from './Logger';
 import LogLevel from './LogLevel';
 import FetchStrategy from './execution/FetchStrategy';
@@ -7,6 +8,7 @@ import GraphQLError, { findGraphQLError, findGraphQLErrorByCode } from './errors
 import NotFoundInCacheError from './errors/NotFoundInCacheError';
 import {default as logStatusQueries_} from './inspection/logStatusQueries';
 import {default as logConsolidatedCaches_} from './inspection/logConsolidatedCaches';
+import {default as consolidatedCaches_} from './inspection/consolidatedCaches';
 
 globalThis.fql = {
   help() {
@@ -16,10 +18,8 @@ fql - Global utility providing:
 fql.setLogLevel(level)
 fql.logStatusQueries()
 fql.logConsolidatedCaches()
-fql.document(operationType, operationName)
-fql.query(operationName)
-fql.mutation(operationName)
-fql.subscription(operationName)
+fql.consolidatedCaches()
+fql.Document
 
 With a document instance, simulate server response:
 documentInstance.simulateNetworkResponse(data)
@@ -34,31 +34,10 @@ documentInstance.simulateNetworkResponse(data)
   logConsolidatedCaches() {
     logConsolidatedCaches_();
   },
-  document(operationType, operationName) {
-    const document = Document.instances.filter((document) => {
-      return document.operationType === operationType
-          && document.operationName === operationName;
-    });
-
-    if (document.length === 0) {
-      return null;
-    }
-
-    if (document.length > 1) {
-      throw new Error('More than one document instance found for the same operation name');
-    }
-
-    return document[0];
+  consolidatedCaches() {
+    return consolidatedCaches_();
   },
-  query(operationName = null) {
-    return Document.query(operationName);
-  },
-  mutation(operationName) {
-    return Document.mutation(operationName);
-  },
-  subscription(operationName) {
-    return Document.subscription(operationName);
-  }
+  Document: Document
 };
 
 export {
@@ -69,5 +48,6 @@ export {
   GraphQLError,
   findGraphQLError,
   findGraphQLErrorByCode,
-  NotFoundInCacheError
+  NotFoundInCacheError,
+  OperationType
 }
