@@ -4,19 +4,23 @@ import Document from './Document';
 test('stringify', () => {
   const document =
     Document.mutation('operationName')
-      .variableDefinitions({ calendarId: 'ID!', dateRange: 'DateRange!' })
+      .variableDefinitions({ calendarId: 'ID!', dateRange: 'DateRange!', cursor: 'String!' })
       .scalar('foo', Number, { calendarId: 'calendarId', dateRange: 'dateRange' })
       .entity('user')
         .scalar('name')
         .entity('account')
           .deriveFromForeignKey('accountId')
           .scalar('loggedInAt')._
-        .entitySet('appointments')
-          .useVariables({ calendarId: 'calendarId', dateRange: 'dateRange' })
-          .scalar('date')
-          .scalar('time')
-          .embed('bar')
-            .scalar('name')._._
+        .wrapper('appointments')
+          .useVariables({ calendarId: 'calendarId', dateRange: 'dateRange', cursor: 'cursor' })
+          .embed('pagination')
+            .scalar('cursorForEntriesAfter')
+            .scalar('cursorForEntriesBefore')._
+          .entitySet('paginatedEntries')
+            .scalar('date')
+            .scalar('time')
+            .embed('bar')
+              .scalar('name')._._._
         .entitySet('availabilities')
           .useVariables({ calendarId: 'calendarId', dateRange: 'dateRange' })
           .scalar('date')
@@ -44,12 +48,16 @@ test('stringify', () => {
         ._._
       .prepareQueryString();
 
-  let expectedDocumentString = 'mutation operationName($calendarId:ID!,$dateRange:DateRange!)';
+  let expectedDocumentString = 'mutation operationName($calendarId:ID!,$dateRange:DateRange!,$cursor:String!)';
   expectedDocumentString += '{foo(calendarId:$calendarId,dateRange:$dateRange) user{';
-  expectedDocumentString += 'id __typename name accountId appointments(calendarId:$calendarId,dateRange:$dateRange){';
+  expectedDocumentString += 'id __typename name accountId appointments(calendarId:$calendarId,dateRange:$dateRange,cursor:$cursor){';
+  expectedDocumentString += 'pagination{';
+  expectedDocumentString += 'cursorForEntriesAfter cursorForEntriesBefore';
+  expectedDocumentString += '}';
+  expectedDocumentString += 'paginatedEntries{';
   expectedDocumentString += 'id __typename date time bar{';
   expectedDocumentString += 'name';
-  expectedDocumentString += '}}'; // end bar and appointments
+  expectedDocumentString += '}}}'; // end bar and paginatedEntries and appointments
   expectedDocumentString += 'availabilities(calendarId:$calendarId,dateRange:$dateRange){';
   expectedDocumentString += 'id __typename date time';
   expectedDocumentString += '}}'; // end availabilities and user

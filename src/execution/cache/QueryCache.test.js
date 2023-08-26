@@ -8,9 +8,13 @@ test('immutability', () => {
   const document1 =
     Document
       .query()
-        .entitySet('articles')
-          .scalar('title')
-          ._
+        .wrapper('articles')
+          .embed('pagination')
+            .scalar('cursorForEntriesAfter')
+            .scalar('cursorForEntriesBefore')._
+          .entitySet('paginatedEntries')
+            .scalar('title')
+            ._._
         .entitySet('articlesUnchanged')
           .scalar('title')
           ._
@@ -24,18 +28,24 @@ test('immutability', () => {
             ._._._;
 
   const data1 = {
-    articles: [
-      {
-        id: 'article1',
-        __typename: 'Article',
-        title: 'A title'
+    articles: {
+      pagination: {
+        cursorForEntriesAfter: '20',
+        cursorForEntriesBefore: '40'
       },
-      {
-        id: 'article2',
-        __typename: 'Article',
-        title: 'Another title'
-      }
-    ],
+      paginatedEntries: [
+        {
+          id: 'article1',
+          __typename: 'Article',
+          title: 'A title'
+        },
+        {
+          id: 'article2',
+          __typename: 'Article',
+          title: 'Another title'
+        }
+      ]
+    },
     articlesUnchanged: [
       {
         id: 'article1',
@@ -129,8 +139,13 @@ test('change value of scalar and embed', () => {
       .query()
         .viewer('me')
           .entity('user')
-            .entitySet('articles')
-              ._
+            .wrapper('articles')
+              .embed('pagination')
+                .scalar('cursorForEntriesAfter')
+                .scalar('cursorForEntriesBefore')._
+              .entitySet('paginatedEntries')
+                .scalar('title')
+                ._._
             .scalar('name')
             .entity('user')
               .scalar('name')
@@ -149,10 +164,17 @@ test('change value of scalar and embed', () => {
           name: 'John',
           embed: { foo: 1 }
         },
-        articles: [{
-          id: 'article1',
-          __typename: 'Article',
-        }]
+        articles: {
+          pagination: {
+            cursorForEntriesAfter: '20',
+            cursorForEntriesBefore: '40'
+          },
+          paginatedEntries: [{
+            id: 'article1',
+            __typename: 'Article',
+            title: 'A title'
+          }]
+        }
       }
     }
   };
@@ -164,12 +186,14 @@ test('change value of scalar and embed', () => {
   expect(queryCache.data.me.user.name).toBe('John');
   expect(queryCache.data.me.user.user.name).toBe('John');
   expect(queryCache.data.me.user.user.embed.foo).toBe(1);
+  expect(queryCache.data.me.user.articles.paginatedEntries[0].title).toBe('A title');
 
   const document2 =
     Document
       .query()
         .entitySet('users')
           .entitySet('articles')
+            .scalar('title')
             ._
           .entity('user')
             ._
@@ -190,6 +214,7 @@ test('change value of scalar and embed', () => {
       articles: [{
         id: 'article1',
         __typename: 'Article',
+        title: 'Updated title'
       }]
     }]
   };
@@ -202,6 +227,7 @@ test('change value of scalar and embed', () => {
   expect(queryCache.data.me.user.name).toBe('James');
   expect(queryCache.data.me.user.user.name).toBe('James');
   expect(queryCache.data.me.user.user.embed.foo).toBe(2);
+  expect(queryCache.data.me.user.articles.paginatedEntries[0].title).toBe('Updated title');
 });
 
 test('unions and interfaces', () => {

@@ -26,17 +26,20 @@ test('derive data from foreign key', async () => {
         .entity('user')
           .entity('account')
             .deriveFromForeignKey('accountId', fetchAccount)._
-          .entitySet('articles')
-            .deriveFromForeignKey('articleIds', fetchArticles)
-            .entity('category')
-              .deriveFromForeignKey('categoryId', fetchCategory)._._._._;
+          .wrapper('wrapper')
+            .entitySet('articles')
+              .deriveFromForeignKey('articleIds', fetchArticles)
+              .entity('category')
+                .deriveFromForeignKey('categoryId', fetchCategory)._._._._._;
 
   const data = deepFreeze({
     user: {
       id: 'user1',
       __typename: 'User',
       accountId: 'account1',
-      articleIds: ['article1', 'article2', 'article3']
+      wrapper: {
+        articleIds: ['article1', 'article2', 'article3']
+      }
     }
   });
 
@@ -45,9 +48,9 @@ test('derive data from foreign key', async () => {
   expect(transformedData.user.accountId).toBeUndefined();
   expect(transformedData.user.account.id).toBe('account1');
 
-  expect(transformedData.user.articlesIds).toBeUndefined();
-  expect(transformedData.user.articles.length).toBe(3);
-  expect(transformedData.user.articles[0].id).toBe('article1');
-  expect(transformedData.user.articles[0].categoryId).toBeUndefined();
-  expect(transformedData.user.articles[0].category.id).toBe('category_article1');
+  expect(transformedData.user.wrapper.articlesIds).toBeUndefined();
+  expect(transformedData.user.wrapper.articles.length).toBe(3);
+  expect(transformedData.user.wrapper.articles[0].id).toBe('article1');
+  expect(transformedData.user.wrapper.articles[0].categoryId).toBeUndefined();
+  expect(transformedData.user.wrapper.articles[0].category.id).toBe('category_article1');
 });
