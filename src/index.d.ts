@@ -60,6 +60,7 @@ declare module "fluent-graphql" {
     embed(name: string): Node<NestedNode<This>, This>;
     embedList(name: string): Node<NestedNode<This>, This>;
     viewer(name: string): Node<NestedNode<This>, This>;
+    wrapper(name: string): Node<NestedNode<This>, This>;
     useVariables(variables: ObjectLiteral): Node<This, Parent>;
     replaceEntity(filter: ObjectLiteral): Node<This, Parent>;
     addEntity(filter: ObjectLiteral): Node<This, Parent>;
@@ -79,7 +80,7 @@ declare module "fluent-graphql" {
 
   class InlineFragment<Parent> extends Node<InlineFragment<Parent>, Parent> {}
 
-  type Subscriber = (data: T) => void;
+  type Subscriber = (data: any) => void;
   type Unsubscriber = () => void;
 
   class Document {
