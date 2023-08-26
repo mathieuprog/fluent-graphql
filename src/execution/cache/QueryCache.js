@@ -60,11 +60,12 @@ export default class QueryCache {
 
     for (const [propName, object] of Object.entries(objects)) {
       if (propName in data === false) {
-        throw new Error();
+        throw new Error(`prop name ${propName} not in ${JSON.stringify(data)}`);
       }
 
       switch (object.type) {
         case ObjectType.ViewerObject:
+        case ObjectType.Wrapper:
           const transformedData = this.doUpdate(data[propName], object, freshEntities);
           if (data[propName] !== transformedData) {
             data = updatePropImmutably(propName, transformedData);

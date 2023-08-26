@@ -68,6 +68,12 @@ export default class Node {
     return this.object_(name, ObjectType.InterfaceSet);
   }
 
+  wrapper(name) {
+    this.rejectAddingEntityInEmbed();
+    this.rejectAddingFieldsInUnion();
+    return this.object_(name, ObjectType.Wrapper);
+  }
+
   onEntity(typename) {
     this.rejectAddingInlineFragmentInObject();
     const inlineFragment = Document.createInlineFragment(this, ObjectType.InlineFragmentEntity, typename);
@@ -196,7 +202,7 @@ export default class Node {
       ObjectType.Embed,
       ObjectType.EmbedList
     ].includes(this.type)) {
-      throw new Error('embeds may not contain entities');
+      throw new Error('embeds may not contain entities or wrappers');
     }
     if (this.getOperationType() === OperationType.Mutation) {
       return;

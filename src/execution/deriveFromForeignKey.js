@@ -46,6 +46,7 @@ async function doDeriveFromForeignKey(meta, data, variables) {
 
     switch (object.type) {
       case ObjectType.ViewerObject:
+      case ObjectType.Wrapper:
       case ObjectType.Entity:
       case ObjectType.Union:
       case ObjectType.Interface:
@@ -122,6 +123,7 @@ async function buildDataGraph(meta, dataToDeriveFrom, variables, result = {}) {
 
     switch (object.type) {
       case ObjectType.ViewerObject:
+      case ObjectType.Wrapper:
       case ObjectType.RootObject:
         throw new Error();
 

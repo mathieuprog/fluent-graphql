@@ -40,6 +40,7 @@ export default function copyEntity(meta, entity) {
       case ObjectType.Entity:
       case ObjectType.Union:
       case ObjectType.Interface:
+      case ObjectType.Wrapper:
         newEntity[propName] = (entity[propName] !== null)
           ? copyEntity(object, entity[propName])
           : null;

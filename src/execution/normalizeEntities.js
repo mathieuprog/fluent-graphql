@@ -19,6 +19,7 @@ function doNormalizeEntities(meta, data, normalizedEntities = []) {
     }
 
     switch (object.type) {
+      case ObjectType.Wrapper:
       case ObjectType.ViewerObject:
         doNormalizeEntities(object, data[propName], normalizedEntities);
         break;

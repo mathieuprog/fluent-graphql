@@ -1,6 +1,7 @@
 export default Object.freeze({
   RootObject: 'ROOT_OBJECT',
   ViewerObject: 'VIEWER_OBJECT',
+  Wrapper: 'WRAPPER',
   Entity: 'ENTITY',
   EntitySet: 'ENTITY_SET',
   Union: 'UNION',

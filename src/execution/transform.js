@@ -46,6 +46,7 @@ function doTransform(meta, data) {
 
     switch (object.type) {
       case ObjectType.ViewerObject:
+      case ObjectType.Wrapper:
       case ObjectType.Entity:
       case ObjectType.Embed:
       case ObjectType.Interface:
