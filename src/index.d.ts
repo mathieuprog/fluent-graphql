@@ -84,9 +84,13 @@ declare module "fluent-graphql" {
   type Unsubscriber = () => void;
 
   class Document {
+    operationType: string;
+    operationName: string;
+    constructor(operationType: OperationType, operationName?: string)
     static query(operationName?: string): RootObject;
     static mutation(operationName: string): RootObject;
     static subscription(operationName: string): RootObject;
+    static getOrCreateByOperationName(operationType: OperationType, operationName: string)
     static setDefaultClient(client: Client): void;
     static setLogLevel(level: LogLevel): void;
     static simulateNetworkDelayGlobally(min: number, max: number): void;

@@ -52,6 +52,34 @@ export default class Document {
     return document.rootObject;
   }
 
+  static getByOperationName(operationType, operationName) {
+    const document = this.instances.filter((document) => {
+      return document.operationType === operationType
+          && document.operationName === operationName;
+    });
+
+    if (document.length === 0) {
+      return null;
+    }
+
+    if (document.length > 1) {
+      throw new Error('More than one document instance found for the same operation name');
+    }
+
+    return document[0].rootObject;
+  }
+
+  static getOrCreateByOperationName(operationType, operationName) {
+    const rootObject = this.getByOperationName(operationType, operationName);
+    if (rootObject) {
+      return rootObject;
+    }
+
+    const document = new Document(operationType, operationName);
+    this.instances.push(document);
+    return document.rootObject;
+  }
+
   static setLogLevel(level) {
     Logger.setLogLevel(level);
   }
