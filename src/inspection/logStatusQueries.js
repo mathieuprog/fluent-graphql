@@ -17,6 +17,7 @@ export default function logStatusQueries() {
     for (const [stringifiedVars, query] of Object.entries(queryRegistry)) {
       console.group('variables', stringifiedVars);
       console.log('cached data:', !!query.getCachedData());
+      console.log('invalidated:', query.cache?.invalidated);
       console.log('listens network:', !!query.unsubscriber);
       console.log('subscriber count:', query.subscribers.size);
       console.groupEnd();
