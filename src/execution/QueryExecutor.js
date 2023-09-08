@@ -1,7 +1,9 @@
+import { deepFreeze } from 'object-array-utils';
+
 export default class QueryExecutor {
   constructor(document, variables) {
     this.document = document;
-    this.variables = variables;
+    this.variables = deepFreeze(variables);
   }
 
   execute(options = {}) {

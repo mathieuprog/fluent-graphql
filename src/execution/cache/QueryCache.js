@@ -1,4 +1,4 @@
-import { isObjectLiteral } from 'object-array-utils';
+import { deepFreeze, isObjectLiteral } from 'object-array-utils';
 import ObjectType from '../../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from '../helpers';
 import copyEntity from './copyEntity';
@@ -9,7 +9,7 @@ export default class QueryCache {
   constructor(document, data, variables) {
     throwIfNotInstanceOfDocument(document);
     this.document = document;
-    this.data = data;
+    this.data = deepFreeze(data);
     this.transformedData = document.transform(data);
     this.variables = variables;
     Logger.info(() => `Cached response for operation ${document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
