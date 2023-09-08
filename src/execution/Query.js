@@ -4,12 +4,12 @@ import Notifier from './Notifier';
 import Logger from '../Logger';
 
 export default class Query {
-  constructor(document, variables, createQueryCache, executeRequest, onClear, clearAfterDuration, pollAfterDuration) {
+  constructor(document, variables, createQueryCache, executeRequest, onCleared, clearAfterDuration, pollAfterDuration) {
     this.document = document;
     this.variables = variables;
     this.createQueryCache = createQueryCache;
     this.executeRequest = executeRequest;
-    this.onClear = onClear;
+    this.onCleared = onCleared;
     this.cleared = false;
     this.pendingPromise = null;
     this.unsubscriber = null;
@@ -23,6 +23,10 @@ export default class Query {
 
   getCachedData() {
     return this.cache?.getData() || null;
+  }
+
+  invalidateCache() {
+    this.cache?.invalidate();
   }
 
   updateCache(freshEntities) {
@@ -66,68 +70,77 @@ export default class Query {
       return this.executePromiseOrWaitPending();
     };
 
+    const createCache = (data) => {
+      this.cache = this.createQueryCache(data);
+    };
+
+    const notCachedOrInvalidated = () => {
+      return !this.getCachedData() || this.cache.invalidated;
+    };
+
+    const fetchAndMaybeCache = async () => {
+      const data = await fetch();
+      // after the await, cache may already exist if 2 queries were executed simultaneously
+      if (notCachedOrInvalidated()) {
+        Logger.debug('Caching data...');
+        createCache(data);
+      }
+    };
+
+    const reasonCacheMiss = () => {
+      if (!this.getCachedData()) {
+        return '';
+      }
+
+      if (this.cache.invalidated) {
+        return ' (invalidated)';
+      }
+
+      throw new Error();
+    }
+
     switch (fetchStrategy) {
       default:
         throw new Error(`unknown or unexpected fetch strategy "${fetchStrategy}"`);
 
-      case FetchStrategy.FetchFromCacheOrFallbackNetwork:
-        if (!this.cached()) {
-          Logger.debug('Cache miss, fetching from network...');
-          this.createCacheIfNotExists(await fetch());
+      case FetchStrategy.FetchFromCacheOrFallbackNetwork: {
+        if (notCachedOrInvalidated()) {
+          Logger.debug(`Cache miss${reasonCacheMiss()}, fetching from network...`);
+          await fetchAndMaybeCache();
         } else {
           Logger.debug('Cache hit, using cached data.');
         }
-        break;
+      } break;
 
-      case FetchStrategy.FetchFromCacheAndNetwork:
-        if (!this.cached()) {
-          Logger.debug('Cache miss, fetching from network and caching data...');
-          this.createCacheIfNotExists(await fetch());
+      case FetchStrategy.FetchFromCacheAndNetwork: {
+        if (notCachedOrInvalidated()) {
+          Logger.debug(`Cache miss${reasonCacheMiss()}, fetching from network...`);
+          await fetchAndMaybeCache();
         } else {
           Logger.debug('Cache hit, using cached data and refreshing from network...');
           fetch();
         }
-        break;
+      } break;
 
-      case FetchStrategy.FetchFromNetwork:
-        if (!this.cached()) {
-          Logger.debug('Cache miss, fetching from network and caching data...');
-          this.createCacheIfNotExists(await fetch());
-        } else {
-          Logger.debug('Cache hit, fetching from network regardless...');
-          await fetch();
-        }
-        break;
+      case FetchStrategy.FetchFromNetwork: {
+        Logger.debug('Fetching from network...');
+        await fetchAndMaybeCache();
+      } break;
 
-      case FetchStrategy.FetchFromNetworkAndRecreateCache:
+      case FetchStrategy.FetchFromNetworkAndRecreateCache: {
         Logger.debug('Fetching from network and recreating cache...');
-        this.createCache(await fetch());
-        break;
+        createCache(await fetch());
+      } break;
 
-      case FetchStrategy.FetchFromCacheOrThrow:
-        if (!this.cached()) {
+      case FetchStrategy.FetchFromCacheOrThrow: {
+        if (notCachedOrInvalidated()) {
           Logger.debug('Cache miss, throwing error...');
           throw new NotFoundInCacheError('not found in cache');
         } else {
           Logger.debug('Cache hit, using cached data.');
         }
-        break;
+      } break;
     }
-  }
-
-  createCacheIfNotExists(data) {
-    // cache may already exist if 2 queries are executed simultaneously
-    if (!this.cache) {
-      this.createCache(data);
-    }
-  }
-
-  createCache(data) {
-    this.cache = this.createQueryCache(data);
-  };
-
-  cached() {
-    return !!this.cache?.getData();
   }
 
   async executePromiseOrWaitPending() {
@@ -156,7 +169,9 @@ export default class Query {
     }
 
     if (this.subscribers.size > 0) {
-      throw new Error('Cannot clear query that has active subscribers');
+      // throw new Error('Cannot clear query that has active subscribers');
+      Logger.warn(() => `Cannot clear  ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} because it has active subscribers`);
+      return;
     }
 
     Logger.info(() => `Clearing ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)}`);
@@ -173,7 +188,7 @@ export default class Query {
 
     this.cleared = true;
 
-    this.onClear();
+    this.onCleared();
   }
 
   initTimeoutClear() {

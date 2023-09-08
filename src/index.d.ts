@@ -110,7 +110,8 @@ declare module "fluent-graphql" {
     transformResponse(fun: (data: any) => unknown): Document
     clearAfter(duration: any): Document // TODO Temporal type
     pollAfter(duration: any): Document
-    clear(): void;
+    clearQueries(): Document;
+    invalidateAllCaches(): Document;
     getQueryString(): string;
     subscribe(variables: ObjectLiteral, subscriber: Subscriber): Unsubscriber;
   }

@@ -12,11 +12,16 @@ export default class QueryCache {
     this.data = deepFreeze(data);
     this.transformedData = document.transform(data);
     this.variables = variables;
+    this.invalidated = false;
     Logger.info(() => `Cached response for operation ${document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
   }
 
   getData() {
     return this.transformedData;
+  }
+
+  invalidate() {
+    this.invalidated = true;
   }
 
   update(freshEntities) {

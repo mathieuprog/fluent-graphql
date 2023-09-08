@@ -32,7 +32,7 @@ export default class QueryRegistry {
       variables,
       (data) => new QueryCache(this.document, data, variables),
       () => this.executeRequest(variables, Notifier.notify),
-      () => this.remove(variables),
+      () => this.handleQueryCleared(variables),
       clearAfterDuration,
       pollAfterDuration
     );
@@ -50,20 +50,15 @@ export default class QueryRegistry {
     return !!this.registry[JSON.stringify(sortProperties(variables))];
   }
 
+  invalidateAllCaches() {
+    Object.values(this.registry).forEach((query) => query.invalidateCache());
+  }
+
   removeAll() {
-    Object.keys(this.registry).forEach(this.doRemove);
+    Object.values(this.registry).forEach((query) => query.clear());
   }
 
-  remove(variables) {
-    this.doRemove(JSON.stringify(sortProperties(variables)));
-  }
-
-  doRemove(key) {
-    if (this.registry[key]) {
-      const query = this.registry[key];
-      delete this.registry[key];
-
-      query.clear();
-    }
+  handleQueryCleared(variables) {
+    delete this.registry[JSON.stringify(sortProperties(variables))];
   }
 }

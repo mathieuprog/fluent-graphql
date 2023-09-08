@@ -21,8 +21,12 @@ export default class OperationExecutor {
         this.executeRequest.bind(this));
   }
 
-  clear() {
+  clearQueries() {
     this.queryRegistry.removeAll();
+  }
+
+  invalidateAllCaches() {
+    this.queryRegistry.invalidateAllCaches();
   }
 
   execute(...args) {

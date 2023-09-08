@@ -29,12 +29,6 @@ export default class Document {
     this.executionContextGetter = () => {};
   }
 
-  clear() {
-    this.executor.clear();
-    this.executor = null;
-    Document.instances = Document.instances.filter((instance) => instance !== this);
-  }
-
   static query(operationName = null) {
     const document = new Document(OperationType.Query, operationName);
     this.instances.push(document);
@@ -171,6 +165,16 @@ export default class Document {
     }
 
     return this.executor.execute(...args);
+  }
+
+  invalidateAllCaches() {
+    this.executor.invalidateAllCaches();
+    return this;
+  }
+
+  clearQueries() {
+    this.executor.clearQueries();
+    return this;
   }
 
   subscribe(variables, subscriber) {
