@@ -1,4 +1,4 @@
-import { isArray, isEmptyArray, isEmptyObjectLiteral } from 'object-array-utils';
+import { isArray, isEmptyArray } from 'object-array-utils';
 import Logger from '../Logger';
 
 export default class Notifier {
