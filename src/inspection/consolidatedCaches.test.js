@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { deepFreeze } from 'object-array-utils';
-import { normalizeEntities, normalizeEntity } from './logConsolidatedCaches';
+import { normalizeEntities, normalizeEntity } from './consolidatedCaches';
 
 test('normalizeEntity', () => {
   const entity = deepFreeze({
