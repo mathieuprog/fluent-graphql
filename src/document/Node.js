@@ -10,6 +10,7 @@ export default class Node {
     this.name = name;
     this.variables = {};
     this.scalars = {};
+    this.virtualScalars = {};
     this.inlineFragments = {};
     this.objects = {};
     this.derivedFromForeignKey = null;
@@ -29,6 +30,11 @@ export default class Node {
       throw new Error(`variables can only be accepted by object fields and root fields; "${name}" does not accept variables as it is neither an object field nor a root field`);
     }
     this.scalars[name] = { name, transformer, variables };
+    return this;
+  }
+
+  virtual(name, initialValue) {
+    this.virtualScalars[name] = { name, initialValue };
     return this;
   }
 

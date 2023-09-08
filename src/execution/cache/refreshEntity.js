@@ -33,6 +33,20 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
       }
     }
 
+    const virtualScalars =
+      (meta.inlineFragments[entity.__typename])
+      ? { ...meta.virtualScalars, ...meta.inlineFragments[entity.__typename].virtualScalars }
+      : meta.virtualScalars;
+
+    for (let propName of Object.keys(virtualScalars)) {
+      if (propName in freshEntity) {
+        if (areValuesEqual(entity[propName], freshEntity[propName])) {
+          continue;
+        }
+        entity = updatePropImmutably(propName, freshEntity[propName]);
+      }
+    }
+
     const objects =
       (meta.inlineFragments[entity.__typename])
       ? { ...meta.objects, ...meta.inlineFragments[entity.__typename].objects }

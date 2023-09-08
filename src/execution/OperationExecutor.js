@@ -4,6 +4,7 @@ import Notifier from './Notifier';
 import transform from './transform';
 import deriveFrom from './deriveFrom';
 import deriveFromForeignKey from './deriveFromForeignKey';
+import addVirtualScalars from './addVirtualScalars';
 import normalizeEntities from './normalizeEntities';
 import { throwIfNotInstanceOfDocument } from './helpers';
 import QueryRegistry from './QueryRegistry';
@@ -133,6 +134,7 @@ export default class OperationExecutor {
 
     data = transform(this.document, data);
 
+    data = addVirtualScalars(this.document, data);
 
     context = { ...context, __data: data };
 
