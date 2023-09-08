@@ -27,6 +27,7 @@ export default class Document {
     this.executor = null;
     this.queryExecutors = {};
     this.maybeSimulateNetworkDelay = () => false;
+    this.refetchStrategy = FetchStrategy.FetchFromNetwork;
     this.executionContextGetter = () => {};
   }
 
@@ -207,6 +208,15 @@ export default class Document {
 
   afterExecution(fun) {
     this.afterExecutionCallback = fun;
+    return this;
+  }
+
+  getRefetchStrategy() {
+    return this.refetchStrategy;
+  }
+
+  setRefetchStrategy(fetchStrategy) {
+    this.refetchStrategy = fetchStrategy;
     return this;
   }
 

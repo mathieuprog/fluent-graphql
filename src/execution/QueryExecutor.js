@@ -10,6 +10,10 @@ export default class QueryExecutor {
     return this.document.getExecutor().execute(this.variables, options);
   }
 
+  refetchQuery() {
+    return this.document.getExecutor().refetchQuery(this.variables);
+  }
+
   subscribe(subscriber) {
     return this.document.getExecutor().subscribe(this.variables, subscriber);
   }

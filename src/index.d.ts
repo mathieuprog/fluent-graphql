@@ -6,7 +6,9 @@ declare module "fluent-graphql" {
     FetchFromCacheOrFallbackNetwork = 'FETCH_FROM_CACHE_OR_FALLBACK_NETWORK',
     FetchFromCacheAndNetwork = 'FETCH_FROM_CACHE_AND_NETWORK',
     FetchFromNetwork = 'FETCH_FROM_NETWORK',
-    FetchFromNetworkAndNoCache = 'FETCH_FROM_NETWORK_AND_NO_CACHE'
+    FetchFromNetworkAndRecreateCache = 'FETCH_FROM_NETWORK_AND_RECREATE_CACHE',
+    FetchFromNetworkAndNoCache = 'FETCH_FROM_NETWORK_AND_NO_CACHE',
+    FetchFromNetworkAndNoCacheNoCacheUpdates = 'FETCH_FROM_NETWORK_AND_NO_CACHE_NO_CACHE_UPDATES'
   }
 
   enum OperationType {
@@ -107,8 +109,9 @@ declare module "fluent-graphql" {
     ): Promise<T>;
     getQueryExecutor(variables: ObjectLiteral): QueryExecutor;
     simulateNetworkResponse(data: ObjectLiteral): void;
-    transformResponse(fun: (data: any) => unknown): Document
-    clearAfter(duration: any): Document // TODO Temporal type
+    transformResponse(fun: (data: any) => unknown): Document;
+    setRefetchStrategy(fetchStrategy: FetchStrategy): Document;
+    clearAfter(duration: any): Document; // TODO Temporal type
     pollAfter(duration: any): Document;
     createExecutionContext(executionContextGetter: () => unknown): Document;
     clearQueries(): Document;
@@ -121,6 +124,7 @@ declare module "fluent-graphql" {
   class QueryExecutor {
     constructor(document: Document, variables: ObjectLiteral);
     execute<T>(options?: ObjectLiteral): Promise<T>;
+    refetchQuery<T>(): Promise<T>;
     subscribe(subscriber: Subscriber): Unsubscriber;
   }
 

@@ -42,6 +42,16 @@ export default class OperationExecutor {
     }
   }
 
+  refetchQuery(variables) {
+    if (this.document.operationType !== OperationType.Query) {
+      throw new Error();
+    }
+
+    const fetchStrategy = this.document.getRefetchStrategy() ?? FetchStrategy.FetchFromNetwork;
+
+    return this.executeQuery([variables, { fetchStrategy }]);
+  }
+
   async executeQuery(args) {
     const [variables_, options] = args;
     const variables = variables_ || {};
