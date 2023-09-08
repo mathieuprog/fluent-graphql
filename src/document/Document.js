@@ -26,6 +26,7 @@ export default class Document {
     this.executor = null;
     this.queryExecutors = {};
     this.maybeSimulateNetworkDelay = () => false;
+    this.executionContextGetter = () => {};
   }
 
   clear() {
@@ -199,6 +200,11 @@ export default class Document {
     return this;
   }
 
+
+  createExecutionContext(executionContextGetter) {
+    this.executionContextGetter = executionContextGetter;
+    return this;
+  }
   clearAfter(duration) {
     this.clearAfterDuration = duration;
     return this;
