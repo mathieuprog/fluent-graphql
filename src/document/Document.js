@@ -21,6 +21,7 @@ export default class Document {
     this.rootObject = new RootObject(this);
     this.queryString = null;
     this.transform = (data) => data;
+    this.afterExecutionCallback = (_data) => {};
     this.clearAfterDuration = null;
     this.pollAfterDuration = null;
     this.executor = null;
@@ -204,11 +205,16 @@ export default class Document {
     return this;
   }
 
+  afterExecution(fun) {
+    this.afterExecutionCallback = fun;
+    return this;
+  }
 
   createExecutionContext(executionContextGetter) {
     this.executionContextGetter = executionContextGetter;
     return this;
   }
+
   clearAfter(duration) {
     this.clearAfterDuration = duration;
     return this;

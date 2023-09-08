@@ -50,24 +50,30 @@ export default class OperationExecutor {
     Logger.info(() => `Executing (${FetchStrategy.toString(fetchStrategy)}) query ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
 
     if (fetchStrategy === FetchStrategy.FetchFromNetworkAndNoCache) {
+      Logger.info('The query won\'t be cached');
+      return await this.executeRequestAndUserCallbacks(variables, Notifier.notify);
+    }
+
+    if (fetchStrategy === FetchStrategy.FetchFromNetworkAndNoCacheNoCacheUpdates) {
       Logger.info('The query won\'t be cached, and cache updates will be skipped');
-      return this.document.transform(await this.executeRequest(variables));
+      return await this.executeRequestAndUserCallbacks(variables);
     }
 
     const query = this.queryRegistry.getOrCreate(variables);
 
-    const data = await query.fetch(fetchStrategy);
-    Logger.verbose(() => `Return query data ${JSON.stringify(data, null, 2)}`);
-    return data;
+    const transformedData = await query.fetch(fetchStrategy);
+    Logger.verbose(() => `Return data for query ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}: ${JSON.stringify(transformedData, null, 2)}`);
+    this.document.afterExecutionCallback(transformedData);
+    return transformedData;
   }
 
-  async executeMutation(args) {
+  executeMutation(args) {
     const [variables_] = args;
     const variables = variables_ || {};
 
     Logger.info(() => `Executing mutation ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
 
-    return this.document.transform(await this.executeRequest(variables, Notifier.notify));
+    return this.executeRequestAndUserCallbacks(variables, Notifier.notify);
   }
 
   async executeSubscription(args) {
@@ -89,6 +95,16 @@ export default class OperationExecutor {
     data = transform(this.document, data);
     const entities = normalizeEntities(this.document, data);
     Notifier.notify(entities);
+  }
+
+  async executeRequestAndUserCallbacks(variables, handleUpdates) {
+    const data = await this.executeRequest(variables, handleUpdates);
+
+    const transformedData = this.document.transform(data);
+
+    this.document.afterExecutionCallback(transformedData);
+
+    return transformedData;
   }
 
   async executeRequest(variables, handleUpdates) {

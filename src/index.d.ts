@@ -115,6 +115,7 @@ declare module "fluent-graphql" {
     invalidateAllCaches(): Document;
     getQueryString(): string;
     subscribe(variables: ObjectLiteral, subscriber: Subscriber): Unsubscriber;
+    afterExecution(data: unknown): Document;
   }
 
   class QueryExecutor {
