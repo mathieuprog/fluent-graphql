@@ -93,7 +93,8 @@ declare module "fluent-graphql" {
     static query(operationName?: string): RootObject;
     static mutation(operationName: string): RootObject;
     static subscription(operationName: string): RootObject;
-    static getOrCreateByOperationName(operationType: OperationType, operationName: string)
+    static getByOperationName(operationType: OperationType, operationName: string): RootObject;
+    static getOrCreateByOperationName(operationType: OperationType, operationName: string): RootObject;
     static setDefaultClient(client: Client): void;
     static setLogLevel(level: LogLevel): void;
     static simulateNetworkDelayGlobally(min: number, max: number): void;
@@ -108,7 +109,7 @@ declare module "fluent-graphql" {
       sink: ObjectLiteral,
       options?: ObjectLiteral
     ): Promise<T>;
-    getQueryExecutor(variables: ObjectLiteral): QueryExecutor;
+    getQueryExecutor<V = ObjectLiteral>(variables: V): QueryExecutor;
     simulateNetworkResponse(data: ObjectLiteral): void;
     transformResponse(fun: (data: any) => unknown): Document;
     setRefetchStrategy(fetchStrategy: FetchStrategy): Document;
@@ -123,6 +124,8 @@ declare module "fluent-graphql" {
   }
 
   class QueryExecutor {
+    document: Document;
+    variables: ObjectLiteral;
     constructor(document: Document, variables: ObjectLiteral);
     execute<T>(options?: ObjectLiteral): Promise<T>;
     refetchQuery<T>(): Promise<T>;
@@ -145,4 +148,8 @@ declare module "fluent-graphql" {
 
   function findGraphQLError(error: Error, find: (error: GraphQLErrorObject) => boolean): GraphQLErrorObject | null;
   function findGraphQLErrorByCode(error: Error, code: string): GraphQLErrorObject | null;
+}
+
+declare module globalThis {
+  var fql: any;
 }
