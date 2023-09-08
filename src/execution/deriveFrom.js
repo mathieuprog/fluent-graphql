@@ -2,13 +2,13 @@ import { isObjectLiteral } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from './helpers';
 
-export default function deriveFrom(document, data, variables) {
+export default function deriveFrom(document, data, variables, context) {
   throwIfNotInstanceOfDocument(document);
 
-  return doDeriveFrom(document.rootObject, data, variables);
+  return doDeriveFrom(document.rootObject, data, variables, context);
 }
 
-async function doDeriveFrom(meta, data, variables) {
+async function doDeriveFrom(meta, data, variables, context) {
   if (!isObjectLiteral(data)) {
     throw new Error();
   }
@@ -30,11 +30,11 @@ async function doDeriveFrom(meta, data, variables) {
 
       switch (object.type) {
         case ObjectType.Entity:
-          data[propName] = buildDataGraph(object, await fetch(variables));
+          data[propName] = buildDataGraph(object, await fetch(variables, context));
           break;
 
         case ObjectType.EntitySet:
-          data[propName] = (await fetch(variables)).map((entity) => buildDataGraph(object, entity));
+          data[propName] = (await fetch(variables, context)).map((entity) => buildDataGraph(object, entity));
           break;
       }
 
@@ -47,14 +47,14 @@ async function doDeriveFrom(meta, data, variables) {
       case ObjectType.Union:
       case ObjectType.Interface:
         data[propName] = (data[propName] !== null)
-          ? await doDeriveFrom(object, data[propName], variables)
+          ? await doDeriveFrom(object, data[propName], variables, context)
           : null;
         break;
 
       case ObjectType.EntitySet:
       case ObjectType.UnionSet:
       case ObjectType.InterfaceSet:
-        data[propName] = await Promise.all(data[propName].map((entity) => doDeriveFrom(object, entity, variables)));
+        data[propName] = await Promise.all(data[propName].map((entity) => doDeriveFrom(object, entity, variables, context)));
         break;
     }
   }

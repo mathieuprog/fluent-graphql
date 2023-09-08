@@ -64,8 +64,8 @@ declare module "fluent-graphql" {
     useVariables(variables: ObjectLiteral): Node<This, Parent>;
     replaceEntity(filter: ObjectLiteral): Node<This, Parent>;
     addEntity(filter: ObjectLiteral): Node<This, Parent>;
-    deriveFromForeignKey(foreignKey: string, fetch: (foreignKey: string, variables: ObjectLiteral) => unknown): Node<This, Parent>;
-    deriveFrom(fetch: (variables: ObjectLiteral) => unknown): Node<This, Parent>;
+    deriveFromForeignKey(foreignKey: string, fetch: (foreignKey: string, variables: ObjectLiteral, executionContext: any) => unknown): Node<This, Parent>;
+    deriveFrom(fetch: (variables: ObjectLiteral, executionContext: any) => unknown): Node<This, Parent>;
     overrideElements(): Node<This, Parent>;
     removeElements(): Node<This, Parent>;
     deleteElements(): Node<This, Parent>;
