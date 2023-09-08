@@ -80,8 +80,12 @@ function doTransform(meta, data) {
       case ObjectType.Interface:
         if (data[propName] !== null) {
           if (!object.inlineFragments[data[propName].__typename]) {
-            const { operationName, operationType } = object.getDocument();
-            throw new Error(`property '${propName}' returned the type '${data[propName].__typename}', but this type is not defined in the document for operation '${operationType}' with the name '${operationName}'`);
+            if (object.type === ObjectType.Union) {
+              const { operationName, operationType } = object.getDocument();
+              throw new Error(`inline fragment on '${value.__typename}' for field '${object.name}' missing in the document for operation '${operationType}' with the name '${operationName}'`);
+            } else {
+              break;
+            }
           }
           const transformedData = doTransform(object.inlineFragments[data[propName].__typename], data[propName]);
           if (data[propName] !== transformedData) {
@@ -96,7 +100,12 @@ function doTransform(meta, data) {
         const newData =
           data[propName].map((value) => {
             if (!object.inlineFragments[value.__typename]) {
-              throw new Error();
+              if (object.type === ObjectType.UnionSet) {
+                const { operationName, operationType } = object.getDocument();
+                throw new Error(`inline fragment on '${value.__typename}' for field '${object.name}' missing in the document for operation '${operationType}' with the name '${operationName}'`);
+              } else {
+                return value;
+              }
             }
             const transformedData = doTransform(object.inlineFragments[value.__typename], value);
             updated = updated || (transformedData !== value);

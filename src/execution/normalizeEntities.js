@@ -56,11 +56,21 @@ function doNormalizeEntities(meta, data, normalizedEntities = []) {
       case ObjectType.Interface:
         if (data[propName] !== null) {
           if (!object.inlineFragments[data[propName].__typename]) {
-            throw new Error();
+            if (object.type === ObjectType.Union) {
+              const { operationName, operationType } = object.getDocument();
+              throw new Error(`inline fragment on '${value.__typename}' for field '${object.name}' missing in the document for operation '${operationType}' with the name '${operationName}'`);
+            } else {
+              normalizedEntities.push({ ...data[propName], ...buildMeta(object) });
+              break;
+            }
           }
           switch (object.inlineFragments[data[propName].__typename].type) {
             case ObjectType.InlineFragmentEntity:
-              normalizedEntities.push({ ...data[propName], ...buildMeta(object.inlineFragments[data[propName].__typename]) });
+              if (object.type === ObjectType.Union) {
+                normalizedEntities.push({ ...data[propName], ...buildMeta(object.inlineFragments[data[propName].__typename]) });
+              } else {
+                normalizedEntities.push({ ...data[propName], ...mergeMeta(object, object.inlineFragments[data[propName].__typename]) });
+              }
               doNormalizeEntities(object.inlineFragments[data[propName].__typename], data[propName], normalizedEntities);
               break;
 
@@ -75,11 +85,21 @@ function doNormalizeEntities(meta, data, normalizedEntities = []) {
       case ObjectType.InterfaceSet:
         data[propName].forEach((value) => {
           if (!object.inlineFragments[value.__typename]) {
-            throw new Error();
+            if (object.type === ObjectType.UnionSet) {
+              const { operationName, operationType } = object.getDocument();
+              throw new Error(`inline fragment on '${value.__typename}' for field '${object.name}' missing in the document for operation '${operationType}' with the name '${operationName}'`);
+            } else {
+              normalizedEntities.push({ ...value, ...buildMeta(object) });
+              return;
+            }
           }
           switch (object.inlineFragments[value.__typename].type) {
             case ObjectType.InlineFragmentEntity:
-              normalizedEntities.push({ ...value, ...buildMeta(object.inlineFragments[value.__typename]) });
+              if (object.type === ObjectType.Union) {
+                normalizedEntities.push({ ...value, ...buildMeta(object.inlineFragments[value.__typename]) });
+              } else {
+                normalizedEntities.push({ ...value, ...mergeMeta(object, object.inlineFragments[value.__typename]) });
+              }
               doNormalizeEntities(object.inlineFragments[value.__typename], value, normalizedEntities);
               break;
 
@@ -96,5 +116,15 @@ function doNormalizeEntities(meta, data, normalizedEntities = []) {
 }
 
 function buildMeta(meta) {
-  return { __meta: filterProperties(meta, ['isToBeDeleted', 'scalars', 'objects']) };
+  return { __meta: filterProperties(meta, ['isToBeDeleted', 'objects']) };
+}
+
+function mergeMeta(meta1, meta2) {
+  return buildMeta({
+    isToBeDeleted: meta2.isToBeDeleted ?? meta1.isToBeDeleted,
+    objects: {
+      ...meta1.objects,
+      ...meta2.objects
+    }
+  });
 }

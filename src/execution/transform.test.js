@@ -19,7 +19,19 @@ test('transform', () => {
                   .onEntity('Type4')
                     .scalar('int', Number)._._
                 .scalar('int', Number)._._
+            .interfaceSet('interfaces')
+              .scalar('int', Number)
+              .onEntity('Type2')
+                .scalar('int2', Number)._
+              .onEntity('Type3')
+                .scalar('int3', Number)._._
             .interface('interface')
+              .scalar('int', Number)
+              .onEntity('Type2')
+                .scalar('int2', Number)._
+              .onEntity('Type3')
+                .scalar('int3', Number)._._
+            .interface('interface2')
               .scalar('int', Number)
               .onEntity('Type2')
                 .scalar('int2', Number)._
@@ -52,11 +64,29 @@ test('transform', () => {
               }
             }
           ],
+          interfaces: [
+            {
+              id: 'type2',
+              __typename: 'Type2',
+              int: '30',
+              int2: '40'
+            },
+            {
+              id: 'type10',
+              __typename: 'Type10',
+              int: '30'
+            }
+          ],
           interface: {
             id: 'type2',
             __typename: 'Type2',
             int: '30',
             int2: '40'
+          },
+          interface2: {
+            id: 'type11',
+            __typename: 'Type11',
+            int: '30'
           },
           bar: [{
             id: 'bar1',
@@ -80,4 +110,8 @@ test('transform', () => {
 
   expect(transformedData.me.wrapper.foo.interface.int).toBe(30);
   expect(transformedData.me.wrapper.foo.interface.int2).toBe(40);
+
+  expect(transformedData.me.wrapper.foo.interface2.int).toBe(30);
+
+  expect(transformedData.me.wrapper.foo.interfaces[1].int).toBe(30);
 });
