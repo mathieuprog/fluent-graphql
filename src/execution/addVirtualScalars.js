@@ -77,7 +77,7 @@ function doAddVirtualScalars(meta, data) {
           if (!object.inlineFragments[data[propName].__typename]) {
             if (object.type === ObjectType.Union) {
               const { operationName, operationType } = object.getDocument();
-              throw new Error(`inline fragment on '${value.__typename}' for field '${object.name}' missing in the document for operation '${operationType}' with the name '${operationName}'`);
+              throw new Error(`inline fragment on '${data[propName].__typename}' for field '${object.name}' missing in the document for operation '${operationType}' with the name '${operationName}'`);
             } else {
               break;
             }
