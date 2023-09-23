@@ -115,7 +115,7 @@ declare module "fluent-graphql" {
     setRefetchStrategy(fetchStrategy: FetchStrategy): Document;
     clearAfter(duration: any): Document; // TODO Temporal type
     pollAfter(duration: any): Document;
-    createExecutionContext(executionContextGetter: () => unknown): Document;
+    createExecutionContext(executionContextGetter: (variables: ObjectLiteral, data: any) => unknown): Document;
     clearQueries(): Document;
     invalidateAllCaches(): Document;
     getQueryString(): string;
