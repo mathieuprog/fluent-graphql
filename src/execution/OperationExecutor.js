@@ -121,8 +121,6 @@ export default class OperationExecutor {
   async executeRequest(variables, handleUpdates) {
     Logger.info(() => `Executing HTTP request for ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
 
-    let context = this.document.executionContextGetter();
-
     await this.maybeSimulateNetworkDelay();
 
     const client = await this.getClient();
@@ -136,7 +134,7 @@ export default class OperationExecutor {
 
     data = addVirtualScalars(this.document, data);
 
-    context = { ...context, __data: data };
+    const context = this.document.executionContextGetter(variables, data);
 
     data = await deriveFromForeignKey(this.document, data, variables, context);
 
