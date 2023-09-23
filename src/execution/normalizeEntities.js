@@ -18,6 +18,10 @@ function doNormalizeEntities(meta, data, normalizedEntities = []) {
       throw new Error();
     }
 
+    if (object.derivedFromForeignKey || object.derivedFrom) {
+      continue;
+    }
+
     switch (object.type) {
       case ObjectType.Wrapper:
       case ObjectType.ViewerObject:
