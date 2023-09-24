@@ -120,7 +120,12 @@ function doNormalizeEntities(meta, data, normalizedEntities = []) {
 }
 
 function buildMeta(meta) {
-  return { __meta: filterProperties(meta, ['isToBeDeleted', 'objects', 'scalars']) };
+  return {
+    __meta: {
+      ...filterProperties(meta, ['isToBeDeleted', 'objects', 'scalars']),
+      operationName: meta.getDocument().operationName
+    }
+  };
 }
 
 function mergeMeta(meta1, meta2) {
