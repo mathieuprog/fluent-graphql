@@ -129,11 +129,18 @@ function buildMeta(meta) {
 }
 
 function mergeMeta(meta1, meta2) {
-  return buildMeta({
-    isToBeDeleted: meta2.isToBeDeleted ?? meta1.isToBeDeleted,
-    objects: {
-      ...meta1.objects,
-      ...meta2.objects
+  return {
+    __meta: {
+      isToBeDeleted: meta2.isToBeDeleted ?? meta1.isToBeDeleted,
+      objects: {
+        ...meta1.objects,
+        ...meta2.objects
+      },
+      scalars: {
+        ...meta1.scalars,
+        ...meta2.scalars
+      },
+      operationName: meta2.getDocument().operationName
     }
-  });
+  };
 }
