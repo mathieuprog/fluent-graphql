@@ -14,6 +14,10 @@ const updatePropImmutablyFun = ((original) => {
 export default class GlobalCache {
   entities = {};
 
+  getById(id) {
+    return this.entities[id];
+  }
+
   update(freshEntities) {
     Logger.debug(() => `Updating global cache`);
     return this.doUpdate(freshEntities);
