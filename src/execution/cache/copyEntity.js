@@ -1,3 +1,4 @@
+import Document from '../../document/Document';
 import { filterProperties } from 'object-array-utils';
 import ObjectType from '../../document/ObjectType';
 
@@ -11,7 +12,13 @@ export default function copyEntity(meta, entity) {
 
   for (let propName of Object.keys(scalars)) {
     if (propName in entity === false) {
-      throw new Error(`new ${entity.__typename} entity to be added in ${meta.getDocument().operationName} query cache but field ${propName} is missing`);
+      const cachedEntity = Document.getGlobalCache().getById(entity.id);
+
+      if (cachedEntity && propName in cachedEntity) {
+        entity[propName] = cachedEntity[propName];
+      } else {
+        throw new Error(`new ${entity.__typename} entity to be added in ${meta.getDocument().operationName} query cache but field ${propName} is missing`);
+      }
     }
 
     newEntity[propName] = entity[propName];
@@ -24,7 +31,13 @@ export default function copyEntity(meta, entity) {
 
   for (const [propName, object] of Object.entries(objects)) {
     if (propName in entity === false) {
-      throw new Error(`new ${entity.__typename} entity to be added in ${meta.getDocument().operationName} query cache but field ${propName} is missing`);
+      const cachedEntity = Document.getGlobalCache().getById(entity.id);
+
+      if (cachedEntity && propName in cachedEntity) {
+        entity[propName] = cachedEntity[propName];
+      } else {
+        throw new Error(`new ${entity.__typename} entity to be added in ${meta.getDocument().operationName} query cache but field ${propName} is missing`);
+      }
     }
 
     switch (object.type) {
