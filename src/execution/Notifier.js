@@ -16,26 +16,26 @@ export default class Notifier {
     };
   }
 
-  static notify(entities) {
-    if (!isArray(entities)) {
+  static notify(entries) {
+    if (!isArray(entries)) {
       throw new Error();
     }
 
     Logger.info(`Notifying ${Notifier.subscribers.size} subscribed queries with fetched entities`);
     Logger.verbose(() => {
-      const entitiesWithoutMeta = [...entities].map((entity) => {
+      const entitiesWithoutMeta = [...entries].map(({ entity }) => {
         const { __meta, ...entityWithoutMeta } = entity;
         return entityWithoutMeta;
       });
       return `Fetched entities: ${JSON.stringify(entitiesWithoutMeta, null, 2)}`;
     });
 
-    if (isEmptyArray(entities)) {
+    if (isEmptyArray(entries)) {
       return;
     }
 
     for (const { subscriber } of Notifier.subscribers) {
-      subscriber.updateCache(entities);
+      subscriber.updateCache(entries);
     }
   }
 }

@@ -29,12 +29,15 @@ export default class Query {
     this.cache?.invalidate();
   }
 
-  updateCache(freshEntities) {
+  updateCache(entries) {
     if (this.cleared) {
       throw new Error();
     }
 
-    const updated = this.cache.update(freshEntities);
+    const filteredEntries = entries.filter(({ entity }) => this.document.filterEntityCallback(entity, this.variables));
+    const updatedEntities = filteredEntries.map(({ entityUpdates }) => entityUpdates);
+
+    const updated = this.cache.update(updatedEntities);
 
     if (updated) {
       this.notifySubscribers(this.cache.getData());

@@ -2,7 +2,7 @@ import { areValuesEqual, isEmptyArray } from 'object-array-utils';
 import ObjectType from '../../document/ObjectType';
 import copyEntity from './copyEntity';
 
-export default function refreshEntity(entity, meta, freshEntities, variables) {
+export default function refreshEntity(entity, meta, updatedEntities, variables) {
   const updatePropImmutably = ((original) => {
     let data = original;
     return (prop, value) => {
@@ -12,24 +12,24 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
     };
   })(entity);
 
-  freshEntities = freshEntities.filter(({ id }) => entity.id === id);
+  updatedEntities = updatedEntities.filter(({ id }) => entity.id === id);
 
-  if (freshEntities.some(({ __meta: { isToBeDeleted } }) => isToBeDeleted)) {
+  if (updatedEntities.some(({ __meta: { isToBeDeleted } }) => isToBeDeleted)) {
     return null;
   }
 
-  for (let freshEntity of freshEntities) {
+  for (let updatedEntity of updatedEntities) {
     const scalars =
       (meta.inlineFragments[entity.__typename])
       ? { ...meta.scalars, ...meta.inlineFragments[entity.__typename].scalars }
       : meta.scalars;
 
     for (let propName of Object.keys(scalars)) {
-      if (propName in freshEntity) {
-        if (areValuesEqual(entity[propName], freshEntity[propName])) {
+      if (propName in updatedEntity) {
+        if (areValuesEqual(entity[propName], updatedEntity[propName])) {
           continue;
         }
-        entity = updatePropImmutably(propName, freshEntity[propName]);
+        entity = updatePropImmutably(propName, updatedEntity[propName]);
       }
     }
 
@@ -39,11 +39,11 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
       : meta.virtualScalars;
 
     for (let propName of Object.keys(virtualScalars)) {
-      if (propName in freshEntity) {
-        if (areValuesEqual(entity[propName], freshEntity[propName])) {
+      if (propName in updatedEntity) {
+        if (areValuesEqual(entity[propName], updatedEntity[propName])) {
           continue;
         }
-        entity = updatePropImmutably(propName, freshEntity[propName]);
+        entity = updatePropImmutably(propName, updatedEntity[propName]);
       }
     }
 
@@ -53,7 +53,7 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
       : meta.objects;
 
     for (const [propName, object] of Object.entries(objects)) {
-      if (propName in freshEntity === false) {
+      if (propName in updatedEntity === false) {
         continue;
       }
 
@@ -64,45 +64,45 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
 
         case ObjectType.Embed:
         case ObjectType.EmbedList:
-          if (areValuesEqual(entity[propName], freshEntity[propName])) {
+          if (areValuesEqual(entity[propName], updatedEntity[propName])) {
             continue;
           }
-          entity = updatePropImmutably(propName, freshEntity[propName]);
+          entity = updatePropImmutably(propName, updatedEntity[propName]);
           break;
 
         case ObjectType.Entity:
         case ObjectType.Union:
         case ObjectType.Interface:
-          if (entity[propName]?.id === freshEntity[propName]?.id) {
+          if (entity[propName]?.id === updatedEntity[propName]?.id) {
             continue;
           }
 
-          if (freshEntity[propName] === null) {
+          if (updatedEntity[propName] === null) {
             entity = updatePropImmutably(propName, null);
             continue;
           }
 
-          entity = updatePropImmutably(propName, copyEntity(object, freshEntity[propName]));
+          entity = updatePropImmutably(propName, copyEntity(object, updatedEntity[propName]));
           break;
 
         case ObjectType.EntitySet:
         case ObjectType.UnionSet:
         case ObjectType.InterfaceSet:
           const cachedIds = entity[propName].map(({ id }) => id);
-          const freshIds = freshEntity[propName].map(({ id }) => id);
+          const freshIds = updatedEntity[propName].map(({ id }) => id);
 
           if (areValuesEqual(cachedIds, freshIds)) {
             continue;
           }
 
           if (isEmptyArray(freshIds)) {
-            if (freshEntity.__meta.objects[propName].areElementsToBeOverridden) {
+            if (updatedEntity.__meta.objects[propName].areElementsToBeOverridden) {
               entity = updatePropImmutably(propName, []);
             }
             continue;
           }
 
-          if (freshEntity.__meta.objects[propName].areElementsToBeRemoved) {
+          if (updatedEntity.__meta.objects[propName].areElementsToBeRemoved) {
             const filteredEntities = entity[propName].filter(({ id }) => !freshIds.includes(id));
             if (filteredEntities.length !== cachedIds.length) {
               entity = updatePropImmutably(propName, filteredEntities);
@@ -111,14 +111,14 @@ export default function refreshEntity(entity, meta, freshEntities, variables) {
           }
 
           const entitiesToBeAdded =
-            freshEntity[propName]
+            updatedEntity[propName]
               .filter((entity) => (
                 !cachedIds.includes(entity.id)
-                && (!object.filterFunctionsByTypename || object.filterFunctionsByTypename[entity.__typename]?.(entity, variables, freshEntity))
+                && (!object.filterFunctionsByTypename || object.filterFunctionsByTypename[entity.__typename]?.(entity, variables, updatedEntity))
               ))
               .map((entity) => copyEntity(object, entity));
 
-          if (freshEntity.__meta.objects[propName].areElementsToBeOverridden) {
+          if (updatedEntity.__meta.objects[propName].areElementsToBeOverridden) {
             const filteredEntities = entity[propName].filter(({ id }) => freshIds.includes(id));
             if (filteredEntities.length !== cachedIds.length || entitiesToBeAdded.length > 0) {
               entity = updatePropImmutably(propName, filteredEntities.concat(entitiesToBeAdded));
