@@ -105,7 +105,7 @@ export default class OperationExecutor {
   simulateNetworkResponse(data) {
     data = transform(this.document, data);
     const entities = normalizeEntities(this.document, data);
-    Notifier.notify(entities);
+    Notifier.notify(Document.getGlobalCache().update(entities));
   }
 
   async executeRequestAndUserCallbacks(variables, handleUpdates) {
