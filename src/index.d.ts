@@ -113,6 +113,7 @@ declare module "fluent-graphql" {
     simulateNetworkResponse(data: ObjectLiteral): void;
     transformResponse(fun: (data: any) => unknown): Document;
     setRefetchStrategy(fetchStrategy: FetchStrategy): Document;
+    filterEntity(fun: (entity: any, variables: ObjectLiteral) => boolean): Document;
     clearAfter(duration: any): Document; // TODO Temporal type
     pollAfter(duration: any): Document;
     createExecutionContext(executionContextGetter: (variables: ObjectLiteral, data: any) => unknown): Document;
