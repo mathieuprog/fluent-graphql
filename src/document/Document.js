@@ -24,6 +24,7 @@ export default class Document {
     this.queryString = null;
     this.transform = (data) => data;
     this.afterExecutionCallback = (_data) => {};
+    this.filterEntityCallback = (_entity) => true;
     this.clearAfterDuration = null;
     this.pollAfterDuration = null;
     this.executor = null;
@@ -66,7 +67,7 @@ export default class Document {
     }
 
     if (document.length > 1) {
-      throw new Error('More than one document instance found for the same operation name');
+      throw new Error(`More than one document instance found for the same operation name: ${operationName}`);
     }
 
     return document[0].rootObject;
@@ -209,6 +210,11 @@ export default class Document {
       }
       return result;
     };
+    return this;
+  }
+
+  filterEntity(fun) {
+    this.filterEntityCallback = fun;
     return this;
   }
 
