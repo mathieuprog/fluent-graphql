@@ -3,12 +3,14 @@ import RootObject from './RootObject';
 import InlineFragment from './InlineFragment';
 import OperationType from './OperationType';
 import stringify from './stringify';
+import GlobalCache from '../execution/globalCache';
 import OperationExecutor from '../execution/OperationExecutor';
 import QueryExecutor from '../execution/QueryExecutor';
 import FetchStrategy from '../execution/FetchStrategy';
 import Logger from '../Logger';
 
 export default class Document {
+  static globalCache = new GlobalCache();
   static instances = [];
   static defaultClient = null;
   static defaultFetchStrategy = FetchStrategy.FetchFromCacheOrFallbackNetwork;
@@ -29,6 +31,10 @@ export default class Document {
     this.maybeSimulateNetworkDelay = () => false;
     this.refetchStrategy = FetchStrategy.FetchFromNetwork;
     this.executionContextGetter = () => {};
+  }
+
+  static getGlobalCache() {
+    return this.globalCache;
   }
 
   static query(operationName = null) {

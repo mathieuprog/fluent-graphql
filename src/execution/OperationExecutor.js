@@ -140,11 +140,12 @@ export default class OperationExecutor {
 
     data = await deriveFrom(this.document, data, variables, context);
 
-    const entities = normalizeEntities(this.document, data);
-
     Logger.verbose(() => `Transformed data ${JSON.stringify(data, null, 2)}`);
 
-    handleUpdates && handleUpdates(entities);
+    if (handleUpdates) {
+      const entities = normalizeEntities(this.document, data);
+      handleUpdates(Document.getGlobalCache().update(entities));
+    }
 
     return data;
   }
