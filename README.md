@@ -344,7 +344,7 @@ Document
   .query()
     .entity('user')
       .entity('account')
-        .deriveFromForeignKey('accountId', fetchAccount)._._._
+        .deriveFromReference('accountId', fetchAccount)._._._
   .makeExecutable();
 ```
 

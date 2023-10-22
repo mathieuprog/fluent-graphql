@@ -31,7 +31,7 @@ function doAddVirtualScalars(meta, data) {
   }
 
   for (const [propName, object] of Object.entries(meta.objects)) {
-    if (object.derivedFromForeignKey || object.derivedFrom) {
+    if (object.derivedFromReference || object.derivedFrom) {
       continue;
     }
 

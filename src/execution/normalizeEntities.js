@@ -18,7 +18,7 @@ function doNormalizeEntities(meta, data, normalizedEntities = []) {
       throw new Error();
     }
 
-    if (object.derivedFromForeignKey || object.derivedFrom) {
+    if (object.derivedFromReference || object.derivedFrom) {
       continue;
     }
 

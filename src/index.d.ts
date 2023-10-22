@@ -48,88 +48,93 @@ declare module "fluent-graphql" {
 
   class GraphQLError extends Error {}
 
-  class Node<This, Parent> {
+  class Node<This, Parent, VariablesType> {
     _: Parent
-    scalar(name: string, transformer?: (v: string) => unknown, variables?: ObjectLiteral): Node<This, Parent>;
-    virtual(name: string, initialValue: unknown): Node<This, Parent>;
-    entity(name: string): Node<NestedNode<This>, This>;
-    entitySet(name: string): Node<NestedNode<This>, This>;
-    union(name: string): Node<NestedNode<This>, This>;
-    unionSet(name: string): Node<NestedNode<This>, This>;
-    interface(name: string): Node<NestedNode<This>, This>;
-    interfaceSet(name: string): Node<NestedNode<This>, This>;
-    onEntity(typename: string): InlineFragment<This>;
-    onTypedObject(typename: string): InlineFragment<This>;
-    embed(name: string): Node<NestedNode<This>, This>;
-    embedList(name: string): Node<NestedNode<This>, This>;
-    viewer(name: string): Node<NestedNode<This>, This>;
-    wrapper(name: string): Node<NestedNode<This>, This>;
-    useVariables(variables: ObjectLiteral): Node<This, Parent>;
-    replaceEntity(filter: ObjectLiteral): Node<This, Parent>;
-    addEntity(filter: ObjectLiteral): Node<This, Parent>;
-    deriveFromForeignKey(foreignKey: string, fetch: (foreignKey: string, variables: ObjectLiteral, executionContext: any) => unknown): Node<This, Parent>;
-    deriveFrom(fetch: (variables: ObjectLiteral, executionContext: any) => unknown): Node<This, Parent>;
-    overrideElements(): Node<This, Parent>;
-    removeElements(): Node<This, Parent>;
-    deleteElements(): Node<This, Parent>;
-    delete(): Node<This, Parent>;
+    reference(name: string, referencedFieldOrTypename: string, typename?: string): Node<This, Parent, VariablesType>;
+    scalar(name: string, transformer?: (v: string) => unknown, variables?: VariablesType): Node<This, Parent, VariablesType>;
+    virtual(name: string, initialValue: unknown): Node<This, Parent, VariablesType>;
+    entity(name: string, possibleTypenames?: string | string[]): Node<NestedNode<This, VariablesType>, This, VariablesType>;
+    entitySet(name: string, possibleTypenames?: string | string[]): Node<NestedNode<This, VariablesType>, This, VariablesType>;
+    union(name: string): Node<NestedNode<This, VariablesType>, This, VariablesType>;
+    unionSet(name: string): Node<NestedNode<This, VariablesType>, This, VariablesType>;
+    interface(name: string): Node<NestedNode<This, VariablesType>, This, VariablesType>;
+    interfaceSet(name: string): Node<NestedNode<This, VariablesType>, This, VariablesType>;
+    onEntity(typename: string): InlineFragment<This, VariablesType>;
+    onTypedObject(typename: string): InlineFragment<This, VariablesType>;
+    embed(name: string): Node<NestedNode<This, VariablesType>, This, VariablesType>;
+    embedList(name: string): Node<NestedNode<This, VariablesType>, This, VariablesType>;
+    viewer(name: string): Node<NestedNode<This, VariablesType>, This, VariablesType>;
+    wrapper(name: string): Node<NestedNode<This, VariablesType>, This, VariablesType>;
+    useVariables(variables: ObjectLiteral): Node<This, Parent, VariablesType>;
+    replaceEntity(filter: ObjectLiteral): Node<This, Parent, VariablesType>;
+    addEntity(filter: ObjectLiteral): Node<This, Parent, VariablesType>;
+    deriveFromReference(foreignKey: string, fetch: (foreignKey: string, variables: VariablesType, executionContext: any) => unknown): Node<This, Parent, VariablesType>;
+    deriveFrom(fetch: (variables: VariablesType, executionContext: any) => unknown): Node<This, Parent, VariablesType>;
+    overrideElements(): Node<This, Parent, VariablesType>;
+    removeElements(): Node<This, Parent, VariablesType>;
+    deleteElements(): Node<This, Parent, VariablesType>;
+    delete(): Node<This, Parent, VariablesType>;
   }
 
-  class NestedNode<Parent> extends Node<NestedNode<Parent>, Parent> {}
+  class NestedNode<Parent, VariablesType> extends Node<NestedNode<Parent, VariablesType>, Parent, VariablesType> {}
 
-  class RootObject extends Node<RootObject, Document> {
-    variableDefinitions(variableDefinitions: ObjectLiteral): RootObject;
+  class RootObject<ReturnType, VariablesType, TransformedType> extends Node<RootObject<ReturnType, VariablesType, TransformedType>, Document<ReturnType, VariablesType, TransformedType>, VariablesType> {
+    variableDefinitions(variableDefinitions: { [K in keyof VariablesType]: string }): RootObject<ReturnType, VariablesType, TransformedType>;
   }
 
-  class InlineFragment<Parent> extends Node<InlineFragment<Parent>, Parent> {}
+  class InlineFragment<Parent, VariablesType> extends Node<InlineFragment<Parent>, Parent, VariablesType> {}
 
   type Subscriber = (data: any) => void;
   type Unsubscriber = () => void;
 
-  class Document {
+  class Document<ReturnType, VariablesType = never, TransformedType = ReturnType> {
     operationType: string;
     operationName: string;
     constructor(operationType: OperationType, operationName?: string)
-    static query(operationName?: string): RootObject;
-    static mutation(operationName: string): RootObject;
-    static subscription(operationName: string): RootObject;
-    static getByOperationName(operationType: OperationType, operationName: string): RootObject;
-    static getOrCreateByOperationName(operationType: OperationType, operationName: string): RootObject;
+    static query<ReturnType, VariablesType = never, TransformedType = ReturnType>(operationName?: string): RootObject<ReturnType, VariablesType, TransformedType>;
+    static mutation<ReturnType, VariablesType = never, TransformedType = ReturnType>(operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
+    static subscription<ReturnType, VariablesType = never, TransformedType = ReturnType>(operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
+    static getByOperationName(operationType: OperationType, operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
+    static getOrCreateByOperationName(operationType: OperationType, operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
     static setDefaultClient(client: Client): void;
     static setLogLevel(level: LogLevel): void;
     static simulateNetworkDelayGlobally(min: number, max: number): void;
-    simulateNetworkDelay(min: number, max: number): Document
-    makeExecutable(client?: Client): Document;
-    execute<T>(
-      variables: ObjectLiteral,
+    static defineTenantFields(fun: (typename: string) => string[]): void;
+    static clearQueries(operationNames: string[]): void;
+    simulateNetworkDelay(min: number, max: number): Document<ReturnType, VariablesType, TransformedType>;
+    makeExecutable(client?: Client): Document<ReturnType, VariablesType, TransformedType>;
+    execute(
+      variables: VariablesType,
       options?: ObjectLiteral
-    ): Promise<T>;
-    execute<T>(
-      variables: ObjectLiteral,
+    ): Promise<TransformedType>;
+    execute(
+      variables: VariablesType,
       sink: ObjectLiteral,
       options?: ObjectLiteral
-    ): Promise<T>;
-    getQueryExecutor<V = ObjectLiteral>(variables: V): QueryExecutor;
+    ): Promise<TransformedType>;
+    // execute_(variables: VariablesType): Executor);
+    getQueryExecutor(variables: VariablesType): QueryExecutor<TransformedType, VariablesType>;
     simulateNetworkResponse(data: ObjectLiteral): void;
-    transformResponse(fun: (data: any) => unknown): Document;
-    setRefetchStrategy(fetchStrategy: FetchStrategy): Document;
-    filterEntity(fun: (entity: any, variables: ObjectLiteral) => boolean): Document;
-    clearAfter(duration: any): Document; // TODO Temporal type
-    pollAfter(duration: any): Document;
-    createExecutionContext(executionContextGetter: (variables: ObjectLiteral, data: any) => unknown): Document;
-    clearQueries(): Document;
-    invalidateAllCaches(): Document;
+    transformResponse(fun: (data: ReturnType) => unknown): Document<ReturnType, VariablesType, TransformedType>;
+    setRefetchStrategy(fetchStrategy: FetchStrategy): Document<ReturnType, VariablesType, TransformedType>;
+    filterEntity(fun: (entity: any, variables: VariablesType) => boolean): Document<ReturnType, VariablesType, TransformedType>;
+    scopeByTenants(fun: (variables: VariablesType) => ObjectLiteral): Document<ReturnType, VariablesType, TransformedType>;
+    clearAfter(duration: any): Document<ReturnType, VariablesType, TransformedType>; // TODO Temporal type
+    pollAfter(duration: any): Document<ReturnType, VariablesType, TransformedType>; // TODO Temporal type
+    createExecutionContext(executionContextGetter: (variables: VariablesType, data: ReturnType) => unknown): Document<ReturnType, VariablesType, TransformedType>;
+    clearQueries(): Document<ReturnType, VariablesType, TransformedType>;
+    invalidateAllCaches(): Document<ReturnType, VariablesType, TransformedType>;
     getQueryString(): string;
-    subscribe(variables: ObjectLiteral, subscriber: Subscriber): Unsubscriber;
-    afterExecution(data: unknown): Document;
+    subscribe(variables: VariablesType, subscriber: Subscriber): Unsubscriber;
+    afterExecution(fun: (data: TransformedType) => unknown): Document<ReturnType, VariablesType, TransformedType>;
   }
 
-  class QueryExecutor {
+  class QueryExecutor<TransformedType = ReturnType, VariablesType = unknown> {
     document: Document;
-    variables: ObjectLiteral;
-    constructor(document: Document, variables: ObjectLiteral);
-    execute<T>(options?: ObjectLiteral): Promise<T>;
-    refetchQuery<T>(): Promise<T>;
+    variables: VariablesType;
+    constructor(document: Document, variables: VariablesType);
+    execute(options?: ObjectLiteral): Promise<TransformedType>;
+    refetchQuery(): Promise<TransformedType>;
     subscribe(subscriber: Subscriber): Unsubscriber;
   }
 

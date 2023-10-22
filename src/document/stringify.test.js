@@ -8,8 +8,9 @@ test('stringify', () => {
       .scalar('foo', Number, { calendarId: 'calendarId', dateRange: 'dateRange' })
       .entity('user')
         .scalar('name')
+        .reference('qux', 'Qux')
         .entity('account')
-          .deriveFromForeignKey('accountId')
+          .deriveFromReference('accountId')
           .scalar('loggedInAt')._
         .wrapper('appointments')
           .useVariables({ calendarId: 'calendarId', dateRange: 'dateRange', cursor: 'cursor' })
@@ -50,7 +51,7 @@ test('stringify', () => {
 
   let expectedDocumentString = 'mutation operationName($calendarId:ID!,$dateRange:DateRange!,$cursor:String!)';
   expectedDocumentString += '{foo(calendarId:$calendarId,dateRange:$dateRange) user{';
-  expectedDocumentString += 'id __typename name accountId appointments(calendarId:$calendarId,dateRange:$dateRange,cursor:$cursor){';
+  expectedDocumentString += 'id __typename name quxId accountId appointments(calendarId:$calendarId,dateRange:$dateRange,cursor:$cursor){';
   expectedDocumentString += 'pagination{';
   expectedDocumentString += 'cursorForEntriesAfter cursorForEntriesBefore';
   expectedDocumentString += '}';

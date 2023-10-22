@@ -1,6 +1,6 @@
-import Document from '../../document/Document';
 import { filterProperties } from 'object-array-utils';
 import ObjectType from '../../document/ObjectType';
+import globalCache from '../globalCache';
 
 export default function copyEntity(meta, entity) {
   const newEntity = filterProperties(entity, ['id', '__typename']);
@@ -12,7 +12,7 @@ export default function copyEntity(meta, entity) {
 
   for (let propName of Object.keys(scalars)) {
     if (propName in entity === false) {
-      const cachedEntity = Document.getGlobalCache().getById(entity.id);
+      const cachedEntity = globalCache.getById(entity.id);
 
       if (cachedEntity && propName in cachedEntity) {
         entity[propName] = cachedEntity[propName];
@@ -31,7 +31,7 @@ export default function copyEntity(meta, entity) {
 
   for (const [propName, object] of Object.entries(objects)) {
     if (propName in entity === false) {
-      const cachedEntity = Document.getGlobalCache().getById(entity.id);
+      const cachedEntity = globalCache.getById(entity.id);
 
       if (cachedEntity && propName in cachedEntity) {
         entity[propName] = cachedEntity[propName];

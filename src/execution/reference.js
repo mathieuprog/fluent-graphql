@@ -1,13 +1,22 @@
-import { isArray, isObjectLiteral } from 'object-array-utils';
+import { isArray, isObjectLiteral, rejectProperties } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from './helpers';
 
-export default function transform(document, data) {
+export default function reference(document, data) {
   throwIfNotInstanceOfDocument(document);
-  return doTransform(document.rootObject, data);
+  return doReference(document.rootObject, data);
 }
 
-function doTransform(meta, data) {
+const updatePropImmutablyFun = ((original) => {
+  let data = original;
+  return (prop, value) => {
+    data = (original === data) ? { ...data } : data;
+    data[prop] = value;
+    return data;
+  };
+});
+
+function doReference(meta, data) {
   if (!isObjectLiteral(data)) {
     if (isArray(data) && meta.type === ObjectType.Entity) {
       throw new Error(`${meta.name} was expected to be an entity, but found an array (operation ${meta.getDocument().operationName})`);
@@ -15,24 +24,16 @@ function doTransform(meta, data) {
     throw new Error();
   }
 
-  const updatePropImmutably = ((original) => {
-    let data = original;
-    return (prop, value) => {
-      data = (original === data) ? { ...data } : data;
-      data[prop] = value;
-      return data;
-    };
-  })(data);
+  let updatePropImmutably = updatePropImmutablyFun(data);
 
-  for (const [propName, { transformer }] of Object.entries(meta.scalars)) {
+  for (const [propName, { referencedField, typename }] of Object.entries(meta.references)) {
     if (propName in data === false) {
       throw new Error();
     }
 
-    const transformedData = transformer(data[propName]);
-    if (data[propName] !== transformedData) {
-      data = updatePropImmutably(propName, transformedData);
-    }
+    data = updatePropImmutably(referencedField, { id: data[propName], __typename: typename });
+    data = rejectProperties(data, [propName]);
+    updatePropImmutably = updatePropImmutablyFun(data);
   }
 
   for (const [propName, object] of Object.entries(meta.objects)) {
@@ -51,7 +52,7 @@ function doTransform(meta, data) {
       case ObjectType.Embed:
       case ObjectType.Interface:
         if (data[propName] !== null) {
-          const transformedData = doTransform(object, data[propName]);
+          const transformedData = doReference(object, data[propName]);
           if (data[propName] !== transformedData) {
             data = updatePropImmutably(propName, transformedData);
           }
@@ -64,7 +65,7 @@ function doTransform(meta, data) {
         let updated = false;
         const newData =
           data[propName].map((value) => {
-            const transformedData = doTransform(object, value);
+            const transformedData = doReference(object, value);
             updated = updated || (transformedData !== value);
             return transformedData;
           });
@@ -87,7 +88,7 @@ function doTransform(meta, data) {
               break;
             }
           }
-          const transformedData = doTransform(object.inlineFragments[data[propName].__typename], data[propName]);
+          const transformedData = doReference(object.inlineFragments[data[propName].__typename], data[propName]);
           if (data[propName] !== transformedData) {
             data = updatePropImmutably(propName, transformedData);
           }
@@ -107,7 +108,7 @@ function doTransform(meta, data) {
                 return value;
               }
             }
-            const transformedData = doTransform(object.inlineFragments[value.__typename], value);
+            const transformedData = doReference(object.inlineFragments[value.__typename], value);
             updated = updated || (transformedData !== value);
             return transformedData;
           });

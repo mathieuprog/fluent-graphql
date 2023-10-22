@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest';
 import { deepFreeze } from 'object-array-utils';
+import { expect, test } from 'vitest';
 import Document from '../document/Document';
-import deriveFromForeignKey from './deriveFromForeignKey';
+import deriveFromReference from './deriveFromReference';
 
 test('derive data from foreign key', async () => {
   const fetchAccount = (accountId) => ({
@@ -25,12 +25,12 @@ test('derive data from foreign key', async () => {
       .query()
         .entity('user')
           .entity('account')
-            .deriveFromForeignKey('accountId', fetchAccount)._
+            .deriveFromReference('accountId', fetchAccount)._
           .wrapper('wrapper')
             .entitySet('articles')
-              .deriveFromForeignKey('articleIds', fetchArticles)
+              .deriveFromReference('articleIds', fetchArticles)
               .entity('category')
-                .deriveFromForeignKey('categoryId', fetchCategory)._._._._._;
+                .deriveFromReference('categoryId', fetchCategory)._._._._._;
 
   const data = deepFreeze({
     user: {
@@ -43,7 +43,7 @@ test('derive data from foreign key', async () => {
     }
   });
 
-  const transformedData = await deriveFromForeignKey(document, data);
+  const transformedData = await deriveFromReference(document, data);
 
   expect(transformedData.user.accountId).toBeUndefined();
   expect(transformedData.user.account.id).toBe('account1');

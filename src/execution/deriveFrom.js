@@ -21,7 +21,7 @@ async function doDeriveFrom(meta, data, variables, context) {
     : meta.objects;
 
   for (const [propName, object] of Object.entries(objects)) {
-    if (object.derivedFromForeignKey) {
+    if (object.derivedFromReference) {
       continue;
     }
 
@@ -92,7 +92,7 @@ function buildDataGraph(meta, dataToDeriveFrom, result = {}) {
     : meta.objects;
 
   for (const [propName, object] of Object.entries(objects)) {
-    if (object.derivedFromForeignKey) {
+    if (object.derivedFromReference) {
       throw new Error();
     }
 

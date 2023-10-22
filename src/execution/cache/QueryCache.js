@@ -1,9 +1,9 @@
 import { deepFreeze, isObjectLiteral } from 'object-array-utils';
+import Logger from '../../Logger';
 import ObjectType from '../../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from '../helpers';
 import copyEntity from './copyEntity';
 import refreshEntity from './refreshEntity';
-import Logger from '../../Logger';
 
 export default class QueryCache {
   constructor(document, data, variables) {
@@ -24,12 +24,12 @@ export default class QueryCache {
     this.invalidated = true;
   }
 
-  update(updatedEntities) {
+  update(updates) {
     Logger.debug(() => `Updating ${this.document.operationName} cache with vars ${JSON.stringify(this.variables, null, 2)}`);
 
     const prevData = this.data;
 
-    this.data = this.doUpdate(this.data, this.document.rootObject, updatedEntities);
+    this.data = this.doUpdate(this.data, this.document.rootObject, updates);
 
     this.transformedData = this.document.transform(this.data);
 
@@ -44,7 +44,7 @@ export default class QueryCache {
     return updated;
   }
 
-  doUpdate(data, meta, updatedEntities) {
+  doUpdate(data, meta, updates) {
     if (!isObjectLiteral(data)) {
       throw new Error();
     }
@@ -65,13 +65,13 @@ export default class QueryCache {
 
     for (const [propName, object] of Object.entries(objects)) {
       if (propName in data === false) {
-        throw new Error(`prop name ${propName} not in ${JSON.stringify(data)}`);
+        throw new Error(`prop name "${propName}" not in ${JSON.stringify(data)}`);
       }
 
       switch (object.type) {
         case ObjectType.ViewerObject:
         case ObjectType.Wrapper:
-          const transformedData = this.doUpdate(data[propName], object, updatedEntities);
+          const transformedData = this.doUpdate(data[propName], object, updates);
           if (data[propName] !== transformedData) {
             data = updatePropImmutably(propName, transformedData);
           }
@@ -82,12 +82,12 @@ export default class QueryCache {
         case ObjectType.Interface:
           let addedEntity = false;
           if (object.filterFunctionsByTypename) {
-            for (let entity of updatedEntities) {
+            for (let { entityUpdates, entity } of updates) {
               if (
                 data[propName]?.id !== entity.id
                 && object.filterFunctionsByTypename[entity.__typename]?.(entity, this.variables, data)
               ) {
-                data = updatePropImmutably(propName, copyEntity(object, entity));
+                data = updatePropImmutably(propName, copyEntity(object, entityUpdates));
                 addedEntity = true;
                 break;
               }
@@ -96,14 +96,14 @@ export default class QueryCache {
 
           if (!addedEntity) {
             if (data[propName] !== null) {
-              const transformedData = refreshEntity(data[propName], object, updatedEntities, this.variables);
+              const transformedData = refreshEntity(data[propName], object, updates, this.variables);
               if (data[propName] !== transformedData) {
                 data = updatePropImmutably(propName, transformedData);
               }
             }
 
             if (data[propName] !== null) {
-              const transformedData = this.doUpdate(data[propName], object, updatedEntities);
+              const transformedData = this.doUpdate(data[propName], object, updates);
               if (data[propName] !== transformedData) {
                 data = updatePropImmutably(propName, transformedData);
               }
@@ -118,13 +118,13 @@ export default class QueryCache {
           const newData =
             data[propName]
               .map((entity) => {
-                const transformedData = refreshEntity(entity, object, updatedEntities, this.variables);
+                const transformedData = refreshEntity(entity, object, updates, this.variables);
                 updated = updated || (transformedData !== entity);
                 return transformedData;
               })
               .filter((entity) => entity)
               .map((entity) => {
-                const transformedData = this.doUpdate(entity, object, updatedEntities);
+                const transformedData = this.doUpdate(entity, object, updates);
                 updated = updated || (transformedData !== entity);
                 return transformedData;
               });
@@ -134,12 +134,13 @@ export default class QueryCache {
           }
 
           if (object.filterFunctionsByTypename) {
-            for (let entity of updatedEntities) {
+            for (let { entityUpdates, entity } of updates) {
               if (
-                !data[propName].some(({ id }) => id === entity.id)
+                !entity.__meta.isToBeDeleted
+                && !data[propName].some(({ id }) => id === entity.id)
                 && object.filterFunctionsByTypename[entity.__typename]?.(entity, this.variables, data)
               ) {
-                const entityToAdd = copyEntity(object, entity);
+                const entityToAdd = copyEntity(object, entityUpdates);
                 data = updatePropImmutably(propName, data[propName].concat(entityToAdd));
               }
             }

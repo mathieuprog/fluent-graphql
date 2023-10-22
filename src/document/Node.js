@@ -1,19 +1,25 @@
 import { isEmptyObjectLiteral, isObjectLiteral } from 'object-array-utils';
-import Document from './Document';
 import ObjectType from './ObjectType';
 import OperationType from './OperationType';
 
+function isDocument(o) {
+  return !!o.operationType;
+}
+
 export default class Node {
-  constructor(parent, type, name) {
+  constructor(parent, type, name, inlineFragmentFactory, document) {
     this._ = parent;
+    this.document = document;
     this.type = type;
     this.name = name;
+    this.inlineFragmentFactory = inlineFragmentFactory;
     this.variables = {};
     this.scalars = {};
     this.virtualScalars = {};
+    this.references = {};
     this.inlineFragments = {};
     this.objects = {};
-    this.derivedFromForeignKey = null;
+    this.derivedFromReference = null;
     this.derivedFrom = null;
     this.filterFunctionsByTypename = null;
     this.isToBeDeleted = false;
@@ -26,7 +32,7 @@ export default class Node {
     if (name !== '__typename') {
       this.rejectAddingFieldsInUnion();
     }
-    if (variables && !isEmptyObjectLiteral(variables) && (this._ instanceof Document === false)) {
+    if (variables && !isEmptyObjectLiteral(variables) && !isDocument(this._)) {
       throw new Error(`variables can only be accepted by object fields and root fields; "${name}" does not accept variables as it is neither an object field nor a root field`);
     }
     this.scalars[name] = { name, transformer, variables };
@@ -38,15 +44,42 @@ export default class Node {
     return this;
   }
 
-  entity(name) {
+  reference(name, referencedFieldOrTypename, typename) {
+    let referencedField = referencedFieldOrTypename;
+
+    if (typename === undefined) {
+      typename = referencedFieldOrTypename;
+
+      if (!name.endsWith('Id')) {
+        throw new Error();
+      }
+      referencedField = name.slice(0, -2);
+    }
+
+    this.rejectAddingFieldsInUnion();
+    this.references[name] = { name, referencedField, typename };
+    return this;
+  }
+
+  entity(name, possibleTypenames) {
+    if (!possibleTypenames && this.getOperationType() !== OperationType.Mutation) {
+      throw new Error(`missing argument \`possibleTypenames\` for field "${name}" in "${this.document.operationName}" document: query operations must specify the possible types for entities`);
+    }
+
     this.rejectAddingEntityInEmbed();
     this.rejectAddingFieldsInUnion();
+    this.document.addPossibleTypenames([].concat(possibleTypenames));
     return this.object_(name, ObjectType.Entity);
   }
 
-  entitySet(name) {
+  entitySet(name, possibleTypenames) {
+    if (!possibleTypenames && this.getOperationType() !== OperationType.Mutation) {
+      throw new Error(`missing argument \`possibleTypenames\` for field "${name}" in "${this.document.operationName}" document: query operations must specify the possible types for entities`);
+    }
+
     this.rejectAddingEntityInEmbed();
     this.rejectAddingFieldsInUnion();
+    this.document.addPossibleTypenames([].concat(possibleTypenames));
     return this.object_(name, ObjectType.EntitySet);
   }
 
@@ -82,14 +115,15 @@ export default class Node {
 
   onEntity(typename) {
     this.rejectAddingInlineFragmentInObject();
-    const inlineFragment = Document.createInlineFragment(this, ObjectType.InlineFragmentEntity, typename);
+    const inlineFragment = this.inlineFragmentFactory.create(this, ObjectType.InlineFragmentEntity, typename);
     this.inlineFragments[typename] = inlineFragment;
+    this.document.addPossibleTypenames([typename]);
     return inlineFragment;
   }
 
   onTypedObject(typename) {
     this.rejectAddingInlineFragmentInObject();
-    const inlineFragment = Document.createInlineFragment(this, ObjectType.InlineFragmentTypedObject, typename);
+    const inlineFragment = this.inlineFragmentFactory.create(this, ObjectType.InlineFragmentTypedObject, typename);
     this.inlineFragments[typename] = inlineFragment;
     return inlineFragment;
   }
@@ -107,7 +141,7 @@ export default class Node {
   }
 
   object_(name, type) {
-    const object = new Node(this, type, name);
+    const object = new Node(this, type, name, this.inlineFragmentFactory, this.document);
     this.objects[name] = object;
     return object;
   }
@@ -133,8 +167,8 @@ export default class Node {
     return this;
   }
 
-  deriveFromForeignKey(foreignKey, fetch) {
-    this.derivedFromForeignKey = { foreignKey, fetch };
+  deriveFromReference(foreignKey, fetch) {
+    this.derivedFromReference = { foreignKey, fetch };
     return this;
   }
 
@@ -186,21 +220,11 @@ export default class Node {
   }
 
   getDocument() {
-    let document = this._;
-    while (document instanceof Document === false) {
-      document = document._;
-    }
-
-    return document;
+    return this.document;
   }
 
   getOperationType() {
-    let document = this._;
-    while (document instanceof Document === false) {
-      document = document._;
-    }
-
-    return document.operationType;
+    return this.document.operationType;
   }
 
   rejectAddingEntityInEmbed() {

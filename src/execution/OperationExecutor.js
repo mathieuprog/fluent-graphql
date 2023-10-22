@@ -1,15 +1,17 @@
-import Document from '../document/Document';
-import OperationType from '../document/OperationType';
-import Notifier from './Notifier';
-import transform from './transform';
-import deriveFrom from './deriveFrom';
-import deriveFromForeignKey from './deriveFromForeignKey';
-import addVirtualScalars from './addVirtualScalars';
-import normalizeEntities from './normalizeEntities';
-import { throwIfNotInstanceOfDocument } from './helpers';
-import QueryRegistry from './QueryRegistry';
-import FetchStrategy from './FetchStrategy';
 import Logger from '../Logger';
+import DocumentOptions from '../document/DocumentOptions';
+import OperationType from '../document/OperationType';
+import FetchStrategy from './FetchStrategy';
+import Notifier from './Notifier';
+import QueryRegistry from './QueryRegistry';
+import addVirtualScalars from './addVirtualScalars';
+import deriveFrom from './deriveFrom';
+import deriveFromReference from './deriveFromReference';
+import globalCache from './globalCache';
+import { throwIfNotInstanceOfDocument } from './helpers';
+import normalizeEntities from './normalizeEntities';
+import reference from './reference';
+import transform from './transform';
 
 export default class OperationExecutor {
   constructor(document, client) {
@@ -56,7 +58,7 @@ export default class OperationExecutor {
   async executeQuery(args) {
     const [variables_, options] = args;
     const variables = variables_ || {};
-    const fetchStrategy = options?.fetchStrategy || Document.defaultFetchStrategy;
+    const fetchStrategy = options?.fetchStrategy || DocumentOptions.defaultFetchStrategy;
 
     Logger.info(() => `Executing (${FetchStrategy.toString(fetchStrategy)}) query ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
 
@@ -105,7 +107,7 @@ export default class OperationExecutor {
   simulateNetworkResponse(data) {
     data = transform(this.document, data);
     const entities = normalizeEntities(this.document, data);
-    Notifier.notify(Document.getGlobalCache().update(entities));
+    Notifier.notify(globalCache.update(entities));
   }
 
   async executeRequestAndUserCallbacks(variables, handleUpdates) {
@@ -136,15 +138,18 @@ export default class OperationExecutor {
 
     const context = this.document.executionContextGetter(variables, data);
 
-    data = await deriveFromForeignKey(this.document, data, variables, context);
+    data = await deriveFromReference(this.document, data, variables, context);
 
     data = await deriveFrom(this.document, data, variables, context);
+
+    data = await reference(this.document, data, variables, context);
 
     Logger.verbose(() => `Transformed data ${JSON.stringify(data, null, 2)}`);
 
     if (handleUpdates) {
       const entities = normalizeEntities(this.document, data);
-      handleUpdates(Document.getGlobalCache().update(entities));
+
+      handleUpdates(globalCache.update(entities));
     }
 
     return data;
@@ -153,7 +158,7 @@ export default class OperationExecutor {
   async maybeSimulateNetworkDelay() {
     const delay = await this.document.maybeSimulateNetworkDelay();
     if (delay === false) {
-      await Document.maybeSimulateNetworkDelayGlobally();
+      await DocumentOptions.maybeSimulateNetworkDelayGlobally();
     }
   }
 
@@ -167,7 +172,7 @@ export default class OperationExecutor {
   }
 
   getClient() {
-    const client = this.maybeClient ?? Document.defaultClient;
+    const client = this.maybeClient ?? DocumentOptions.defaultClient;
 
     if (!client) {
       throw new Error(`no client specified for ${this.document.operationName} document and no default client found`);

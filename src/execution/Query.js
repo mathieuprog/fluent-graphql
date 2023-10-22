@@ -1,12 +1,14 @@
-import Document from '../document/Document';
+import { differenceArraysOfPrimitives, hasProperties, isArraySubset, rejectProperties } from 'object-array-utils';
+import Logger from '../Logger';
+import DocumentOptions from '../document/DocumentOptions';
 import FetchStrategy from './FetchStrategy';
 import Notifier from './Notifier';
-import Logger from '../Logger';
 
 export default class Query {
   constructor(document, variables, createQueryCache, executeRequest, onCleared, clearAfterDuration, pollAfterDuration) {
     this.document = document;
     this.variables = variables;
+    this.tenants = document.getTenantsCallback?.(variables);
     this.createQueryCache = createQueryCache;
     this.executeRequest = executeRequest;
     this.onCleared = onCleared;
@@ -29,15 +31,40 @@ export default class Query {
     this.cache?.invalidate();
   }
 
-  updateCache(entries) {
+  updateCache(updates) {
     if (this.cleared) {
       throw new Error();
     }
 
-    const filteredEntries = entries.filter(({ entity }) => this.document.filterEntityCallback(entity, this.variables));
-    const updatedEntities = filteredEntries.map(({ entityUpdates }) => entityUpdates);
+    const filteredUpdates = updates.filter(({ entity }) => {
+      if (!this.document.possibleTypenames.includes(entity.__typename)) {
+        return false;
+      }
 
-    const updated = this.cache.update(updatedEntities);
+      if (this.tenants) {
+        const tenantNames = DocumentOptions.getTenantsByTypename(entity.__typename);
+
+        if (!isArraySubset(Object.keys(this.tenants), tenantNames)) {
+          const missingTenants = differenceArraysOfPrimitives(tenantNames, Object.keys(this.tenants));
+          throw new Error(`specify how to retrieve tenant fields [${missingTenants.join(', ')}] required for scoping entity "${entity.__typename}" (fetched from document "${entity.__meta.operationName}") through \`getTenants(fun)\` in "${this.document.operationName}" document.`);
+        }
+
+        if (!hasProperties(entity, tenantNames)) {
+          throw new Error(`entity "${entity.__typename}" requires tenant fields: "${tenantNames.join(', ')}". Entity was fetched from document "${entity.__meta.operationName}" and a query cache from document "${this.document.operationName}" was updating. Entity: ${JSON.stringify(rejectProperties(entity, ['__meta']), null, 2)}`);
+        }
+
+        const isOutsideTenantsScope =
+          tenantNames.some((tenantName) => this.tenants[tenantName] !== entity[tenantName]);
+
+        if (isOutsideTenantsScope) {
+          return false;
+        }
+      }
+
+      return this.document.filterEntityCallback(entity, this.variables);
+    });
+
+    const updated = this.cache.update(filteredUpdates);
 
     if (updated) {
       this.notifySubscribers(this.cache.getData());
@@ -49,7 +76,7 @@ export default class Query {
   }
 
   async fetch(fetchStrategy) {
-    fetchStrategy = fetchStrategy ?? Document.defaultFetchStrategy;
+    fetchStrategy = fetchStrategy ?? DocumentOptions.defaultFetchStrategy;
 
     if (fetchStrategy === FetchStrategy.FetchFromNetworkAndNoCache) {
       throw new Error();
@@ -173,7 +200,7 @@ export default class Query {
 
     if (this.subscribers.size > 0) {
       // throw new Error('Cannot clear query that has active subscribers');
-      Logger.warn(() => `Cannot clear  ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} because it has active subscribers`);
+      Logger.warn(() => `Cannot clear ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} because it has active subscribers`);
       return;
     }
 

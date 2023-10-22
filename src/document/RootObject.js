@@ -1,10 +1,10 @@
 import { isObjectLiteral } from 'object-array-utils';
-import ObjectType from './ObjectType';
 import Node from './Node';
+import ObjectType from './ObjectType';
 
 export default class RootObject extends Node {
-  constructor(document) {
-    super(document, ObjectType.RootObject, null);
+  constructor(document, inlineFragmentFactory) {
+    super(document, ObjectType.RootObject, null, inlineFragmentFactory, document);
     this.document = document;
   }
 

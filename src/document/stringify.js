@@ -62,11 +62,16 @@ function doStringify(str, objects) {
       delimiter = ' ';
     }
 
-    const { filtered: derivedObjects, rejected: nestedObjects } = takeProperties(object.objects, (_key, o) => o.derivedFromForeignKey);
+    for (let name of Object.keys(object.references)) {
+      str += delimiter + name;
+      delimiter = ' ';
+    }
+
+    const { filtered: derivedObjects, rejected: nestedObjects } = takeProperties(object.objects, (_key, o) => o.derivedFromReference);
 
     if (!isEmptyObjectLiteral(derivedObjects)) {
       for (let key in derivedObjects) {
-        str += delimiter + derivedObjects[key].derivedFromForeignKey.foreignKey;
+        str += delimiter + derivedObjects[key].derivedFromReference.foreignKey;
         delimiter = ' ';
       }
     }

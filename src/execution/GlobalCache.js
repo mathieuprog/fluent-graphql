@@ -1,6 +1,6 @@
 import { areValuesEqual, filterProperties, isEmptyArray, rejectProperties } from 'object-array-utils';
-import ObjectType from '../document/ObjectType';
 import Logger from '../Logger';
+import ObjectType from '../document/ObjectType';
 
 const updatePropImmutablyFun = ((original) => {
   let data = original;
@@ -11,7 +11,7 @@ const updatePropImmutablyFun = ((original) => {
   };
 });
 
-export default class GlobalCache {
+export class GlobalCache {
   entities = {};
 
   getById(id) {
@@ -33,6 +33,15 @@ export default class GlobalCache {
 
         const updatePropImmutably = updatePropImmutablyFun(entity);
 
+        if (freshEntity.__meta.isToBeDeleted) {
+          if (entity) {
+            Logger.verbose(() => `Entity deleted ${JSON.stringify(entity, null, 2)}`);
+            delete this.entities[freshEntity.id];
+            updatedEntities.push({ entityUpdates: freshEntity, entity: freshEntity });
+          }
+          continue;
+        }
+
         for (const propName of Object.keys(freshEntity)) {
           if (['id', '__typename', '__meta'].includes(propName)) {
             continue;
@@ -52,7 +61,7 @@ export default class GlobalCache {
                 if (areValuesEqual(entity[propName], freshEntity[propName])) {
                   continue;
                 }
-                Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)}`);
+                Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (1)`);
                 entity = updatePropImmutably(propName, freshEntity[propName]);
                 entityUpdates[propName] = freshEntity[propName];
                 break;
@@ -60,18 +69,27 @@ export default class GlobalCache {
               case ObjectType.Entity:
               case ObjectType.Union:
               case ObjectType.Interface:
+                if (freshEntity.__meta.objects[propName].isToBeDeleted) {
+                  if (entity[propName]) {
+                    Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (2)`);
+                    entity = updatePropImmutably(propName, null);
+                    entityUpdates[propName] = null;
+                  }
+                  continue;
+                }
+
                 if (entity[propName]?.id === freshEntity[propName]?.id) {
                   continue;
                 }
 
                 if (freshEntity[propName] === null) {
-                  Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)}`);
+                  Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (3)`);
                   entity = updatePropImmutably(propName, null);
                   entityUpdates[propName] = null;
                   continue;
                 }
 
-                Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)}`);
+                Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (4)`);
                 entity = updatePropImmutably(propName, { id: freshEntity[propName].id });
                 entityUpdates[propName] = freshEntity[propName];
                 break;
@@ -94,7 +112,7 @@ export default class GlobalCache {
 
                 if (isEmptyArray(freshIds)) {
                   if (freshEntity.__meta.objects[propName].areElementsToBeOverridden) {
-                    Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)}`);
+                    Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (5)`);
                     entity = updatePropImmutably(propName, []);
                     entityUpdates[propName] = [];
                   }
@@ -104,7 +122,7 @@ export default class GlobalCache {
                 if (freshEntity.__meta.objects[propName].areElementsToBeRemoved) {
                   const filteredEntities = entity[propName].filter(({ id }) => !freshIds.includes(id));
                   if (filteredEntities.length !== cachedIds.length) {
-                    Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)}`);
+                    Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (6)`);
                     entityUpdates[propName] = freshEntity[propName].filter(({ id }) => cachedIds.includes(id));
                     entity = updatePropImmutably(propName, filteredEntities.map(({ id }) => ({ id })));
                   }
@@ -116,7 +134,7 @@ export default class GlobalCache {
                 if (freshEntity.__meta.objects[propName].areElementsToBeOverridden) {
                   const filteredEntities = entity[propName].filter(({ id }) => freshIds.includes(id));
                   if (filteredEntities.length !== cachedIds.length || entitiesToBeAdded.length > 0) {
-                    Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)}`);
+                    Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (7)`);
                     entity = updatePropImmutably(propName, filteredEntities.concat(entitiesToBeAdded.map(({ id }) => ({ id }))));
                     entityUpdates[propName] = freshEntity[propName];
                   }
@@ -124,7 +142,7 @@ export default class GlobalCache {
                 }
 
                 if (entitiesToBeAdded.length > 0) {
-                  Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)}`);
+                  Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (8)`);
                   entity = updatePropImmutably(propName, entity[propName].concat(entitiesToBeAdded.map(({ id }) => ({ id }))));
                   entityUpdates[propName] = entitiesToBeAdded;
                 }
@@ -132,7 +150,7 @@ export default class GlobalCache {
             }
           } else if (propName in freshEntity.__meta.scalars) {
             if (propName in entity === false || !areValuesEqual(entity[propName], freshEntity[propName])) {
-              Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)}`);
+              Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (9)`);
               entity = updatePropImmutably(propName, freshEntity[propName]);
               entityUpdates[propName] = freshEntity[propName];
             }
@@ -156,3 +174,5 @@ export default class GlobalCache {
     return updatedEntities;
   }
 }
+
+export default new GlobalCache();

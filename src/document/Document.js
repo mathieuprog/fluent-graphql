@@ -1,30 +1,25 @@
 import { sortProperties } from 'object-array-utils';
-import RootObject from './RootObject';
-import InlineFragment from './InlineFragment';
-import OperationType from './OperationType';
-import stringify from './stringify';
-import GlobalCache from '../execution/globalCache';
+import Logger from '../Logger';
+import FetchStrategy from '../execution/FetchStrategy';
 import OperationExecutor from '../execution/OperationExecutor';
 import QueryExecutor from '../execution/QueryExecutor';
-import FetchStrategy from '../execution/FetchStrategy';
-import Logger from '../Logger';
+import DocumentOptions from './DocumentOptions';
+import InlineFragmentFactory from './InlineFragmentFactory';
+import OperationType from './OperationType';
+import RootObject from './RootObject';
+import stringify from './stringify';
 
 export default class Document {
-  static globalCache = new GlobalCache();
   static instances = [];
-  static defaultClient = null;
-  static defaultFetchStrategy = FetchStrategy.FetchFromCacheOrFallbackNetwork;
-  static maybeSimulateNetworkDelayGlobally = () => false;
 
   constructor(operationType, operationName) {
     this.operationType = operationType;
     this.operationName = operationName;
     this.variableDefinitions = {};
-    this.rootObject = new RootObject(this);
+    this.rootObject = new RootObject(this, new InlineFragmentFactory(this));
     this.queryString = null;
     this.transform = (data) => data;
     this.afterExecutionCallback = (_data) => {};
-    this.filterEntityCallback = (_entity) => true;
     this.clearAfterDuration = null;
     this.pollAfterDuration = null;
     this.executor = null;
@@ -32,25 +27,30 @@ export default class Document {
     this.maybeSimulateNetworkDelay = () => false;
     this.refetchStrategy = FetchStrategy.FetchFromNetwork;
     this.executionContextGetter = () => {};
-  }
-
-  static getGlobalCache() {
-    return this.globalCache;
+    this.filterEntityCallback = (_entity) => true;
+    this.getTenantsCallback = null;
+    this.possibleTypenames = [];
   }
 
   static query(operationName = null) {
+    operationName && this.getByOperationName(OperationType.Query, operationName); // throws if already exists
+
     const document = new Document(OperationType.Query, operationName);
     this.instances.push(document);
     return document.rootObject;
   }
 
   static mutation(operationName) {
+    this.getByOperationName(OperationType.Mutation, operationName); // throws if already exists
+
     const document = new Document(OperationType.Mutation, operationName);
     this.instances.push(document);
     return document.rootObject;
   }
 
   static subscription(operationName) {
+    this.getByOperationName(OperationType.Subscription, operationName); // throws if already exists
+
     const document = new Document(OperationType.Subscription, operationName);
     this.instances.push(document);
     return document.rootObject;
@@ -67,7 +67,7 @@ export default class Document {
     }
 
     if (document.length > 1) {
-      throw new Error(`More than one document instance found for the same operation name: ${operationName}`);
+      throw new Error(`more than one document instance found for the same operation name: ${operationName}`);
     }
 
     return document[0].rootObject;
@@ -89,15 +89,15 @@ export default class Document {
   }
 
   static setDefaultClient(client) {
-    this.defaultClient = client;
+    DocumentOptions.defaultClient = client;
   }
 
   static setDefaultFetchStrategy(strategy) {
-    this.defaultFetchStrategy = strategy;
+    DocumentOptions.defaultFetchStrategy = strategy;
   }
 
   static simulateNetworkDelayGlobally(min, max) {
-    this.maybeSimulateNetworkDelayGlobally =
+    DocumentOptions.maybeSimulateNetworkDelayGlobally =
       () => this.doSimulateNetworkDelay(min, max);
   }
 
@@ -108,8 +108,18 @@ export default class Document {
     return delay;
   }
 
-  static createInlineFragment(parent, type, typename) { // added this here to avoid a cyclic dependency error
-    return new InlineFragment(parent, type, typename);
+  static defineTenantFields(getTenantsByTypenameFun) {
+    DocumentOptions.getTenantsByTypename = getTenantsByTypenameFun;
+  }
+
+  static clearQueries(operationNames) {
+    const hasDuplicates = (array) => (new Set(array)).size !== array.length;
+    if (hasDuplicates(operationNames)) {
+      throw new Error(`array ${operationNames.join(', ')} passed to \`clearQueries(operationNames)\` contains duplicates`);
+    }
+
+    operationNames.forEach((operationName) =>
+      this.getByOperationName(OperationType.Query, operationName)?.document.clearQueries());
   }
 
   simulateNetworkDelay(min, max) {
@@ -176,16 +186,6 @@ export default class Document {
     return this.executor.execute(...args);
   }
 
-  invalidateAllCaches() {
-    this.executor.invalidateAllCaches();
-    return this;
-  }
-
-  clearQueries() {
-    this.executor.clearQueries();
-    return this;
-  }
-
   subscribe(variables, subscriber) {
     if (!this.executor) {
       throw new Error('makeExecutable() has not been called');
@@ -203,6 +203,9 @@ export default class Document {
   }
 
   transformResponse(fun) {
+    if (typeof fun !== 'function') {
+      throw new Error('transformResponse(fun) should receive a function as argument');
+    }
     this.transform = (data) => {
       const result = fun(data);
       if (result === undefined) {
@@ -213,12 +216,30 @@ export default class Document {
     return this;
   }
 
+  addPossibleTypenames(typenames) {
+    this.possibleTypenames = this.possibleTypenames.concat(typenames);
+  }
+
   filterEntity(fun) {
+    if (typeof fun !== 'function') {
+      throw new Error('filterEntity(fun) should receive a function as argument');
+    }
     this.filterEntityCallback = fun;
     return this;
   }
 
+  scopeByTenants(fun) {
+    if (typeof fun !== 'function') {
+      throw new Error('getTenants(fun) should receive a function as argument');
+    }
+    this.getTenantsCallback = fun;
+    return this;
+  }
+
   afterExecution(fun) {
+    if (typeof fun !== 'function') {
+      throw new Error('afterExecution(fun) should receive a function as argument');
+    }
     this.afterExecutionCallback = fun;
     return this;
   }
@@ -234,6 +255,17 @@ export default class Document {
 
   createExecutionContext(executionContextGetter) {
     this.executionContextGetter = executionContextGetter;
+    return this;
+  }
+
+  invalidateAllCaches() {
+    this.executor.invalidateAllCaches();
+    return this;
+  }
+
+  clearQueries() {
+    this.invalidateAllCaches();
+    this.executor.clearQueries();
     return this;
   }
 
