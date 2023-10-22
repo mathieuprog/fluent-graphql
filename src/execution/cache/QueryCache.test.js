@@ -1,10 +1,13 @@
 import { deepFreeze } from 'object-array-utils';
 import { expect, test } from 'vitest';
 import Document from '../../document/Document';
+import { GlobalCache } from '../globalCache';
 import normalizeEntities from '../normalizeEntities';
 import QueryCache from './QueryCache';
 
 test('immutability', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
@@ -12,18 +15,18 @@ test('immutability', () => {
           .embed('pagination')
             .scalar('cursorForEntriesAfter')
             .scalar('cursorForEntriesBefore')._
-          .entitySet('paginatedEntries')
+          .entitySet('paginatedEntries', 'Article')
             .scalar('title')
             ._._
-        .entitySet('articlesUnchanged')
+        .entitySet('articlesUnchanged', 'Article')
           .scalar('title')
           ._
-        .entity('user')
+        .entity('user', 'User')
           .scalar('name')
-          .entitySet('comments')
+          .entitySet('comments', 'Comment')
             .scalar('text')
             ._
-          .entitySet('articles')
+          .entitySet('articles', 'Article')
             .scalar('title')
             ._._._;
 
@@ -99,10 +102,10 @@ test('immutability', () => {
   const document2 =
     Document
       .query()
-        .entity('comment')
+        .entity('comment', 'Comment')
           .scalar('text')
           ._
-        .entity('article')
+        .entity('article', 'Article')
           .scalar('title')
           ._._;
 
@@ -121,7 +124,8 @@ test('immutability', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.articlesUnchanged).toBe(articlesUnchanged);
@@ -134,20 +138,22 @@ test('immutability', () => {
 });
 
 test('change value of scalar and embed', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
         .viewer('me')
-          .entity('user')
-            .wrapper('articles')
+          .entity('user', 'User')
+            .wrapper('articles', 'Article')
               .embed('pagination')
                 .scalar('cursorForEntriesAfter')
                 .scalar('cursorForEntriesBefore')._
-              .entitySet('paginatedEntries')
+              .entitySet('paginatedEntries', 'Article')
                 .scalar('title')
                 ._._
             .scalar('name')
-            .entity('user')
+            .entity('user', 'User')
               .scalar('name')
               .embed('embed')
                 .scalar('foo')._._._._._;
@@ -191,11 +197,11 @@ test('change value of scalar and embed', () => {
   const document2 =
     Document
       .query()
-        .entitySet('users')
-          .entitySet('articles')
+        .entitySet('users', 'User')
+          .entitySet('articles', 'Article')
             .scalar('title')
             ._
-          .entity('user')
+          .entity('user', 'User')
             ._
           .scalar('name')
           .embed('embed')
@@ -221,7 +227,8 @@ test('change value of scalar and embed', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.me.user.name).toBe('James');
@@ -231,17 +238,19 @@ test('change value of scalar and embed', () => {
 });
 
 test('unions and interfaces', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
-        .entity('account')
+        .entity('account', 'Account')
           .scalar('name')._
-        .entity('user')
+        .entity('user', 'User')
           .scalar('name')
           .union('union')
             .onEntity('Type1')
               .scalar('name')
-              .entity('account')
+              .entity('account', 'Account')
                 .scalar('name')._
               .embed('bar')
                 .scalar('name')._._
@@ -252,7 +261,7 @@ test('unions and interfaces', () => {
         .interfaceSet('interfaces')
           .scalar('name')
           .onEntity('Type3')
-            .entity('account')
+            .entity('account', 'Account')
               .scalar('name')._
             .scalar('age')._
           .onEntity('Type4')
@@ -371,7 +380,8 @@ test('unions and interfaces', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.account).toBeNull();
@@ -386,12 +396,14 @@ test('unions and interfaces', () => {
 });
 
 test('delete entity', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
-        .entity('user')
+        .entity('user', 'User')
           .scalar('name')
-          .entity('user')
+          .entity('user', 'User')
             .scalar('name')._._._;
 
   const data1 = {
@@ -429,18 +441,21 @@ test('delete entity', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.user).toBeNull();
 });
 
 test('change nested entity', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
-        .entity('user')
-          .entity('account')
+        .entity('user', 'User')
+          .entity('account', 'Account')
             .scalar('name')._._._;
 
   const data1 = {
@@ -465,8 +480,8 @@ test('change nested entity', () => {
   const document2 =
     Document
       .query()
-        .entity('user')
-          .entity('account')
+        .entity('user', 'User')
+          .entity('account', 'Account')
             ._._._;
 
   const data2 = {
@@ -483,7 +498,8 @@ test('change nested entity', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.user.account.id).toBe('account2');
@@ -491,14 +507,16 @@ test('change nested entity', () => {
 });
 
 test('set nested entity to null/empty array', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
-        .entity('user')
-          .entitySet('articles')
+        .entity('user', 'User')
+          .entitySet('articles', 'Article')
             ._
           .scalar('name')
-          .entity('user')
+          .entity('user', 'User')
             .scalar('name')._._._;
 
   const data1 = {
@@ -547,7 +565,8 @@ test('set nested entity to null/empty array', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.user.user).toBeNull();
@@ -555,6 +574,8 @@ test('set nested entity to null/empty array', () => {
 });
 
 test('remove entities from array', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
@@ -605,13 +626,16 @@ test('remove entities from array', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.user.articles.length).toBe(1);
 });
 
 test('delete entities from array', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
@@ -677,7 +701,8 @@ test('delete entities from array', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.article).toBeFalsy();
@@ -686,6 +711,8 @@ test('delete entities from array', () => {
 });
 
 test('override entities in array', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
@@ -736,13 +763,16 @@ test('override entities in array', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.user.articles.length).toBe(1);
 });
 
 test('add entities in array', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
@@ -793,13 +823,16 @@ test('add entities in array', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.user.articles.length).toBe(3);
 });
 
 test('add entity', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
@@ -880,7 +913,8 @@ test('add entity', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.user.organization.id).toBe('organization2');
@@ -888,6 +922,8 @@ test('add entity', () => {
 });
 
 test('filter entity with callback', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
@@ -946,13 +982,16 @@ test('filter entity with callback', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.user.articles.length).toBe(2);
 });
 
 test('add entity with callback', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
@@ -1001,13 +1040,16 @@ test('add entity with callback', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.articles.length).toBe(2);
 });
 
 test('replace entity with callback', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
@@ -1049,13 +1091,16 @@ test('replace entity with callback', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(true);
 
   expect(queryCache.data.user.id).toBe('user2');
 });
 
 test('no updates', () => {
+  const globalCache = new GlobalCache();
+
   const document1 =
     Document
       .query()
@@ -1128,6 +1173,7 @@ test('no updates', () => {
 
   const entities = normalizeEntities(document2, data2);
 
-  const updated = queryCache.update(entities);
+  const updates = globalCache.update(entities);
+  const updated = queryCache.update(updates);
   expect(updated).toBe(false);
 });

@@ -41,7 +41,7 @@ export default class Document {
   }
 
   static mutation(operationName) {
-    this.getByOperationName(OperationType.Mutation, operationName); // throws if already exists
+    operationName && this.getByOperationName(OperationType.Mutation, operationName); // throws if already exists
 
     const document = new Document(OperationType.Mutation, operationName);
     this.instances.push(document);
@@ -49,7 +49,7 @@ export default class Document {
   }
 
   static subscription(operationName) {
-    this.getByOperationName(OperationType.Subscription, operationName); // throws if already exists
+    operationName && this.getByOperationName(OperationType.Subscription, operationName); // throws if already exists
 
     const document = new Document(OperationType.Subscription, operationName);
     this.instances.push(document);

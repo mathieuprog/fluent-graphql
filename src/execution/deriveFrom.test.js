@@ -36,12 +36,12 @@ test('derive data from other document', async () => {
 
   const otherDocument =
     Document
-      .query('document')
+      .query()
         .variableDefinitions({ userId: 'ID!' })
-        .entitySet('organizations')
+        .entitySet('organizations', 'Organization')
           .useVariables({ userId: 'userId' })
           .scalar('name')
-          .entitySet('locations')
+          .entitySet('locations', 'Location')
             .scalar('name')
             .scalar('address')._._._
       .makeExecutable(client);
@@ -53,10 +53,10 @@ test('derive data from other document', async () => {
 
   const document =
     Document
-      .query('document')
-        .entity('user')
+      .query()
+        .entity('user', 'User')
           ._
-        .entitySet('locations')
+        .entitySet('locations', 'Location')
           .deriveFrom(fetchLocations)
           .scalar('address')._._
       .transformResponse(({ locations }) => locations);

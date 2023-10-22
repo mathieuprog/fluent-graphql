@@ -6,10 +6,10 @@ test('stringify', () => {
     Document.mutation('operationName')
       .variableDefinitions({ calendarId: 'ID!', dateRange: 'DateRange!', cursor: 'String!' })
       .scalar('foo', Number, { calendarId: 'calendarId', dateRange: 'dateRange' })
-      .entity('user')
+      .entity('user', 'User')
         .scalar('name')
-        .reference('qux', 'Qux')
-        .entity('account')
+        .reference('quxId', 'Qux')
+        .entity('account', 'Account')
           .deriveFromReference('accountId')
           .scalar('loggedInAt')._
         .wrapper('appointments')
@@ -17,22 +17,22 @@ test('stringify', () => {
           .embed('pagination')
             .scalar('cursorForEntriesAfter')
             .scalar('cursorForEntriesBefore')._
-          .entitySet('paginatedEntries')
+          .entitySet('paginatedEntries', 'Appointment')
             .scalar('date')
             .scalar('time')
             .embed('bar')
               .scalar('name')._._._
-        .entitySet('availabilities')
+        .entitySet('availabilities', 'Availability')
           .useVariables({ calendarId: 'calendarId', dateRange: 'dateRange' })
           .scalar('date')
           .scalar('time')._._
-      .entity('organization')
+      .entity('organization', 'Organization')
         .scalar('name')._
       .union('union')
         .onTypedObject('Type1')
           .scalar('name')
           .scalar('age')
-          .entity('account')
+          .entity('account', 'Account')
             .scalar('name')._
           .embed('bar')
             .scalar('name')._._
@@ -93,7 +93,7 @@ test('stringify returns null', () => {
   const document2 =
     Document
       .query('Services')
-        .entitySet('services')
+        .entitySet('services', 'Service')
           .deriveFrom(() => ({}))
           .scalar('foo')._._
       .prepareQueryString();
@@ -103,7 +103,7 @@ test('stringify returns null', () => {
   const document3 =
     Document
       .query('')
-        .entitySet('services')
+        .entitySet('services', 'Service')
           .deriveFrom(() => ({}))
           .scalar('foo')._._
       .prepareQueryString();

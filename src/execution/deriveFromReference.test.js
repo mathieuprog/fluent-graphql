@@ -23,13 +23,13 @@ test('derive data from foreign key', async () => {
   const document =
     Document
       .query()
-        .entity('user')
-          .entity('account')
+        .entity('user', 'User')
+          .entity('account', 'Account')
             .deriveFromReference('accountId', fetchAccount)._
           .wrapper('wrapper')
-            .entitySet('articles')
+            .entitySet('articles', 'Article')
               .deriveFromReference('articleIds', fetchArticles)
-              .entity('category')
+              .entity('category', 'Category')
                 .deriveFromReference('categoryId', fetchCategory)._._._._._;
 
   const data = deepFreeze({

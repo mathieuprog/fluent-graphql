@@ -1,5 +1,5 @@
-import { expect, test, vi } from 'vitest';
 import { Temporal } from '@js-temporal/polyfill';
+import { expect, test, vi } from 'vitest';
 import Document from '../document/Document';
 import FetchStrategy from './FetchStrategy';
 import OperationExecutor from './OperationExecutor';
@@ -17,9 +17,9 @@ test('OperationExecutor', async () => {
       .query('document1')
         .viewer('me')
           .scalar('int', Number)
-          .entity('user')
+          .entity('user', 'User')
             .scalar('name')
-            .entitySet('articles')
+            .entitySet('articles', 'Article')
               .scalar('title')._._._._;
 
   const user1 = {
@@ -54,7 +54,7 @@ test('OperationExecutor', async () => {
   const document2 =
     Document
       .query('document2')
-        .entitySet('users')
+        .entitySet('users', 'User')
           .scalar('name')._._;
 
   user1.name = 'James';
@@ -139,7 +139,7 @@ test('OperationExecutor', async () => {
   const document3 =
     Document
       .query('document3')
-        .entitySet('users')
+        .entitySet('users', 'User')
           .scalar('name')._._;
 
   const client3 = {
@@ -171,9 +171,9 @@ test('OperationExecutor', async () => {
 test('transform response', async () => {
   const document =
     Document
-      .query('document')
+      .query()
         .viewer('me')
-          .entity('user')
+          .entity('user', 'User')
             .scalar('name')._._._
       .transformResponse(({ me }) => me);
 
@@ -202,8 +202,8 @@ test('transform response', async () => {
 test('network', async () => {
   const document =
     Document
-      .query('document')
-        .entity('user')
+      .query()
+        .entity('user', 'User')
           .scalar('name')._._;
 
   const client = {
@@ -232,8 +232,8 @@ test('clear and poll', async () => {
 
   const document =
     Document
-      .query('document')
-        .entity('user')
+      .query()
+        .entity('user', 'User')
           .scalar('name')._._
       .clearAfter(Temporal.Duration.from({ milliseconds: 200 }))
       .pollAfter(Temporal.Duration.from({ milliseconds: 150 }));
