@@ -1,14 +1,14 @@
+import LogLevel from './LogLevel';
+import Logger from './Logger';
 import Client from './client/Client';
 import Document from './document/Document';
 import OperationType from './document/OperationType';
-import Logger from './Logger';
-import LogLevel from './LogLevel';
-import FetchStrategy from './execution/FetchStrategy';
 import GraphQLError, { findGraphQLError, findGraphQLErrorByCode } from './errors/GraphQLError';
 import NotFoundInCacheError from './errors/NotFoundInCacheError';
-import {default as logStatusQueries_} from './inspection/logStatusQueries';
-import {default as logConsolidatedCaches_} from './inspection/logConsolidatedCaches';
-import {default as consolidatedCaches_} from './inspection/consolidatedCaches';
+import FetchStrategy from './execution/FetchStrategy';
+import { default as consolidatedCaches_ } from './inspection/consolidatedCaches';
+import { default as logConsolidatedCaches_ } from './inspection/logConsolidatedCaches';
+import { default as logStatusQueries_ } from './inspection/logStatusQueries';
 
 globalThis.fql = {
   help() {
@@ -41,13 +41,9 @@ documentInstance.simulateNetworkResponse(data)
 };
 
 export {
-  Client,
-  Document,
-  LogLevel,
-  FetchStrategy,
-  GraphQLError,
-  findGraphQLError,
-  findGraphQLErrorByCode,
-  NotFoundInCacheError,
-  OperationType
-}
+    Client,
+    Document, FetchStrategy,
+    GraphQLError, LogLevel, NotFoundInCacheError,
+    OperationType, findGraphQLError,
+    findGraphQLErrorByCode
+};
