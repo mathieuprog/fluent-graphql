@@ -96,7 +96,7 @@ export default function refreshEntity(entity, meta, updates, variables) {
           }
 
           if (isEmptyArray(freshIds)) {
-            if (entityUpdates.__meta.objects[propName].areElementsToBeOverridden) {
+            if (entityUpdates.__meta.objects[propName].areElementsToBeReplaced) {
               entity = updatePropImmutably(propName, []);
             }
             continue;
@@ -114,11 +114,11 @@ export default function refreshEntity(entity, meta, updates, variables) {
             entityUpdates[propName]
               .filter((entity) => (
                 !cachedIds.includes(entity.id)
-                && (!object.filterFunctionsByTypename || object.filterFunctionsByTypename[entity.__typename]?.(entity, variables, entityUpdates))
+                && (!object.addEntityFiltersByTypename || object.addEntityFiltersByTypename[entity.__typename]?.(entity, variables, entityUpdates))
               ))
               .map((entity) => copyEntity(object, entity));
 
-          if (entityUpdates.__meta.objects[propName].areElementsToBeOverridden) {
+          if (entityUpdates.__meta.objects[propName].areElementsToBeReplaced) {
             const filteredEntities = entity[propName].filter(({ id }) => freshIds.includes(id));
             if (filteredEntities.length !== cachedIds.length || entitiesToBeAdded.length > 0) {
               entity = updatePropImmutably(propName, filteredEntities.concat(entitiesToBeAdded));

@@ -21,9 +21,9 @@ export default class Node {
     this.objects = {};
     this.derivedFromReference = null;
     this.derivedFrom = null;
-    this.filterFunctionsByTypename = null;
+    this.addEntityFiltersByTypename = null;
     this.isToBeDeleted = false;
-    this.areElementsToBeOverridden = false;
+    this.areElementsToBeReplaced = false;
     this.areElementsToBeRemoved = false;
     this.addDefaultScalars(type, parent.type);
   }
@@ -163,7 +163,7 @@ export default class Node {
     if (filter.typename) {
       filter.typename = [].concat(filter.typename);
     }
-    this.filterFunctionsByTypename = filter;
+    this.addEntityFiltersByTypename = filter;
     return this;
   }
 
@@ -177,11 +177,11 @@ export default class Node {
     return this;
   }
 
-  overrideElements() {
+  replaceElements() {
     if (![ObjectType.EntitySet, ObjectType.UnionSet, ObjectType.InterfaceSet].includes(this.type)) {
       throw new Error();
     }
-    this.areElementsToBeOverridden = true;
+    this.areElementsToBeReplaced = true;
     return this;
   }
 
@@ -196,7 +196,7 @@ export default class Node {
     return this;
   }
 
-  deleteElements() {
+  deleteAll() {
     if (![ObjectType.EntitySet, ObjectType.UnionSet, ObjectType.InterfaceSet].includes(this.type)) {
       throw new Error();
     }

@@ -111,7 +111,7 @@ export class GlobalCache {
                 }
 
                 if (isEmptyArray(freshIds)) {
-                  if (freshEntity.__meta.objects[propName].areElementsToBeOverridden) {
+                  if (freshEntity.__meta.objects[propName].areElementsToBeReplaced) {
                     Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (5)`);
                     entity = updatePropImmutably(propName, []);
                     entityUpdates[propName] = [];
@@ -131,7 +131,7 @@ export class GlobalCache {
 
                 const entitiesToBeAdded = freshEntity[propName].filter((entity) => !cachedIds.includes(entity.id));
 
-                if (freshEntity.__meta.objects[propName].areElementsToBeOverridden) {
+                if (freshEntity.__meta.objects[propName].areElementsToBeReplaced) {
                   const filteredEntities = entity[propName].filter(({ id }) => freshIds.includes(id));
                   if (filteredEntities.length !== cachedIds.length || entitiesToBeAdded.length > 0) {
                     Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (7)`);

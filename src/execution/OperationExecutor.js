@@ -62,12 +62,12 @@ export default class OperationExecutor {
 
     Logger.info(() => `Executing (${FetchStrategy.toString(fetchStrategy)}) query ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
 
-    if (fetchStrategy === FetchStrategy.FetchFromNetworkAndNoCache) {
+    if (fetchStrategy === FetchStrategy.FetchFromNetworkAndSkipCaching) {
       Logger.info('The query won\'t be cached');
       return await this.executeRequestAndUserCallbacks(variables, Notifier.notify);
     }
 
-    if (fetchStrategy === FetchStrategy.FetchFromNetworkAndNoCacheNoCacheUpdates) {
+    if (fetchStrategy === FetchStrategy.FetchFromNetworkAndSkipCachingAndCacheUpdate) {
       Logger.info('The query won\'t be cached, and cache updates will be skipped');
       return await this.executeRequestAndUserCallbacks(variables);
     }

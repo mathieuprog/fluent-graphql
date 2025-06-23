@@ -428,7 +428,7 @@ test('delete entity', () => {
   const document2 =
     Document.mutation()
       .entitySet('users')
-        .deleteElements()
+        .deleteAll()
         .scalar('name')._._;
 
   const data2 = {
@@ -548,7 +548,7 @@ test('set nested entity to null/empty array', () => {
       .query()
         .entitySet('users', 'User')
           .entitySet('articles', 'Article')
-            .overrideElements()._
+            .replaceElements()._
           .entity('user', 'User')
             ._
           .scalar('name')._._;
@@ -684,7 +684,7 @@ test('delete entities from array', () => {
     Document.mutation()
       .entitySet('users', 'User')
         .entitySet('articles', 'Article')
-          .deleteElements()._._._;
+          .deleteAll()._._._;
 
   const data2 = {
     users: [{
@@ -746,7 +746,7 @@ test('override entities in array', () => {
     Document.mutation()
       .entitySet('users', 'User')
         .entitySet('articles', 'Article')
-          .overrideElements()._._._;
+          .replaceElements()._._._;
 
   const data2 = {
     users: [{

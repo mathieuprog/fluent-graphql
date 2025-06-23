@@ -7,8 +7,8 @@ declare module "fluent-graphql" {
     FetchFromCacheAndNetwork = 'FETCH_FROM_CACHE_AND_NETWORK',
     FetchFromNetwork = 'FETCH_FROM_NETWORK',
     FetchFromNetworkAndRecreateCache = 'FETCH_FROM_NETWORK_AND_RECREATE_CACHE',
-    FetchFromNetworkAndNoCache = 'FETCH_FROM_NETWORK_AND_NO_CACHE',
-    FetchFromNetworkAndNoCacheNoCacheUpdates = 'FETCH_FROM_NETWORK_AND_NO_CACHE_NO_CACHE_UPDATES'
+    FetchFromNetworkAndSkipCaching = 'FETCH_FROM_NETWORK_AND_SKIP_CACHING',
+    FetchFromNetworkAndSkipCachingAndCacheUpdate = 'FETCH_FROM_NETWORK_AND_SKIP_CACHING_AND_CACHE_UPDATE'
   }
 
   enum OperationType {
@@ -70,9 +70,9 @@ declare module "fluent-graphql" {
     addEntity(filter: ObjectLiteral): Node<This, Parent, VariablesType>;
     deriveFromReference(foreignKey: string, fetch: (foreignKey: string, variables: VariablesType, executionContext: any) => unknown): Node<This, Parent, VariablesType>;
     deriveFrom(fetch: (variables: VariablesType, executionContext: any) => unknown): Node<This, Parent, VariablesType>;
-    overrideElements(): Node<This, Parent, VariablesType>;
+    replaceElements(): Node<This, Parent, VariablesType>;
     removeElements(): Node<This, Parent, VariablesType>;
-    deleteElements(): Node<This, Parent, VariablesType>;
+    deleteAll(): Node<This, Parent, VariablesType>;
     delete(): Node<This, Parent, VariablesType>;
   }
 

@@ -1,5 +1,5 @@
-import { expect, test } from 'vitest';
 import { deepFreeze } from 'object-array-utils';
+import { expect, test } from 'vitest';
 import Document from '../document/Document';
 import transform from './transform';
 

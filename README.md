@@ -262,13 +262,13 @@ Document
 
 #### Delete a list of entities
 
-The `deleteElements` function allows us to delete a list of entities from all caches:
+The `deleteAll` function allows us to delete a list of entities from all caches:
 
 ```javascript
 Document
   .mutation('DeleteUsers')
     .entitySet('users')
-      .deleteElements()._._
+      .deleteAll()._._
   .makeExecutable();
 ```
 
@@ -287,14 +287,14 @@ Document
 
 #### Replace entities in an array
 
-The `overrideElements` function allows us to replace entities from a specific array in all caches:
+The `replaceElements` function allows us to replace entities from a specific array in all caches:
 
 ```javascript
 Document
   .query('OrgUsers')
     .entity('organization')
       .entitySet('users')
-        .overrideElements()._._._
+        .replaceElements()._._._
   .makeExecutable();
 ```
 

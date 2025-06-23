@@ -220,7 +220,7 @@ test('network', async () => {
 
   const operationExecutor = new OperationExecutor(document, client);
 
-  const data = await operationExecutor.execute({}, { fetchStrategy: FetchStrategy.FetchFromNetworkAndNoCache });
+  const data = await operationExecutor.execute({}, { fetchStrategy: FetchStrategy.FetchFromNetworkAndSkipCaching });
 
   expect(operationExecutor.getCache({})).toBeNull();
 

@@ -78,7 +78,7 @@ export default class Query {
   async fetch(fetchStrategy) {
     fetchStrategy = fetchStrategy ?? DocumentOptions.defaultFetchStrategy;
 
-    if (fetchStrategy === FetchStrategy.FetchFromNetworkAndNoCache) {
+    if (fetchStrategy === FetchStrategy.FetchFromNetworkAndSkipCaching) {
       throw new Error();
     }
 

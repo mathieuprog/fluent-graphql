@@ -7,7 +7,7 @@
   * Add logs with configurable log level
   * Allow to configure default fetch strategy
   * Provide parent entity to `addEntity` and `replaceEntity` callbacks
-  * Add `FetchFromNetworkAndNoCache` strategy
+  * Add `FetchFromNetworkAndSkipCaching` strategy
   * Added `findGraphQLErrorByCode`
   * Changed global property `FluentGraphQL` to `fql`
   * Improve error messages
