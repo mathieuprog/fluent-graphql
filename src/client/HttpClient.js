@@ -15,7 +15,7 @@ export default class HttpClient {
       ? { query }
       : { query, variables };
 
-    const { data, errors } = await ky.post(this.url, { json, ...this.params }).json();
+    const { data, errors } = await ky.post(this.url, { json, timeout: 30000, ...this.params }).json();
 
     if (errors) {
       const operationName = query.match(/\b(\w+)(?=[\{\(])/)?.[1];
