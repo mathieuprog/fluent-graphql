@@ -12,13 +12,13 @@
   },
   "type": "module",
   "devDependencies": {
-    "vite": "^4.5.0",
-    "vitest": "^0.34.6"
+    "vite": "^6.3.5",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@js-temporal/polyfill": "^0.4.4",
-    "graphql-ws": "^5.14.1",
-    "ky": "^1.1.0",
+    "@js-temporal/polyfill": "^0.5.1",
+    "graphql-ws": "^6.0.5",
+    "ky": "^1.8.1",
     "object-array-utils": "^4.0.0"
   },
   "main": "src/index.js",
