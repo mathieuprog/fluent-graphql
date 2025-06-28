@@ -6,6 +6,7 @@ import OperationType from './document/OperationType';
 import GraphQLError, { findGraphQLError, findGraphQLErrorByCode } from './errors/GraphQLError';
 import NotFoundInCacheError from './errors/NotFoundInCacheError';
 import FetchStrategy from './execution/FetchStrategy';
+import { mapNonNullish } from './execution/helpers';
 import { default as consolidatedCaches_ } from './inspection/consolidatedCaches';
 import { default as logConsolidatedCaches_ } from './inspection/logConsolidatedCaches';
 import { default as logStatusQueries_ } from './inspection/logStatusQueries';
@@ -44,5 +45,5 @@ export {
     Client,
     Document, FetchStrategy,
     GraphQLError, LogLevel, NotFoundInCacheError, OperationType, findGraphQLError,
-    findGraphQLErrorByCode
+  findGraphQLErrorByCode, mapNonNullish
 };
