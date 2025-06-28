@@ -2,7 +2,6 @@ import { areDataEqual, deepFreezePlain, differencePrimitives, makeCopyOnWriteObj
 import Logger from '../Logger';
 import ObjectType from '../document/ObjectType';
 
-
 export class GlobalCache {
   entities = {};
 

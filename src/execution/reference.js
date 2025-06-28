@@ -7,7 +7,6 @@ export default function reference(document, data) {
   return doReference(document.rootObject, data);
 }
 
-
 function doReference(meta, data) {
   if (!isPlainObject(data)) {
     if (Array.isArray(data) && meta.type === ObjectType.Entity) {
