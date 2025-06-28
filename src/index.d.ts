@@ -87,15 +87,15 @@ declare module 'fluent-graphql' {
   type Subscriber = (data: any) => void;
   type Unsubscriber = () => void;
 
-  class Document<ReturnType, VariablesType = never, TransformedType = ReturnType> {
+  class Document<ReturnType, VariablesType, TransformedType = ReturnType> {
     operationType: OperationType;
     operationName: string;
     constructor(operationType: OperationType, operationName?: string)
-    static query<ReturnType, VariablesType = never, TransformedType = ReturnType>(operationName?: string): RootObject<ReturnType, VariablesType, TransformedType>;
-    static mutation<ReturnType, VariablesType = never, TransformedType = ReturnType>(operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
-    static subscription<ReturnType, VariablesType = never, TransformedType = ReturnType>(operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
-    static getByOperationName(operationType: OperationType, operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
-    static getOrCreateByOperationName(operationType: OperationType, operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
+    static query<ReturnType, VariablesType, TransformedType = ReturnType>(operationName?: string): RootObject<ReturnType, VariablesType, TransformedType>;
+    static mutation<ReturnType, VariablesType, TransformedType = ReturnType>(operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
+    static subscription<ReturnType, VariablesType, TransformedType = ReturnType>(operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
+    static getByOperationName<ReturnType, VariablesType, TransformedType = ReturnType>(operationType: OperationType, operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
+    static getOrCreateByOperationName<ReturnType, VariablesType, TransformedType = ReturnType>(operationType: OperationType, operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
     static setDefaultClient(client: Client): void;
     static setLogLevel(level: LogLevel): void;
     static simulateNetworkDelayGlobally(min: number, max: number): void;
@@ -130,10 +130,10 @@ declare module 'fluent-graphql' {
     afterExecution(fun: (data: TransformedType) => unknown): Document<ReturnType, VariablesType, TransformedType>;
   }
 
-  class QueryExecutor<TransformedType = ReturnType, VariablesType = unknown> {
-    document: Document;
+  class QueryExecutor<ReturnType, VariablesType = unknown, TransformedType = ReturnType> {
+    document: Document<ReturnType, VariablesType, TransformedType>;
     variables: VariablesType;
-    constructor(document: Document, variables: VariablesType);
+    constructor(document: Document<ReturnType, VariablesType, TransformedType>, variables: VariablesType);
     execute(options?: PlainObject): Promise<TransformedType>;
     refetchQuery(): Promise<TransformedType>;
     subscribe(subscriber: Subscriber): Unsubscriber;
