@@ -147,4 +147,5 @@ declare module 'fluent-graphql' {
 
   function findGraphQLError(error: Error, find: (error: GraphQLErrorObject) => boolean): GraphQLErrorObject | null;
   function findGraphQLErrorByCode(error: Error, code: string): GraphQLErrorObject | null;
+  function mapNonNullish<T, U = unknown>(transformer: (v: U) => T): (v: unknown) => T | null;
 }
