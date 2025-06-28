@@ -1,4 +1,4 @@
-declare module "fluent-graphql" {
+declare module 'fluent-graphql' {
   type PlainObject = { [key: string]: unknown };
 
   enum FetchStrategy {
@@ -82,13 +82,13 @@ declare module "fluent-graphql" {
     variableDefinitions(variableDefinitions: { [K in keyof VariablesType]: string }): RootObject<ReturnType, VariablesType, TransformedType>;
   }
 
-  class InlineFragment<Parent, VariablesType> extends Node<InlineFragment<Parent>, Parent, VariablesType> {}
+  class InlineFragment<Parent, VariablesType> extends Node<InlineFragment<Parent, VariablesType>, Parent, VariablesType> {}
 
   type Subscriber = (data: any) => void;
   type Unsubscriber = () => void;
 
   class Document<ReturnType, VariablesType = never, TransformedType = ReturnType> {
-    operationType: string;
+    operationType: OperationType;
     operationName: string;
     constructor(operationType: OperationType, operationName?: string)
     static query<ReturnType, VariablesType = never, TransformedType = ReturnType>(operationName?: string): RootObject<ReturnType, VariablesType, TransformedType>;
@@ -140,15 +140,8 @@ declare module "fluent-graphql" {
 
   interface GraphQLErrorObject {
     message: string;
-    locations: {
-      [index: number]: {
-        line: number;
-        column: number;
-      }
-    };
-    extensions: {
-      [key: string]: unknown;
-    };
+    locations?: Array<{ line: number; column: number }>;
+    extensions?: PlainObject;
     [key: string]: unknown;
   }
 
