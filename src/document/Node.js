@@ -1,4 +1,4 @@
-import { isEmptyObjectLiteral, isObjectLiteral } from 'object-array-utils';
+import { isEmptyPlainObject, isPlainObject } from 'object-array-utils';
 import ObjectType from './ObjectType';
 import OperationType from './OperationType';
 
@@ -32,7 +32,7 @@ export default class Node {
     if (name !== '__typename') {
       this.rejectAddingFieldsInUnion();
     }
-    if (variables && !isEmptyObjectLiteral(variables) && !isDocument(this._)) {
+    if (variables && !isEmptyPlainObject(variables) && !isDocument(this._)) {
       throw new Error(`variables can only be accepted by object fields and root fields; "${name}" does not accept variables as it is neither an object field nor a root field`);
     }
     this.scalars[name] = { name, transformer, variables };
@@ -147,7 +147,7 @@ export default class Node {
   }
 
   useVariables(variables) {
-    if (!isObjectLiteral(variables)) {
+    if (!isPlainObject(variables)) {
       throw new Error();
     }
 

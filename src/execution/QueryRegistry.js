@@ -1,4 +1,4 @@
-import { sortProperties } from 'object-array-utils';
+import { toSortedObject } from 'object-array-utils';
 import Notifier from './Notifier';
 import Query from './Query';
 import QueryCache from './cache/QueryCache';
@@ -11,7 +11,7 @@ export default class QueryRegistry {
   }
 
   getOrCreate(variables) {
-    const key = JSON.stringify(sortProperties(variables));
+    const key = JSON.stringify(toSortedObject(variables));
 
     if (this.registry[key]) {
       return this.registry[key];
@@ -43,11 +43,11 @@ export default class QueryRegistry {
   }
 
   get(variables) {
-    return this.registry[JSON.stringify(sortProperties(variables))] || null;
+    return this.registry[JSON.stringify(toSortedObject(variables))] || null;
   }
 
   has(variables) {
-    return !!this.registry[JSON.stringify(sortProperties(variables))];
+    return !!this.registry[JSON.stringify(toSortedObject(variables))];
   }
 
   invalidateAllCaches() {
@@ -59,6 +59,6 @@ export default class QueryRegistry {
   }
 
   handleQueryCleared(variables) {
-    delete this.registry[JSON.stringify(sortProperties(variables))];
+    delete this.registry[JSON.stringify(toSortedObject(variables))];
   }
 }

@@ -1,4 +1,4 @@
-import { deepFreeze, isObjectLiteral } from 'object-array-utils';
+import { deepFreezePlain, isPlainObject, makeCopyOnWriteObjectSetter } from 'object-array-utils';
 import Logger from '../../Logger';
 import ObjectType from '../../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from '../helpers';
@@ -9,7 +9,7 @@ export default class QueryCache {
   constructor(document, data, variables) {
     throwIfNotInstanceOfDocument(document);
     this.document = document;
-    this.data = deepFreeze(data);
+    this.data = deepFreezePlain(data);
     this.transformedData = document.transform(data);
     this.variables = variables;
     this.invalidated = false;
@@ -45,18 +45,11 @@ export default class QueryCache {
   }
 
   doUpdate(data, meta, updates) {
-    if (!isObjectLiteral(data)) {
+    if (!isPlainObject(data)) {
       throw new Error();
     }
 
-    const updatePropImmutably = ((original) => {
-      let data = original;
-      return (prop, value) => {
-        data = (original === data) ? { ...data } : data;
-        data[prop] = value;
-        return data;
-      };
-    })(data);
+    const set = makeCopyOnWriteObjectSetter(data);
 
     const objects =
       (data.__typename && meta.inlineFragments[data.__typename])
@@ -73,7 +66,7 @@ export default class QueryCache {
         case ObjectType.Wrapper:
           const transformedData = this.doUpdate(data[propName], object, updates);
           if (data[propName] !== transformedData) {
-            data = updatePropImmutably(propName, transformedData);
+            data = set(propName, transformedData);
           }
           break;
 
@@ -87,7 +80,7 @@ export default class QueryCache {
                 data[propName]?.id !== entity.id
                 && object.addEntityFiltersByTypename[entity.__typename]?.(entity, this.variables, data)
               ) {
-                data = updatePropImmutably(propName, copyEntity(object, entityUpdates));
+                data = set(propName, copyEntity(object, entityUpdates));
                 addedEntity = true;
                 break;
               }
@@ -98,14 +91,14 @@ export default class QueryCache {
             if (data[propName] !== null) {
               const transformedData = refreshEntity(data[propName], object, updates, this.variables);
               if (data[propName] !== transformedData) {
-                data = updatePropImmutably(propName, transformedData);
+                data = set(propName, transformedData);
               }
             }
 
             if (data[propName] !== null) {
               const transformedData = this.doUpdate(data[propName], object, updates);
               if (data[propName] !== transformedData) {
-                data = updatePropImmutably(propName, transformedData);
+                data = set(propName, transformedData);
               }
             }
           }
@@ -130,7 +123,7 @@ export default class QueryCache {
               });
 
           if (updated) {
-            data = updatePropImmutably(propName, newData);
+            data = set(propName, newData);
           }
 
           if (object.addEntityFiltersByTypename) {
@@ -141,7 +134,7 @@ export default class QueryCache {
                 && object.addEntityFiltersByTypename[entity.__typename]?.(entity, this.variables, data)
               ) {
                 const entityToAdd = copyEntity(object, entityUpdates);
-                data = updatePropImmutably(propName, data[propName].concat(entityToAdd));
+                data = set(propName, data[propName].concat(entityToAdd));
               }
             }
           }
@@ -149,6 +142,6 @@ export default class QueryCache {
       }
     }
 
-    return data;
+    return deepFreezePlain(data);
   }
 }

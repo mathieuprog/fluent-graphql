@@ -1,4 +1,4 @@
-import { isEmptyObjectLiteral, takeProperties } from 'object-array-utils';
+import { isEmptyPlainObject, partitionProperties } from 'object-array-utils';
 import OperationType from './OperationType';
 
 export default function stringify(document) {
@@ -24,7 +24,7 @@ export default function stringify(document) {
     str += ' ' + document.operationName;
   }
 
-  if (!isEmptyObjectLiteral(document.variableDefinitions)) {
+  if (!isEmptyPlainObject(document.variableDefinitions)) {
     str += `(${Object.entries(document.variableDefinitions).map(([name, type]) => `\$${name}:${type}`).join(',')})`;
   }
 
@@ -47,7 +47,7 @@ function doStringify(str, objects) {
       str += object.name;
     }
 
-    if (!isEmptyObjectLiteral(object.variables)) {
+    if (!isEmptyPlainObject(object.variables)) {
       str += `(${Object.entries(object.variables).map(([name, variable]) => `${name}:\$${variable}`).join(',')})`;
     }
 
@@ -56,7 +56,7 @@ function doStringify(str, objects) {
     let delimiter = '';
     for (let [name, { variables }] of Object.entries(object.scalars)) {
       str += delimiter + name;
-      if (variables && !isEmptyObjectLiteral(variables)) {
+      if (variables && !isEmptyPlainObject(variables)) {
         str += `(${Object.entries(variables).map(([name, variable]) => `${name}:\$${variable}`).join(',')})`;
       }
       delimiter = ' ';
@@ -67,16 +67,16 @@ function doStringify(str, objects) {
       delimiter = ' ';
     }
 
-    const { filtered: derivedObjects, rejected: nestedObjects } = takeProperties(object.objects, (_key, o) => o.derivedFromReference);
+    const { picked: derivedObjects, omitted: nestedObjects } = partitionProperties(object.objects, (_key, o) => o.derivedFromReference);
 
-    if (!isEmptyObjectLiteral(derivedObjects)) {
+    if (!isEmptyPlainObject(derivedObjects)) {
       for (let key in derivedObjects) {
         str += delimiter + derivedObjects[key].derivedFromReference.foreignKey;
         delimiter = ' ';
       }
     }
 
-    if (!isEmptyObjectLiteral(nestedObjects)) {
+    if (!isEmptyPlainObject(nestedObjects)) {
       str = doStringify(str + delimiter, Object.values(nestedObjects));
     }
 

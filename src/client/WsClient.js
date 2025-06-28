@@ -1,5 +1,5 @@
 import { createClient } from 'graphql-ws';
-import { isEmptyObjectLiteral, takeProperties } from 'object-array-utils';
+import { isEmptyPlainObject, partitionProperties } from 'object-array-utils';
 
 export default class WsClient {
   constructor(params = {}) {
@@ -8,9 +8,9 @@ export default class WsClient {
 
   subscribe(query, variables, sink, options = {}) {
     let rejectedSinkSubset;
-    ({ filtered: sink, rejected: rejectedSinkSubset } = takeProperties(sink, ['next', 'complete', 'error']));
+    ({ picked: sink, omitted: rejectedSinkSubset } = partitionProperties(sink, ['next', 'complete', 'error']));
 
-    if (!isEmptyObjectLiteral(rejectedSinkSubset)) {
+    if (!isEmptyPlainObject(rejectedSinkSubset)) {
       throw new Error(`sink object contains invalid props: ${Object.keys(rejectedSinkSubset).join(', ')}`);
     }
 

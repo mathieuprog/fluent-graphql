@@ -1,4 +1,4 @@
-import { deepFreeze } from 'object-array-utils';
+import { deepFreezePlain } from 'object-array-utils';
 import { expect, test } from 'vitest';
 import Document from '../document/Document';
 import transform from './transform';
@@ -40,7 +40,7 @@ test('transform', () => {
             .entitySet('bar')
               .scalar('int', Number)._._._._._;
 
-  const data = deepFreeze({
+  const data = deepFreezePlain({
     me: {
       wrapper: {
         int: '1',

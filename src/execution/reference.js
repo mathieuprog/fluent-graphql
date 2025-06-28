@@ -1,4 +1,4 @@
-import { isArray, isObjectLiteral, rejectProperties } from 'object-array-utils';
+import { deepFreezePlain, isPlainObject, makeCopyOnWriteObjectSetter, omitProperties } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from './helpers';
 
@@ -7,33 +7,25 @@ export default function reference(document, data) {
   return doReference(document.rootObject, data);
 }
 
-const updatePropImmutablyFun = ((original) => {
-  let data = original;
-  return (prop, value) => {
-    data = (original === data) ? { ...data } : data;
-    data[prop] = value;
-    return data;
-  };
-});
 
 function doReference(meta, data) {
-  if (!isObjectLiteral(data)) {
-    if (isArray(data) && meta.type === ObjectType.Entity) {
+  if (!isPlainObject(data)) {
+    if (Array.isArray(data) && meta.type === ObjectType.Entity) {
       throw new Error(`${meta.name} was expected to be an entity, but found an array (operation ${meta.getDocument().operationName})`);
     }
     throw new Error();
   }
 
-  let updatePropImmutably = updatePropImmutablyFun(data);
+  let set = makeCopyOnWriteObjectSetter(data);
 
   for (const [propName, { referencedField, typename }] of Object.entries(meta.references)) {
     if (propName in data === false) {
       throw new Error();
     }
 
-    data = updatePropImmutably(referencedField, { id: data[propName], __typename: typename });
-    data = rejectProperties(data, [propName]);
-    updatePropImmutably = updatePropImmutablyFun(data);
+    data = set(referencedField, { id: data[propName], __typename: typename });
+    data = omitProperties(data, [propName]);
+    set = makeCopyOnWriteObjectSetter(data);
   }
 
   for (const [propName, object] of Object.entries(meta.objects)) {
@@ -54,7 +46,7 @@ function doReference(meta, data) {
         if (data[propName] !== null) {
           const transformedData = doReference(object, data[propName]);
           if (data[propName] !== transformedData) {
-            data = updatePropImmutably(propName, transformedData);
+            data = set(propName, transformedData);
           }
         }
         break;
@@ -71,7 +63,7 @@ function doReference(meta, data) {
           });
 
         if (updated) {
-          data = updatePropImmutably(propName, newData);
+          data = set(propName, newData);
         }
         break;
     }
@@ -90,7 +82,7 @@ function doReference(meta, data) {
           }
           const transformedData = doReference(object.inlineFragments[data[propName].__typename], data[propName]);
           if (data[propName] !== transformedData) {
-            data = updatePropImmutably(propName, transformedData);
+            data = set(propName, transformedData);
           }
         }
         break;
@@ -114,11 +106,11 @@ function doReference(meta, data) {
           });
 
         if (updated) {
-          data = updatePropImmutably(propName, newData);
+          data = set(propName, newData);
         }
         break;
     }
   }
 
-  return data;
+  return deepFreezePlain(data);
 }

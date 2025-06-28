@@ -1,4 +1,4 @@
-import { isArray, isObjectLiteral } from 'object-array-utils';
+import { deepFreezePlain, isPlainObject, makeCopyOnWriteObjectSetter } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from './helpers';
 
@@ -8,21 +8,14 @@ export default function transform(document, data) {
 }
 
 function doTransform(meta, data) {
-  if (!isObjectLiteral(data)) {
-    if (isArray(data) && meta.type === ObjectType.Entity) {
+  if (!isPlainObject(data)) {
+    if (Array.isArray(data) && meta.type === ObjectType.Entity) {
       throw new Error(`${meta.name} was expected to be an entity, but found an array (operation ${meta.getDocument().operationName})`);
     }
     throw new Error();
   }
 
-  const updatePropImmutably = ((original) => {
-    let data = original;
-    return (prop, value) => {
-      data = (original === data) ? { ...data } : data;
-      data[prop] = value;
-      return data;
-    };
-  })(data);
+  const set = makeCopyOnWriteObjectSetter(data);
 
   for (const [propName, { transformer }] of Object.entries(meta.scalars)) {
     if (propName in data === false) {
@@ -31,7 +24,7 @@ function doTransform(meta, data) {
 
     const transformedData = transformer(data[propName]);
     if (data[propName] !== transformedData) {
-      data = updatePropImmutably(propName, transformedData);
+      data = set(propName, transformedData);
     }
   }
 
@@ -53,7 +46,7 @@ function doTransform(meta, data) {
         if (data[propName] !== null) {
           const transformedData = doTransform(object, data[propName]);
           if (data[propName] !== transformedData) {
-            data = updatePropImmutably(propName, transformedData);
+            data = set(propName, transformedData);
           }
         }
         break;
@@ -70,7 +63,7 @@ function doTransform(meta, data) {
           });
 
         if (updated) {
-          data = updatePropImmutably(propName, newData);
+          data = set(propName, newData);
         }
         break;
     }
@@ -89,7 +82,7 @@ function doTransform(meta, data) {
           }
           const transformedData = doTransform(object.inlineFragments[data[propName].__typename], data[propName]);
           if (data[propName] !== transformedData) {
-            data = updatePropImmutably(propName, transformedData);
+            data = set(propName, transformedData);
           }
         }
         break;
@@ -113,11 +106,11 @@ function doTransform(meta, data) {
           });
 
         if (updated) {
-          data = updatePropImmutably(propName, newData);
+          data = set(propName, newData);
         }
         break;
     }
   }
 
-  return data;
+  return deepFreezePlain(data);
 }

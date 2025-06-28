@@ -22,7 +22,7 @@ test('OperationExecutor', async () => {
             .entitySet('articles', 'Article')
               .scalar('title')._._._._;
 
-  const user1 = {
+  let user1 = {
     id: 'user1',
     __typename: 'User',
     name: 'John',
@@ -57,7 +57,7 @@ test('OperationExecutor', async () => {
         .entitySet('users', 'User')
           .scalar('name')._._;
 
-  user1.name = 'James';
+  user1 = { ...user1, name: 'James' };
 
   const client2 = {
     request() {
@@ -93,7 +93,7 @@ test('OperationExecutor', async () => {
   expect(subscriber2).toHaveBeenCalledTimes(0);
   expect(subscriber1).toHaveBeenCalledTimes(1);
 
-  user1.name = 'Jane';
+  user1 = { ...user1, name: 'Jane' };
 
   await operationExecutor1.execute({});
 
@@ -134,7 +134,7 @@ test('OperationExecutor', async () => {
   expect(subscriber2).toHaveBeenCalledTimes(1);
   expect(subscriber1).toHaveBeenCalledTimes(2);
 
-  user1.name = 'Jack';
+  user1 = { ...user1, name: 'Jack' };
 
   const document3 =
     Document

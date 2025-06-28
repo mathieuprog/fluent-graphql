@@ -1,5 +1,5 @@
 import ky from 'ky';
-import { isEmptyObjectLiteral } from 'object-array-utils';
+import { isEmptyPlainObject } from 'object-array-utils';
 import GraphQLError from '../errors/GraphQLError';
 
 export default class HttpClient {
@@ -11,7 +11,7 @@ export default class HttpClient {
 
   async request(query, variables = {}) {
     const json =
-      (isEmptyObjectLiteral(variables))
+      (isEmptyPlainObject(variables))
       ? { query }
       : { query, variables };
 

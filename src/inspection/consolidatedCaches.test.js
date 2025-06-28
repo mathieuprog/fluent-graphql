@@ -1,9 +1,9 @@
-import { deepFreeze } from 'object-array-utils';
+import { deepFreezePlain } from 'object-array-utils';
 import { expect, test } from 'vitest';
 import { normalizeEntities, normalizeEntity } from './consolidatedCaches';
 
 test('normalizeEntity', () => {
-  const entity = deepFreeze({
+  const entity = deepFreezePlain({
     id: 1,
     __typename: 'Foo',
     foo: 1,
@@ -86,7 +86,7 @@ test('normalizeEntity', () => {
 });
 
 test('normalizeEntities', () => {
-  const entity = deepFreeze({
+  const entity = deepFreezePlain({
     id: 1,
     __typename: 'Foo',
     foo: 1,

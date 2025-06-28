@@ -1,15 +1,7 @@
-import { areValuesEqual, filterProperties, isEmptyArray, rejectProperties } from 'object-array-utils';
+import { areDataEqual, deepFreezePlain, differencePrimitives, makeCopyOnWriteObjectSetter, omitProperties, pickProperties } from 'object-array-utils';
 import Logger from '../Logger';
 import ObjectType from '../document/ObjectType';
 
-const updatePropImmutablyFun = ((original) => {
-  let data = original;
-  return (prop, value) => {
-    data = (original === data) ? { ...data } : data;
-    data[prop] = value;
-    return data;
-  };
-});
 
 export class GlobalCache {
   entities = {};
@@ -29,9 +21,9 @@ export class GlobalCache {
         let entity = this.entities[freshEntity.id];
         const originalEntity = entity;
         const isEntityUpdated = (entity) => entity !== originalEntity;
-        const entityUpdates = filterProperties(freshEntity, ['id', '__typename', '__meta']);
+        const entityUpdates = pickProperties(freshEntity, ['id', '__typename', '__meta']);
 
-        const updatePropImmutably = updatePropImmutablyFun(entity);
+        const set = makeCopyOnWriteObjectSetter(entity);
 
         if (freshEntity.__meta.isToBeDeleted) {
           if (entity) {
@@ -58,11 +50,18 @@ export class GlobalCache {
 
               case ObjectType.Embed:
               case ObjectType.EmbedList:
-                if (areValuesEqual(entity[propName], freshEntity[propName])) {
+                const opts = { unboxPrimitives: true, unorderedArrays: true, areNonPlainObjectsEqual: (a, b) => {
+                  const errorMessage = 'Missing implementation for areNonPlainObjectsEqual';
+                  console.error(errorMessage);
+                  console.dir(a, { depth: null });
+                  console.dir(b, { depth: null });
+                  throw new Error(errorMessage);
+                } };
+                if (areDataEqual(entity[propName], freshEntity[propName], opts)) {
                   continue;
                 }
                 Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (1)`);
-                entity = updatePropImmutably(propName, freshEntity[propName]);
+                entity = set(propName, freshEntity[propName]);
                 entityUpdates[propName] = freshEntity[propName];
                 break;
 
@@ -72,7 +71,7 @@ export class GlobalCache {
                 if (freshEntity.__meta.objects[propName].isToBeDeleted) {
                   if (entity[propName]) {
                     Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (2)`);
-                    entity = updatePropImmutably(propName, null);
+                    entity = set(propName, null);
                     entityUpdates[propName] = null;
                   }
                   continue;
@@ -84,13 +83,13 @@ export class GlobalCache {
 
                 if (freshEntity[propName] === null) {
                   Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (3)`);
-                  entity = updatePropImmutably(propName, null);
+                  entity = set(propName, null);
                   entityUpdates[propName] = null;
                   continue;
                 }
 
                 Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (4)`);
-                entity = updatePropImmutably(propName, { id: freshEntity[propName].id });
+                entity = set(propName, { id: freshEntity[propName].id });
                 entityUpdates[propName] = freshEntity[propName];
                 break;
 
@@ -98,7 +97,7 @@ export class GlobalCache {
               case ObjectType.UnionSet:
               case ObjectType.InterfaceSet:
                 if (propName in entity === false) {
-                  entity = updatePropImmutably(propName, freshEntity[propName].map(({ id }) => ({ id })));
+                  entity = set(propName, freshEntity[propName].map(({ id }) => ({ id })));
                   entityUpdates[propName] = freshEntity[propName];
                   continue;
                 }
@@ -106,14 +105,14 @@ export class GlobalCache {
                 const cachedIds = entity[propName].map(({ id }) => id);
                 const freshIds = freshEntity[propName].map(({ id }) => id);
 
-                if (areValuesEqual(cachedIds, freshIds)) {
+                if (differencePrimitives(cachedIds, freshIds).length === 0) {
                   continue;
                 }
 
-                if (isEmptyArray(freshIds)) {
+                if (freshIds.length === 0) {
                   if (freshEntity.__meta.objects[propName].areElementsToBeReplaced) {
                     Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (5)`);
-                    entity = updatePropImmutably(propName, []);
+                    entity = set(propName, []);
                     entityUpdates[propName] = [];
                   }
                   continue;
@@ -124,7 +123,7 @@ export class GlobalCache {
                   if (filteredEntities.length !== cachedIds.length) {
                     Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (6)`);
                     entityUpdates[propName] = freshEntity[propName].filter(({ id }) => cachedIds.includes(id));
-                    entity = updatePropImmutably(propName, filteredEntities.map(({ id }) => ({ id })));
+                    entity = set(propName, filteredEntities.map(({ id }) => ({ id })));
                   }
                   continue;
                 }
@@ -135,7 +134,7 @@ export class GlobalCache {
                   const filteredEntities = entity[propName].filter(({ id }) => freshIds.includes(id));
                   if (filteredEntities.length !== cachedIds.length || entitiesToBeAdded.length > 0) {
                     Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (7)`);
-                    entity = updatePropImmutably(propName, filteredEntities.concat(entitiesToBeAdded.map(({ id }) => ({ id }))));
+                    entity = set(propName, filteredEntities.concat(entitiesToBeAdded.map(({ id }) => ({ id }))));
                     entityUpdates[propName] = freshEntity[propName];
                   }
                   continue;
@@ -143,15 +142,22 @@ export class GlobalCache {
 
                 if (entitiesToBeAdded.length > 0) {
                   Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (8)`);
-                  entity = updatePropImmutably(propName, entity[propName].concat(entitiesToBeAdded.map(({ id }) => ({ id }))));
+                  entity = set(propName, entity[propName].concat(entitiesToBeAdded.map(({ id }) => ({ id }))));
                   entityUpdates[propName] = entitiesToBeAdded;
                 }
                 break;
             }
           } else if (propName in freshEntity.__meta.scalars) {
-            if (propName in entity === false || !areValuesEqual(entity[propName], freshEntity[propName])) {
+            const opts = { unboxPrimitives: true, unorderedArrays: true, areNonPlainObjectsEqual: (a, b) => {
+              const errorMessage = 'Missing implementation for areNonPlainObjectsEqual';
+              console.error(errorMessage);
+              console.dir(a, { depth: null });
+              console.dir(b, { depth: null });
+              throw new Error(errorMessage);
+            } };
+            if (propName in entity === false || !areDataEqual(entity[propName], freshEntity[propName], opts)) {
               Logger.verbose(() => `Property ${propName} updated on entity ${JSON.stringify(entity, null, 2)} (9)`);
-              entity = updatePropImmutably(propName, freshEntity[propName]);
+              entity = set(propName, freshEntity[propName]);
               entityUpdates[propName] = freshEntity[propName];
             }
           }
@@ -159,15 +165,15 @@ export class GlobalCache {
 
         if (isEntityUpdated(entity)) {
           updatedEntities.push({ entityUpdates, entity: freshEntity });
-          this.entities[freshEntity.id] = entity;
-          Logger.verbose(() => `Cached entity has been updated with ${JSON.stringify(rejectProperties(entityUpdates, ['__meta']), null, 2)}`);
+          this.entities[freshEntity.id] = deepFreezePlain(entity);
+          Logger.verbose(() => `Cached entity has been updated with ${JSON.stringify(omitProperties(entityUpdates, ['__meta']), null, 2)}`);
         } else {
-          Logger.verbose(() => `Received entity matches cached version: ${JSON.stringify(rejectProperties(freshEntity, ['__meta']), null, 2)}`);
+          Logger.verbose(() => `Received entity matches cached version: ${JSON.stringify(omitProperties(freshEntity, ['__meta']), null, 2)}`);
         }
       } else {
         updatedEntities.push({ entityUpdates: freshEntity, entity: freshEntity });
-        this.entities[freshEntity.id] = rejectProperties(freshEntity, ['__meta']);
-        Logger.verbose(() => `New entity: ${JSON.stringify(rejectProperties(freshEntity, ['__meta']), null, 2)}`);
+        this.entities[freshEntity.id] = omitProperties(freshEntity, ['__meta']);
+        Logger.verbose(() => `New entity: ${JSON.stringify(omitProperties(freshEntity, ['__meta']), null, 2)}`);
       }
     }
 

@@ -1,4 +1,4 @@
-import { differenceArraysOfPrimitives, hasProperties, isArraySubset, rejectProperties } from 'object-array-utils';
+import { differenceArraysOfPrimitives, hasProperties, isArraySubset, omitProperties } from 'object-array-utils';
 import Logger from '../Logger';
 import DocumentOptions from '../document/DocumentOptions';
 import FetchStrategy from './FetchStrategy';
@@ -50,7 +50,7 @@ export default class Query {
         }
 
         if (!hasProperties(entity, tenantNames)) {
-          throw new Error(`entity "${entity.__typename}" requires tenant fields: "${tenantNames.join(', ')}". Entity was fetched from document "${entity.__meta.operationName}" and a query cache from document "${this.document.operationName}" was updating. Entity: ${JSON.stringify(rejectProperties(entity, ['__meta']), null, 2)}`);
+          throw new Error(`entity "${entity.__typename}" requires tenant fields: "${tenantNames.join(', ')}". Entity was fetched from document "${entity.__meta.operationName}" and a query cache from document "${this.document.operationName}" was updating. Entity: ${JSON.stringify(omitProperties(entity, ['__meta']), null, 2)}`);
         }
 
         const isOutsideTenantsScope =

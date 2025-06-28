@@ -1,16 +1,9 @@
-import { areValuesEqual, isEmptyArray } from 'object-array-utils';
+import { areDataEqual, deepFreezePlain, differencePrimitives, makeCopyOnWriteObjectSetter } from 'object-array-utils';
 import ObjectType from '../../document/ObjectType';
 import copyEntity from './copyEntity';
 
 export default function refreshEntity(entity, meta, updates, variables) {
-  const updatePropImmutably = ((original) => {
-    let data = original;
-    return (prop, value) => {
-      data = (original === data) ? { ...data } : data;
-      data[prop] = value;
-      return data;
-    };
-  })(entity);
+  const set = makeCopyOnWriteObjectSetter(entity);
 
   updates = updates.filter(({ entity: { id } }) => entity.id === id);
 
@@ -26,10 +19,17 @@ export default function refreshEntity(entity, meta, updates, variables) {
 
     for (let propName of Object.keys(scalars)) {
       if (propName in entityUpdates) {
-        if (areValuesEqual(entity[propName], entityUpdates[propName])) {
+        const opts = { unboxPrimitives: true, unorderedArrays: true, areNonPlainObjectsEqual: (a, b) => {
+          const errorMessage = 'Missing implementation for areNonPlainObjectsEqual';
+          console.error(errorMessage);
+          console.dir(a, { depth: null });
+          console.dir(b, { depth: null });
+          throw new Error(errorMessage);
+        } };
+        if (areDataEqual(entity[propName], entityUpdates[propName], opts)) {
           continue;
         }
-        entity = updatePropImmutably(propName, entityUpdates[propName]);
+        entity = set(propName, entityUpdates[propName]);
       }
     }
 
@@ -40,10 +40,17 @@ export default function refreshEntity(entity, meta, updates, variables) {
 
     for (let propName of Object.keys(virtualScalars)) {
       if (propName in entityUpdates) {
-        if (areValuesEqual(entity[propName], entityUpdates[propName])) {
+        const opts = { unboxPrimitives: true, unorderedArrays: true, areNonPlainObjectsEqual: (a, b) => {
+          const errorMessage = 'Missing implementation for areNonPlainObjectsEqual';
+          console.error(errorMessage);
+          console.dir(a, { depth: null });
+          console.dir(b, { depth: null });
+          throw new Error(errorMessage);
+        } };
+        if (areDataEqual(entity[propName], entityUpdates[propName], opts)) {
           continue;
         }
-        entity = updatePropImmutably(propName, entityUpdates[propName]);
+        entity = set(propName, entityUpdates[propName]);
       }
     }
 
@@ -64,10 +71,17 @@ export default function refreshEntity(entity, meta, updates, variables) {
 
         case ObjectType.Embed:
         case ObjectType.EmbedList:
-          if (areValuesEqual(entity[propName], entityUpdates[propName])) {
+          const opts = { unboxPrimitives: true, unorderedArrays: true, areNonPlainObjectsEqual: (a, b) => {
+            const errorMessage = 'Missing implementation for areNonPlainObjectsEqual';
+            console.error(errorMessage);
+            console.dir(a, { depth: null });
+            console.dir(b, { depth: null });
+            throw new Error(errorMessage);
+          } };
+          if (areDataEqual(entity[propName], entityUpdates[propName], opts)) {
             continue;
           }
-          entity = updatePropImmutably(propName, entityUpdates[propName]);
+          entity = set(propName, entityUpdates[propName]);
           break;
 
         case ObjectType.Entity:
@@ -78,11 +92,11 @@ export default function refreshEntity(entity, meta, updates, variables) {
           }
 
           if (entityUpdates[propName] === null) {
-            entity = updatePropImmutably(propName, null);
+            entity = set(propName, null);
             continue;
           }
 
-          entity = updatePropImmutably(propName, copyEntity(object, entityUpdates[propName]));
+          entity = set(propName, copyEntity(object, entityUpdates[propName]));
           break;
 
         case ObjectType.EntitySet:
@@ -91,13 +105,13 @@ export default function refreshEntity(entity, meta, updates, variables) {
           const cachedIds = entity[propName].map(({ id }) => id);
           const freshIds = entityUpdates[propName].map(({ id }) => id);
 
-          if (areValuesEqual(cachedIds, freshIds)) {
+          if (differencePrimitives(cachedIds, freshIds).length === 0) {
             continue;
           }
 
-          if (isEmptyArray(freshIds)) {
+          if (freshIds.length === 0) {
             if (entityUpdates.__meta.objects[propName].areElementsToBeReplaced) {
-              entity = updatePropImmutably(propName, []);
+              entity = set(propName, []);
             }
             continue;
           }
@@ -105,7 +119,7 @@ export default function refreshEntity(entity, meta, updates, variables) {
           if (entityUpdates.__meta.objects[propName].areElementsToBeRemoved) {
             const filteredEntities = entity[propName].filter(({ id }) => !freshIds.includes(id));
             if (filteredEntities.length !== cachedIds.length) {
-              entity = updatePropImmutably(propName, filteredEntities);
+              entity = set(propName, filteredEntities);
             }
             continue;
           }
@@ -121,18 +135,18 @@ export default function refreshEntity(entity, meta, updates, variables) {
           if (entityUpdates.__meta.objects[propName].areElementsToBeReplaced) {
             const filteredEntities = entity[propName].filter(({ id }) => freshIds.includes(id));
             if (filteredEntities.length !== cachedIds.length || entitiesToBeAdded.length > 0) {
-              entity = updatePropImmutably(propName, filteredEntities.concat(entitiesToBeAdded));
+              entity = set(propName, filteredEntities.concat(entitiesToBeAdded));
             }
             continue;
           }
 
           if (entitiesToBeAdded.length > 0) {
-            entity = updatePropImmutably(propName, entity[propName].concat(entitiesToBeAdded));
+            entity = set(propName, entity[propName].concat(entitiesToBeAdded));
           }
           break;
         }
     }
   }
 
-  return entity;
+  return deepFreezePlain(entity);
 }

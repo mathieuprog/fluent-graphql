@@ -1,4 +1,4 @@
-import { filterProperties, isObjectLiteral } from 'object-array-utils';
+import { isPlainObject, pickProperties } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from './helpers';
 
@@ -9,7 +9,7 @@ export default function normalizeEntities(document, data) {
 }
 
 function doNormalizeEntities(meta, data, normalizedEntities = []) {
-  if (!isObjectLiteral(data)) {
+  if (!isPlainObject(data)) {
     throw new Error();
   }
 
@@ -122,7 +122,7 @@ function doNormalizeEntities(meta, data, normalizedEntities = []) {
 function buildMeta(meta) {
   return {
     __meta: {
-      ...filterProperties(meta, ['isToBeDeleted', 'objects', 'scalars']),
+      ...pickProperties(meta, ['isToBeDeleted', 'objects', 'scalars']),
       operationName: meta.getDocument().operationName
     }
   };

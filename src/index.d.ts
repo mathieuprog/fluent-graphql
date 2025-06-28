@@ -1,5 +1,5 @@
 declare module "fluent-graphql" {
-  type ObjectLiteral = { [key: string]: unknown };
+  type PlainObject = { [key: string]: unknown };
 
   enum FetchStrategy {
     FetchFromCacheOrThrow = 'FETCH_FROM_CACHE_OR_THROW',
@@ -65,9 +65,9 @@ declare module "fluent-graphql" {
     embedList(name: string): Node<NestedNode<This, VariablesType>, This, VariablesType>;
     viewer(name: string): Node<NestedNode<This, VariablesType>, This, VariablesType>;
     wrapper(name: string): Node<NestedNode<This, VariablesType>, This, VariablesType>;
-    useVariables(variables: ObjectLiteral): Node<This, Parent, VariablesType>;
-    replaceEntity(filter: ObjectLiteral): Node<This, Parent, VariablesType>;
-    addEntity(filter: ObjectLiteral): Node<This, Parent, VariablesType>;
+    useVariables(variables: PlainObject): Node<This, Parent, VariablesType>;
+    replaceEntity(filter: PlainObject): Node<This, Parent, VariablesType>;
+    addEntity(filter: PlainObject): Node<This, Parent, VariablesType>;
     deriveFromReference(foreignKey: string, fetch: (foreignKey: string, variables: VariablesType, executionContext: any) => unknown): Node<This, Parent, VariablesType>;
     deriveFrom(fetch: (variables: VariablesType, executionContext: any) => unknown): Node<This, Parent, VariablesType>;
     replaceElements(): Node<This, Parent, VariablesType>;
@@ -105,20 +105,20 @@ declare module "fluent-graphql" {
     makeExecutable(client?: Client): Document<ReturnType, VariablesType, TransformedType>;
     execute(
       variables: VariablesType,
-      options?: ObjectLiteral
+      options?: PlainObject
     ): Promise<TransformedType>;
     execute(
       variables: VariablesType,
-      sink: ObjectLiteral,
-      options?: ObjectLiteral
+      sink: PlainObject,
+      options?: PlainObject
     ): Promise<TransformedType>;
     // execute_(variables: VariablesType): Executor);
     getQueryExecutor(variables: VariablesType): QueryExecutor<TransformedType, VariablesType>;
-    simulateNetworkResponse(data: ObjectLiteral): void;
+    simulateNetworkResponse(data: PlainObject): void;
     transformResponse(fun: (data: ReturnType) => unknown): Document<ReturnType, VariablesType, TransformedType>;
     setRefetchStrategy(fetchStrategy: FetchStrategy): Document<ReturnType, VariablesType, TransformedType>;
     filterEntity(fun: (entity: any, variables: VariablesType) => boolean): Document<ReturnType, VariablesType, TransformedType>;
-    scopeByTenants(fun: (variables: VariablesType) => ObjectLiteral): Document<ReturnType, VariablesType, TransformedType>;
+    scopeByTenants(fun: (variables: VariablesType) => PlainObject): Document<ReturnType, VariablesType, TransformedType>;
     clearAfter(duration: any): Document<ReturnType, VariablesType, TransformedType>; // TODO Temporal type
     pollAfter(duration: any): Document<ReturnType, VariablesType, TransformedType>; // TODO Temporal type
     createExecutionContext(executionContextGetter: (variables: VariablesType, data: ReturnType) => unknown): Document<ReturnType, VariablesType, TransformedType>;
@@ -133,7 +133,7 @@ declare module "fluent-graphql" {
     document: Document;
     variables: VariablesType;
     constructor(document: Document, variables: VariablesType);
-    execute(options?: ObjectLiteral): Promise<TransformedType>;
+    execute(options?: PlainObject): Promise<TransformedType>;
     refetchQuery(): Promise<TransformedType>;
     subscribe(subscriber: Subscriber): Unsubscriber;
   }

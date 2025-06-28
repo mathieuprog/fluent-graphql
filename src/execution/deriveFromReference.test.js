@@ -1,4 +1,4 @@
-import { deepFreeze } from 'object-array-utils';
+import { deepFreezePlain } from 'object-array-utils';
 import { expect, test } from 'vitest';
 import Document from '../document/Document';
 import deriveFromReference from './deriveFromReference';
@@ -32,7 +32,7 @@ test('derive data from foreign key', async () => {
               .entity('category', 'Category')
                 .deriveFromReference('categoryId', fetchCategory)._._._._._;
 
-  const data = deepFreeze({
+  const data = deepFreezePlain({
     user: {
       id: 'user1',
       __typename: 'User',

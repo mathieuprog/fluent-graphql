@@ -1,4 +1,4 @@
-import { sortProperties } from 'object-array-utils';
+import { toSortedObject } from 'object-array-utils';
 import Logger from '../Logger';
 import FetchStrategy from '../execution/FetchStrategy';
 import OperationExecutor from '../execution/OperationExecutor';
@@ -163,7 +163,7 @@ export default class Document {
       throw new Error('makeExecutable() has not been called');
     }
 
-    const variablesAsString = JSON.stringify(sortProperties(variables));
+    const variablesAsString = JSON.stringify(toSortedObject(variables));
 
     let queryExecutor = this.queryExecutors[variablesAsString];
     if (!queryExecutor) {

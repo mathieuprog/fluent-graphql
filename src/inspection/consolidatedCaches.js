@@ -1,4 +1,4 @@
-import { areValuesEqual, filterProperties, isArray, isObjectLiteral } from 'object-array-utils';
+import { areDataEqual, isPlainObject, pickProperties } from 'object-array-utils';
 import Document from '../document/Document';
 import OperationType from '../document/OperationType';
 
@@ -40,7 +40,14 @@ function mergeEntity(entity1, entity2) {
       continue;
     }
 
-    if (!areValuesEqual(entity1[propName], propValue)) {
+    const opts = { unboxPrimitives: true, unorderedArrays: true, areNonPlainObjectsEqual: (a, b) => {
+      const errorMessage = 'Missing implementation for areNonPlainObjectsEqual';
+      console.error(errorMessage);
+      console.dir(a, { depth: null });
+      console.dir(b, { depth: null });
+      throw new Error(errorMessage);
+    } };
+    if (!areDataEqual(entity1[propName], propValue, opts)) {
       console.error(`Cached entities with id ${entity1.id} and typename ${entity1.__typename} contain different values`);
       console.dir(entity1, { depth: null });
       console.dir(entity2, { depth: null });
@@ -53,7 +60,7 @@ function mergeEntity(entity1, entity2) {
 }
 
 export function normalizeEntities(data, normalizedEntities = []) {
-  if (isObjectLiteral(data)) {
+  if (isPlainObject(data)) {
     if (data.id) {
       normalizedEntities.push(normalizeEntity(data));
     }
@@ -61,7 +68,7 @@ export function normalizeEntities(data, normalizedEntities = []) {
     for (let propValue of Object.values(data)) {
       normalizeEntities(propValue, normalizedEntities);
     }
-  } else if (isArray(data)) {
+  } else if (Array.isArray(data)) {
     data.forEach((e) => { normalizeEntities(e, normalizedEntities) });
   }
 
@@ -83,9 +90,9 @@ export function normalizeEntity(entity) {
 }
 
 function doNormalizeEntity(data) {
-  if (isObjectLiteral(data)) {
+  if (isPlainObject(data)) {
     if (data.id) {
-      return filterProperties(data, ['id', '__typename']);
+      return pickProperties(data, ['id', '__typename']);
     }
 
     data = { ...data };
@@ -97,7 +104,7 @@ function doNormalizeEntity(data) {
     return data;
   }
 
-  if (isArray(data)) {
+  if (Array.isArray(data)) {
     return data.map(doNormalizeEntity);
   }
 

@@ -1,4 +1,4 @@
-import { isObjectLiteral } from 'object-array-utils';
+import { isPlainObject } from 'object-array-utils';
 import Node from './Node';
 import ObjectType from './ObjectType';
 
@@ -9,7 +9,7 @@ export default class RootObject extends Node {
   }
 
   variableDefinitions(variableDefinitions) {
-    if (!isObjectLiteral(variableDefinitions)) {
+    if (!isPlainObject(variableDefinitions)) {
       throw new Error();
     }
 

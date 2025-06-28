@@ -43,7 +43,6 @@ documentInstance.simulateNetworkResponse(data)
 export {
     Client,
     Document, FetchStrategy,
-    GraphQLError, LogLevel, NotFoundInCacheError,
-    OperationType, findGraphQLError,
+    GraphQLError, LogLevel, NotFoundInCacheError, OperationType, findGraphQLError,
     findGraphQLErrorByCode
 };

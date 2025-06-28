@@ -1,4 +1,4 @@
-import { isObjectLiteral } from 'object-array-utils';
+import { isPlainObject } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from './helpers';
 
@@ -9,7 +9,7 @@ export default function deriveFrom(document, data, variables, context) {
 }
 
 async function doDeriveFrom(meta, data, variables, context) {
-  if (!isObjectLiteral(data)) {
+  if (!isPlainObject(data)) {
     throw new Error();
   }
 
@@ -67,7 +67,7 @@ function buildDataGraph(meta, dataToDeriveFrom, result = {}) {
     return null;
   }
 
-  if (!isObjectLiteral(dataToDeriveFrom)) {
+  if (!isPlainObject(dataToDeriveFrom)) {
     throw new Error();
   }
 

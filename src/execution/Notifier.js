@@ -1,4 +1,3 @@
-import { isArray, isEmptyArray } from 'object-array-utils';
 import Logger from '../Logger';
 
 export default class Notifier {
@@ -17,7 +16,7 @@ export default class Notifier {
   }
 
   static notify(updates) {
-    if (!isArray(updates)) {
+    if (!Array.isArray(updates)) {
       throw new Error();
     }
 
@@ -30,7 +29,7 @@ export default class Notifier {
       return `Fetched entities: ${JSON.stringify(entitiesWithoutMeta, null, 2)}`;
     });
 
-    if (isEmptyArray(updates)) {
+    if (updates.length === 0) {
       return;
     }
 

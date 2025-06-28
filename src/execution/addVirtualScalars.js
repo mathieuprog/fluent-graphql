@@ -1,4 +1,4 @@
-import { isArray, isObjectLiteral } from 'object-array-utils';
+import { deepFreezePlain, isPlainObject, makeCopyOnWriteObjectSetter } from 'object-array-utils';
 import ObjectType from '../document/ObjectType';
 import { throwIfNotInstanceOfDocument } from './helpers';
 
@@ -8,25 +8,18 @@ export default function addVirtualScalars(document, data) {
 }
 
 function doAddVirtualScalars(meta, data) {
-  if (!isObjectLiteral(data)) {
-    if (isArray(data) && meta.type === ObjectType.Entity) {
+  if (!isPlainObject(data)) {
+    if (Array.isArray(data) && meta.type === ObjectType.Entity) {
       throw new Error(`${meta.name} was expected to be an entity, but found an array (operation ${meta.getDocument().operationName})`);
     }
     throw new Error();
   }
 
-  const updatePropImmutably = ((original) => {
-    let data = original;
-    return (prop, value) => {
-      data = (original === data) ? { ...data } : data;
-      data[prop] = value;
-      return data;
-    };
-  })(data);
+  const set = makeCopyOnWriteObjectSetter(data);
 
   for (const [propName, { initialValue }] of Object.entries(meta.virtualScalars)) {
     if (data[propName] === undefined) {
-      data = updatePropImmutably(propName, initialValue);
+      data = set(propName, initialValue);
     }
   }
 
@@ -48,7 +41,7 @@ function doAddVirtualScalars(meta, data) {
         if (data[propName] !== null) {
           const transformedData = doAddVirtualScalars(object, data[propName]);
           if (data[propName] !== transformedData) {
-            data = updatePropImmutably(propName, transformedData);
+            data = set(propName, transformedData);
           }
         }
         break;
@@ -65,7 +58,7 @@ function doAddVirtualScalars(meta, data) {
           });
 
         if (updated) {
-          data = updatePropImmutably(propName, newData);
+          data = set(propName, newData);
         }
         break;
     }
@@ -84,7 +77,7 @@ function doAddVirtualScalars(meta, data) {
           }
           const transformedData = doAddVirtualScalars(object.inlineFragments[data[propName].__typename], data[propName]);
           if (data[propName] !== transformedData) {
-            data = updatePropImmutably(propName, transformedData);
+            data = set(propName, transformedData);
           }
         }
         break;
@@ -108,11 +101,11 @@ function doAddVirtualScalars(meta, data) {
           });
 
         if (updated) {
-          data = updatePropImmutably(propName, newData);
+          data = set(propName, newData);
         }
         break;
     }
   }
 
-  return data;
+  return deepFreezePlain(data);
 }

@@ -1,4 +1,4 @@
-import { deepFreeze } from 'object-array-utils';
+import { deepFreezePlain } from 'object-array-utils';
 import { expect, test } from 'vitest';
 import Document from '../../document/Document';
 import { GlobalCache } from '../globalCache';
@@ -88,8 +88,8 @@ test('immutability', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   const articles = queryCache.data.articles;
   const articlesUnchanged = queryCache.data.articlesUnchanged;
@@ -186,8 +186,8 @@ test('change value of scalar and embed', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.me.user.name).toBe('John');
   expect(queryCache.data.me.user.user.name).toBe('John');
@@ -312,8 +312,8 @@ test('unions and interfaces', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.user.name).toBe('John');
   expect(queryCache.data.user.union.id).toBe('type1');
@@ -420,8 +420,8 @@ test('delete entity', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.user.name).toBe('John');
 
@@ -471,8 +471,8 @@ test('change nested entity', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.user.account.id).toBe('account1');
   expect(queryCache.data.user.account.name).toBe('John');
@@ -537,8 +537,8 @@ test('set nested entity to null/empty array', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.user.user).toBeTruthy();
   expect(queryCache.data.user.articles.length).toBe(1);
@@ -600,8 +600,8 @@ test('remove entities from array', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.user.articles.length).toBe(2);
 
@@ -673,8 +673,8 @@ test('delete entities from array', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.article).toBeTruthy();
   expect(queryCache.data.user.article).toBeTruthy();
@@ -737,8 +737,8 @@ test('override entities in array', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.user.articles.length).toBe(2);
 
@@ -797,8 +797,8 @@ test('add entities in array', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.user.articles.length).toBe(2);
 
@@ -865,8 +865,8 @@ test('add entity', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.user.organization.id).toBe('organization1');
   expect(queryCache.data.user.organization.locations.map(({ id }) => id)).toEqual(['location1']);
@@ -949,8 +949,8 @@ test('filter entity with callback', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, { minVoteCount: 3 });
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.user.articles.length).toBe(1);
 
@@ -1012,8 +1012,8 @@ test('add entity with callback', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, { minVoteCount: 3 });
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.articles.length).toBe(1);
 
@@ -1070,8 +1070,8 @@ test('replace entity with callback', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, { accountId: 1 });
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   expect(queryCache.data.user.id).toBe('user1');
 
@@ -1137,8 +1137,8 @@ test('no updates', () => {
   };
 
   const queryCache = new QueryCache(document1, data1, {});
-  queryCache.data = deepFreeze(queryCache.data);
-  queryCache.transformedData = deepFreeze(queryCache.transformedData);
+  queryCache.data = deepFreezePlain(queryCache.data);
+  queryCache.transformedData = deepFreezePlain(queryCache.transformedData);
 
   const document2 =
     Document

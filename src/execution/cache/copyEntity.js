@@ -1,9 +1,9 @@
-import { filterProperties } from 'object-array-utils';
+import { pickProperties } from 'object-array-utils';
 import ObjectType from '../../document/ObjectType';
 import globalCache from '../globalCache';
 
 export default function copyEntity(meta, entity) {
-  const newEntity = filterProperties(entity, ['id', '__typename']);
+  const newEntity = pickProperties(entity, ['id', '__typename']);
 
   const scalars =
     (meta.inlineFragments[entity.__typename])
