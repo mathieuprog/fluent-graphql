@@ -101,6 +101,7 @@ declare module 'fluent-graphql' {
     static simulateNetworkDelayGlobally(min: number, max: number): void;
     static defineTenantFields(fun: (typename: string) => string[]): void;
     static clearQueries(operationNames: string[]): void;
+    static clearAllQueries(): void;
     simulateNetworkDelay(min: number, max: number): Document<ReturnType, VariablesType, TransformedType>;
     makeExecutable(client?: Client): Document<ReturnType, VariablesType, TransformedType>;
     execute(

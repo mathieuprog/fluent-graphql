@@ -122,6 +122,14 @@ export default class Document {
       this.getByOperationName(OperationType.Query, operationName)?.document.clearQueries());
   }
 
+  static clearAllQueries() {
+    this.instances.forEach((document) => {
+      if (document.operationType === OperationType.Query) {
+        document.clearQueries();
+      }
+    });
+  }
+
   simulateNetworkDelay(min, max) {
     this.maybeSimulateNetworkDelay =
       () => Document.doSimulateNetworkDelay(min, max);
