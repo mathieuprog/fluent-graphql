@@ -1,8 +1,13 @@
 import { Temporal } from '@js-temporal/polyfill';
-import { expect, test, vi } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
 import Document from '../document/Document';
 import FetchStrategy from './FetchStrategy';
 import OperationExecutor from './OperationExecutor';
+
+beforeEach(() => {
+  Document.resetAll();
+  Document.instances.length = 0;
+});
 
 test('OperationExecutor', async () => {
   const request1 = vi.fn();
@@ -171,7 +176,7 @@ test('OperationExecutor', async () => {
 test('transform response', async () => {
   const document =
     Document
-      .query()
+      .query('query')
         .viewer('me')
           .entity('user', 'User')
             .scalar('name')._._._
@@ -202,7 +207,7 @@ test('transform response', async () => {
 test('network', async () => {
   const document =
     Document
-      .query()
+      .query('query')
         .entity('user', 'User')
           .scalar('name')._._;
 
@@ -232,10 +237,10 @@ test('clear and poll', async () => {
 
   const document =
     Document
-      .query()
+      .query('query')
         .entity('user', 'User')
           .scalar('name')._._
-      .clearAfter(Temporal.Duration.from({ milliseconds: 200 }))
+      .destroyIdleAfter(Temporal.Duration.from({ milliseconds: 200 }))
       .pollAfter(Temporal.Duration.from({ milliseconds: 150 }));
 
   const client = {

@@ -1,8 +1,9 @@
-import { toSortedObject } from 'object-array-utils';
+import { hasArrayDuplicates, toSortedObject } from 'object-array-utils';
 import Logger from '../Logger';
 import FetchStrategy from '../execution/FetchStrategy';
 import OperationExecutor from '../execution/OperationExecutor';
 import QueryExecutor from '../execution/QueryExecutor';
+import globalCache from '../execution/globalCache';
 import DocumentOptions from './DocumentOptions';
 import InlineFragmentFactory from './InlineFragmentFactory';
 import OperationType from './OperationType';
@@ -20,7 +21,7 @@ export default class Document {
     this.queryString = null;
     this.transform = (data) => data;
     this.afterExecutionCallback = (_data) => {};
-    this.clearAfterDuration = null;
+    this.destroyIdleAfterDuration = null;
     this.pollAfterDuration = null;
     this.executor = null;
     this.queryExecutors = {};
@@ -32,28 +33,31 @@ export default class Document {
     this.possibleTypenames = [];
   }
 
-  static query(operationName = null) {
-    operationName && this.getByOperationName(OperationType.Query, operationName); // throws if already exists
-
-    const document = new Document(OperationType.Query, operationName);
-    this.instances.push(document);
-    return document.rootObject;
+  static query(operationName) {
+    return this._createDocumentOfType(OperationType.Query, operationName);
   }
 
   static mutation(operationName) {
-    operationName && this.getByOperationName(OperationType.Mutation, operationName); // throws if already exists
+    return this._createDocumentOfType(OperationType.Mutation, operationName);
+  }
 
-    const document = new Document(OperationType.Mutation, operationName);
+  static subscription(operationName) {
+    return this._createDocumentOfType(OperationType.Subscription, operationName);
+  }
+
+  static _createDocumentOfType(operationType, operationName) {
+    this._validateUniqueOperationName(operationType, operationName);
+    
+    const document = new Document(operationType, operationName);
     this.instances.push(document);
     return document.rootObject;
   }
 
-  static subscription(operationName) {
-    operationName && this.getByOperationName(OperationType.Subscription, operationName); // throws if already exists
-
-    const document = new Document(OperationType.Subscription, operationName);
-    this.instances.push(document);
-    return document.rootObject;
+  static _validateUniqueOperationName(operationType, operationName) {
+    if (!operationName) {
+      throw new Error('operation name is required');
+    }
+    this.getByOperationName(operationType, operationName);
   }
 
   static getByOperationName(operationType, operationName) {
@@ -112,22 +116,30 @@ export default class Document {
     DocumentOptions.getTenantsByTypename = getTenantsByTypenameFun;
   }
 
-  static clearQueries(operationNames) {
-    const hasDuplicates = (array) => (new Set(array)).size !== array.length;
-    if (hasDuplicates(operationNames)) {
-      throw new Error(`array ${operationNames.join(', ')} passed to \`clearQueries(operationNames)\` contains duplicates`);
+  static destroyQueries(operationNames) {
+    if (hasArrayDuplicates(operationNames)) {
+      throw new Error(`array ${operationNames.join(', ')} passed to \`destroyQueries(operationNames)\` contains duplicates`);
     }
 
-    operationNames.forEach((operationName) =>
-      this.getByOperationName(OperationType.Query, operationName)?.document.clearQueries());
+    operationNames.forEach((operationName) => {
+      const instances = this.instances.filter((document) => {
+        return document.operationType === OperationType.Query
+            && document.operationName === operationName;
+        });
+        
+      instances.forEach((instance) => {
+        instance.destroyQueries();
+      });
+    });
   }
 
-  static clearAllQueries() {
+  static resetAll() {
     this.instances.forEach((document) => {
       if (document.operationType === OperationType.Query) {
-        document.clearQueries();
+        document.destroyQueries();
       }
     });
+    globalCache.clear();
   }
 
   simulateNetworkDelay(min, max) {
@@ -266,19 +278,20 @@ export default class Document {
     return this;
   }
 
-  invalidateAllCaches() {
-    this.executor.invalidateAllCaches();
+  invalidateQueryCaches() {
+    this.executor?.invalidateQueryCaches();
     return this;
   }
 
-  clearQueries() {
-    this.invalidateAllCaches();
-    this.executor.clearQueries();
+  destroyQueries() {
+    this.invalidateQueryCaches();
+    this.executor?.destroyQueries();
+    this.queryExecutors = {};
     return this;
   }
 
-  clearAfter(duration) {
-    this.clearAfterDuration = duration;
+  destroyIdleAfter(duration) {
+    this.destroyIdleAfterDuration = duration;
     return this;
   }
 

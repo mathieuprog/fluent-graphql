@@ -17,7 +17,7 @@ Fluent GraphQL's approach uses a single fluent API to write GraphQL queries, res
 ```javascript
 const document =
   Document
-    .query()
+    .query('GetUserBasicInfo')
       .entity('user')
         .scalar('name')
         .scalar('age', Number)._._
@@ -150,7 +150,7 @@ Developers can also use a Promise as the client, which can be particularly helpf
 
 ### Create a Document instance
 
-To create a `Document` instance, call the static `query`, `mutation`, or `subscription` function on the `Document` class, passing the operation name as an argument (which is optional for queries).
+To create a `Document` instance, call the static `query`, `mutation`, or `subscription` function on the `Document` class, passing the operation name as an argument.
 
 ```javascript
 Document
@@ -174,7 +174,7 @@ While the return line and indentation above may seem superfluous, they are actua
 ```javascript
 const document =
   Document
-    .query()
+    .query('GetUserAndOrgDetails')
       .entity('user')
         .scalar('name')
         .scalar('age', Number)
@@ -341,7 +341,7 @@ const fetchAccount = async (accountId, variables) => {
 };
 
 Document
-  .query()
+  .query('UserWithAccount')
     .entity('user')
       .entity('account')
         .deriveFromReference('accountId', fetchAccount)._._._
@@ -355,7 +355,7 @@ const fetchAccount = async (variables) => {
 };
 
 Document
-  .query()
+  .query('UserWithAccount')
     .entity('user')
       .entity('account')
         .deriveFrom(fetchAccount)._._._
@@ -366,7 +366,7 @@ Document
 
 ```javascript
 Document
-  .query()
+  .query('MyArticles')
     .viewer('me')
       .entity('articles')
         .scalar('title')._._._
@@ -377,20 +377,20 @@ Document
 
 ```javascript
 Document
-  .query()
+  .query('MyArticles')
     .viewer('me')
       .entity('articles')
         .scalar('title')._._._
-  .clearAfter(Temporal.Duration.from({ days: 1 }))
+  .destroyIdleAfter(Temporal.Duration.from({ days: 1 }))
   .pollAfter(Temporal.Duration.from({ hours: 1 }));
 ```
 
-### Clear a document
+### Destroy all queries and all caches
 
-Unsubscribe all the queries of a document instance from incoming network data:
+Useful for logout:
 
 ```javascript
-documentInstance.clear();
+Document.resetAll();
 ```
 
 ### Development utilities
@@ -453,7 +453,7 @@ documentInstance.simulateNetworkResponse(data);
 Example:
 ```javascript
 fql
-  .query()
+  .query('MockOrganizations')
     .viewer('me')
       .entitySet('organizations')
         .scalar('name')._._._

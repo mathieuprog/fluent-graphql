@@ -91,17 +91,18 @@ declare module 'fluent-graphql' {
     operationType: OperationType;
     operationName: string;
     constructor(operationType: OperationType, operationName?: string)
-    static query<ReturnType, VariablesType, TransformedType = ReturnType>(operationName?: string): RootObject<ReturnType, VariablesType, TransformedType>;
+    static query<ReturnType, VariablesType, TransformedType = ReturnType>(operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
     static mutation<ReturnType, VariablesType, TransformedType = ReturnType>(operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
     static subscription<ReturnType, VariablesType, TransformedType = ReturnType>(operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
     static getByOperationName<ReturnType, VariablesType, TransformedType = ReturnType>(operationType: OperationType, operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
     static getOrCreateByOperationName<ReturnType, VariablesType, TransformedType = ReturnType>(operationType: OperationType, operationName: string): RootObject<ReturnType, VariablesType, TransformedType>;
     static setDefaultClient(client: Client): void;
+    static setDefaultFetchStrategy(strategy: FetchStrategy): void;
     static setLogLevel(level: LogLevel): void;
     static simulateNetworkDelayGlobally(min: number, max: number): void;
     static defineTenantFields(fun: (typename: string) => string[]): void;
-    static clearQueries(operationNames: string[]): void;
-    static clearAllQueries(): void;
+    static destroyQueries(operationNames: string[]): void;
+    static resetAll(): void;
     simulateNetworkDelay(min: number, max: number): Document<ReturnType, VariablesType, TransformedType>;
     makeExecutable(client?: Client): Document<ReturnType, VariablesType, TransformedType>;
     execute(
@@ -120,14 +121,23 @@ declare module 'fluent-graphql' {
     setRefetchStrategy(fetchStrategy: FetchStrategy): Document<ReturnType, VariablesType, TransformedType>;
     filterEntity(fun: (entity: any, variables: VariablesType) => boolean): Document<ReturnType, VariablesType, TransformedType>;
     scopeByTenants(fun: (variables: VariablesType) => PlainObject): Document<ReturnType, VariablesType, TransformedType>;
-    clearAfter(duration: any): Document<ReturnType, VariablesType, TransformedType>; // TODO Temporal type
+    destroyIdleAfter(duration: any): Document<ReturnType, VariablesType, TransformedType>; // TODO Temporal type
     pollAfter(duration: any): Document<ReturnType, VariablesType, TransformedType>; // TODO Temporal type
     createExecutionContext(executionContextGetter: (variables: VariablesType, data: ReturnType) => unknown): Document<ReturnType, VariablesType, TransformedType>;
-    clearQueries(): Document<ReturnType, VariablesType, TransformedType>;
-    invalidateAllCaches(): Document<ReturnType, VariablesType, TransformedType>;
+    destroyQueries(): Document<ReturnType, VariablesType, TransformedType>;
+    invalidateQueryCaches(): Document<ReturnType, VariablesType, TransformedType>;
     getQueryString(): string;
     subscribe(variables: VariablesType, subscriber: Subscriber): Unsubscriber;
     afterExecution(fun: (data: TransformedType) => unknown): Document<ReturnType, VariablesType, TransformedType>;
+    addPossibleTypenames(typenames: string | string[]): Document<ReturnType, VariablesType, TransformedType>;
+    filterEntity(fun: (entity: any, variables: VariablesType) => boolean): Document<ReturnType, VariablesType, TransformedType>;
+    scopeByTenants(fun: (variables: VariablesType) => PlainObject): Document<ReturnType, VariablesType, TransformedType>;
+    destroyIdleAfter(duration: any): Document<ReturnType, VariablesType, TransformedType>; // TODO Temporal type
+    pollAfter(duration: any): Document<ReturnType, VariablesType, TransformedType>; // TODO Temporal type
+    createExecutionContext(executionContextGetter: (variables: VariablesType, data: ReturnType) => unknown): Document<ReturnType, VariablesType, TransformedType>;
+    destroyQueries(): Document<ReturnType, VariablesType, TransformedType>;
+    invalidateQueryCaches(): Document<ReturnType, VariablesType, TransformedType>;
+    getQueryString(): string;
   }
 
   class QueryExecutor<ReturnType, VariablesType = unknown, TransformedType = ReturnType> {

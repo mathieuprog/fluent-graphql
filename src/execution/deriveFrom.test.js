@@ -1,6 +1,11 @@
-import { expect, test } from 'vitest';
+import { beforeEach, expect, test } from 'vitest';
 import Document from '../document/Document';
 import deriveFrom from './deriveFrom';
+
+beforeEach(() => {
+  Document.resetAll();
+  Document.instances.length = 0;
+});
 
 test('derive data from other document', async () => {
   const client = {
@@ -36,7 +41,7 @@ test('derive data from other document', async () => {
 
   const otherDocument =
     Document
-      .query()
+      .query('query1')
         .variableDefinitions({ userId: 'ID!' })
         .entitySet('organizations', 'Organization')
           .useVariables({ userId: 'userId' })
@@ -53,7 +58,7 @@ test('derive data from other document', async () => {
 
   const document =
     Document
-      .query()
+      .query('query2')
         .entity('user', 'User')
           ._
         .entitySet('locations', 'Location')

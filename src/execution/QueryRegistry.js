@@ -17,23 +17,26 @@ export default class QueryRegistry {
       return this.registry[key];
     }
 
-    const clearAfterDuration =
-      (typeof this.document.clearAfterDuration === 'function')
-        ? this.document.clearAfterDuration(variables)
-        : this.document.clearAfterDuration;
+    const destroyIdleAfterDuration =
+      (typeof this.document.destroyIdleAfterDuration === 'function')
+        ? this.document.destroyIdleAfterDuration(variables)
+        : this.document.destroyIdleAfterDuration;
 
     const pollAfterDuration =
       (typeof this.document.pollAfterDuration === 'function')
         ? this.document.pollAfterDuration(variables)
         : this.document.pollAfterDuration;
 
+    const runNetworkRequest = (options) =>
+      this.executeRequest(variables, Notifier.notify, options);
+
     const query = new Query(
       this.document,
       variables,
       (data) => new QueryCache(this.document, data, variables),
-      () => this.executeRequest(variables, Notifier.notify),
-      () => this.handleQueryCleared(variables),
-      clearAfterDuration,
+      runNetworkRequest,
+      () => this.unregisterQuery(variables),
+      destroyIdleAfterDuration,
       pollAfterDuration
     );
 
@@ -50,15 +53,15 @@ export default class QueryRegistry {
     return !!this.registry[JSON.stringify(toSortedObject(variables))];
   }
 
-  invalidateAllCaches() {
-    Object.values(this.registry).forEach((query) => query.invalidateCache());
+  invalidateQueryCaches() {
+    Object.values(this.registry).forEach((query) => query.invalidate());
   }
 
-  removeAll() {
-    Object.values(this.registry).forEach((query) => query.clear());
+  destroyAll() {
+    Object.values(this.registry).forEach((query) => query.destroy());
   }
 
-  handleQueryCleared(variables) {
+  unregisterQuery(variables) {
     delete this.registry[JSON.stringify(toSortedObject(variables))];
   }
 }

@@ -1,16 +1,21 @@
 import { deepFreezePlain } from 'object-array-utils';
-import { expect, test } from 'vitest';
+import { beforeEach, expect, test } from 'vitest';
 import Document from '../../document/Document';
 import { GlobalCache } from '../globalCache';
 import normalizeEntities from '../normalizeEntities';
 import QueryCache from './QueryCache';
+
+beforeEach(() => {
+  Document.resetAll();
+  Document.instances.length = 0;
+});
 
 test('immutability', () => {
   const globalCache = new GlobalCache();
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .wrapper('articles')
           .embed('pagination')
             .scalar('cursorForEntriesAfter')
@@ -101,7 +106,7 @@ test('immutability', () => {
 
   const document2 =
     Document
-      .query()
+      .query('query2')
         .entity('comment', 'Comment')
           .scalar('text')
           ._
@@ -142,7 +147,7 @@ test('change value of scalar and embed', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .viewer('me')
           .entity('user', 'User')
             .wrapper('articles', 'Article')
@@ -196,7 +201,7 @@ test('change value of scalar and embed', () => {
 
   const document2 =
     Document
-      .query()
+      .query('query2')
         .entitySet('users', 'User')
           .entitySet('articles', 'Article')
             .scalar('title')
@@ -242,7 +247,7 @@ test('unions and interfaces', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .entity('account', 'Account')
           .scalar('name')._
         .entity('user', 'User')
@@ -330,7 +335,7 @@ test('unions and interfaces', () => {
   expect(queryCache.data.interfaces[1].height).toBe('interface 2 height');
 
   const document2 =
-    Document.mutation()
+    Document.mutation('mutation')
       .entity('account')
         .delete()._
       .entity('foo')
@@ -400,7 +405,7 @@ test('delete entity', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .entity('user', 'User')
           .scalar('name')
           .entity('user', 'User')
@@ -426,7 +431,7 @@ test('delete entity', () => {
   expect(queryCache.data.user.name).toBe('John');
 
   const document2 =
-    Document.mutation()
+    Document.mutation('mutation')
       .entitySet('users')
         .deleteAll()
         .scalar('name')._._;
@@ -453,7 +458,7 @@ test('change nested entity', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .entity('user', 'User')
           .entity('account', 'Account')
             .scalar('name')._._._;
@@ -479,7 +484,7 @@ test('change nested entity', () => {
 
   const document2 =
     Document
-      .query()
+      .query('query2')
         .entity('user', 'User')
           .entity('account', 'Account')
             ._._._;
@@ -511,7 +516,7 @@ test('set nested entity to null/empty array', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .entity('user', 'User')
           .entitySet('articles', 'Article')
             ._
@@ -545,7 +550,7 @@ test('set nested entity to null/empty array', () => {
 
   const document2 =
     Document
-      .query()
+      .query('query2')
         .entitySet('users', 'User')
           .entitySet('articles', 'Article')
             .replaceElements()._
@@ -578,7 +583,7 @@ test('remove entities from array', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .entity('user', 'User')
           .entitySet('articles', 'Article')._._._;
 
@@ -606,7 +611,7 @@ test('remove entities from array', () => {
   expect(queryCache.data.user.articles.length).toBe(2);
 
   const document2 =
-    Document.mutation()
+    Document.mutation('mutation')
       .entitySet('users', 'User')
         .entitySet('articles', 'Article')
           .removeElements()._._._;
@@ -638,7 +643,7 @@ test('delete entities from array', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .entity('article', 'Article')
           ._
         .entity('user', 'User')
@@ -681,7 +686,7 @@ test('delete entities from array', () => {
   expect(queryCache.data.user.articles.length).toBe(2);
 
   const document2 =
-    Document.mutation()
+    Document.mutation('mutation')
       .entitySet('users', 'User')
         .entitySet('articles', 'Article')
           .deleteAll()._._._;
@@ -715,7 +720,7 @@ test('override entities in array', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .entity('user', 'User')
           .entitySet('articles', 'Article')._._._;
 
@@ -743,7 +748,7 @@ test('override entities in array', () => {
   expect(queryCache.data.user.articles.length).toBe(2);
 
   const document2 =
-    Document.mutation()
+    Document.mutation('mutation')
       .entitySet('users', 'User')
         .entitySet('articles', 'Article')
           .replaceElements()._._._;
@@ -775,7 +780,7 @@ test('add entities in array', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .entity('user', 'User')
           .entitySet('articles', 'Article')._._._;
 
@@ -803,7 +808,7 @@ test('add entities in array', () => {
   expect(queryCache.data.user.articles.length).toBe(2);
 
   const document2 =
-    Document.mutation()
+    Document.mutation('mutation')
       .entitySet('users', 'User')
         .entitySet('articles', 'Article')
           ._._._;
@@ -835,7 +840,7 @@ test('add entity', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .entity('user', 'User')
           .entity('organization', 'Organization')
             .entity('defaultLocation', 'Location')
@@ -873,7 +878,7 @@ test('add entity', () => {
 
   const document2 =
     Document
-      .query()
+      .query('query')
         .entitySet('users', 'User')
           .entity('organization', 'Organization')
             .entity('defaultLocation', 'Location')
@@ -926,7 +931,7 @@ test('filter entity with callback', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query')
         .variableDefinitions({ minVoteCount: 'Number!' })
         .entity('user', 'User')
           .entitySet('articles', 'Article')
@@ -956,7 +961,7 @@ test('filter entity with callback', () => {
 
   const document2 =
     Document
-      .query()
+      .query('query2')
         .entity('user', 'User')
           .entitySet('articles', 'Article')
             .scalar('voteCount', Number)._._._;
@@ -994,7 +999,7 @@ test('add entity with callback', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .variableDefinitions({ minVoteCount: 'Number!' })
         .entitySet('articles', 'Article')
           .useVariables({ minVoteCount: 'minVoteCount' })
@@ -1019,7 +1024,7 @@ test('add entity with callback', () => {
 
   const document2 =
     Document
-      .query()
+      .query('query2')
         .entitySet('articles', 'Article')
           .scalar('voteCount', Number)._._;
 
@@ -1052,7 +1057,7 @@ test('replace entity with callback', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .variableDefinitions({ accountId: 'ID!' })
         .entity('user', 'User')
           .useVariables({ accountId: 'accountId' })
@@ -1077,7 +1082,7 @@ test('replace entity with callback', () => {
 
   const document2 =
     Document
-      .query()
+      .query('query2')
         .entity('user', 'User')
           .scalar('accountId', Number)._._;
 
@@ -1103,7 +1108,7 @@ test('no updates', () => {
 
   const document1 =
     Document
-      .query()
+      .query('query1')
         .viewer('me')
           .entity('user', 'User')
             .entitySet('articles', 'Article')
@@ -1142,7 +1147,7 @@ test('no updates', () => {
 
   const document2 =
     Document
-      .query()
+      .query('query2')
         .entitySet('users', 'User')
           .entitySet('articles', 'Article')
             .scalar('title')._

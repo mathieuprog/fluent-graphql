@@ -9,13 +9,21 @@ export default class HttpClient {
     this.params = params;
   }
 
-  async request(query, variables = {}) {
+  async request(query, variables = {}, { signal } = {}) {
     const json =
       (isEmptyPlainObject(variables))
       ? { query }
       : { query, variables };
 
-    const { data, errors } = await ky.post(this.url, { json, timeout: 30000, ...this.params }).json();
+      const { data, errors } = await ky.post(
+        this.url,
+        {
+          json,
+          timeout: 30_000,
+          signal,
+          ...this.params
+        }
+      ).json();
 
     if (errors) {
       const operationName = query.match(/\b(\w+)(?=[\{\(])/)?.[1];

@@ -1,11 +1,16 @@
 import { deepFreezePlain } from 'object-array-utils';
-import { expect, test } from 'vitest';
+import { beforeEach, expect, test } from 'vitest';
 import Document from '../document/Document';
 import transform from './transform';
 
+beforeEach(() => {
+  Document.resetAll();
+  Document.instances.length = 0;
+});
+
 test('transform', () => {
   const document =
-    Document.mutation()
+    Document.mutation('mutation')
       .viewer('me')
         .wrapper('wrapper')
           .scalar('int', Number)

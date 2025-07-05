@@ -5,6 +5,10 @@ import ObjectType from '../document/ObjectType';
 export class GlobalCache {
   entities = {};
 
+  clear() {
+    this.entities = {};
+  }
+
   getById(id) {
     return this.entities[id];
   }

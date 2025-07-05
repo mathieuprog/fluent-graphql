@@ -1,7 +1,12 @@
 import { deepFreezePlain } from 'object-array-utils';
-import { expect, test } from 'vitest';
+import { beforeEach, expect, test } from 'vitest';
 import Document from '../document/Document';
 import deriveFromReference from './deriveFromReference';
+
+beforeEach(() => {
+  Document.resetAll();
+  Document.instances.length = 0;
+});
 
 test('derive data from foreign key', async () => {
   const fetchAccount = (accountId) => ({
@@ -22,7 +27,7 @@ test('derive data from foreign key', async () => {
 
   const document =
     Document
-      .query()
+      .query('query')
         .entity('user', 'User')
           .entity('account', 'Account')
             .deriveFromReference('accountId', fetchAccount)._

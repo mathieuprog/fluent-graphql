@@ -1,39 +1,52 @@
 import { differenceArraysOfPrimitives, hasProperties, isArraySubset, omitProperties } from 'object-array-utils';
 import Logger from '../Logger';
 import DocumentOptions from '../document/DocumentOptions';
+import NotFoundInCacheError from '../errors/NotFoundInCacheError';
 import FetchStrategy from './FetchStrategy';
 import Notifier from './Notifier';
 
 export default class Query {
-  constructor(document, variables, createQueryCache, executeRequest, onCleared, clearAfterDuration, pollAfterDuration) {
+  constructor(document, variables, createQueryCache, runNetworkRequest, unregisterQuery, destroyIdleAfterDuration, pollAfterDuration) {
     this.document = document;
     this.variables = variables;
     this.tenants = document.getTenantsCallback?.(variables);
     this.createQueryCache = createQueryCache;
-    this.executeRequest = executeRequest;
-    this.onCleared = onCleared;
-    this.cleared = false;
+    this.runNetworkRequest = runNetworkRequest;
+    this.unregisterQuery = unregisterQuery;
     this.pendingPromise = null;
     this.unsubscriber = null;
-    this.clearAfterDuration = clearAfterDuration;
     this.pollAfterDuration = pollAfterDuration;
-    this.timeoutClear = this.initTimeoutClear();
+    this.destroyIdleAfterDuration = destroyIdleAfterDuration;
     this.intervalPoll = this.initIntervalPoll();
+    this.timeoutDestroyIdle = this.initTimeoutDestroyIdle();
     this.cache = null;
     this.subscribers = new Set();
+    this.shouldDestroyWhenIdle = false;
+    this.isDestroyed = false;
   }
 
   getCachedData() {
     return this.cache?.getData() || null;
   }
 
-  invalidateCache() {
-    this.cache?.invalidate();
+  invalidate() {
+    if (this.cache) {
+      this.cache.markStale();
+      // TODO notify observers of the isStale, isRefreshing, isFetching, etc. update
+      // this.notify();
+    }
+
+    const shouldFetch =
+      !this.cache || (this.subscribers.size > 0 && !this.pendingPromise);
+  
+    if (shouldFetch) {
+      this.fetch(FetchStrategy.FetchFromNetwork);
+    }
   }
 
   updateCache(updates) {
-    if (this.cleared) {
-      throw new Error();
+    if (!this.cache || this.isDestroyed) {
+      return;
     }
 
     const filteredUpdates = updates.filter(({ entity }) => {
@@ -71,11 +84,15 @@ export default class Query {
     }
 
     if (updated && this.subscribers.size > 0) {
-      this.timeoutClear = this.initTimeoutClear();
+      this.initTimeoutDestroyIdle();
     }
   }
 
   async fetch(fetchStrategy) {
+    if (this.isDestroyed) {
+      throw new Error();
+    }
+
     fetchStrategy = fetchStrategy ?? DocumentOptions.defaultFetchStrategy;
 
     if (fetchStrategy === FetchStrategy.FetchFromNetworkAndSkipCaching) {
@@ -93,7 +110,7 @@ export default class Query {
   }
 
   async doFetch(fetchStrategy) {
-    this.timeoutClear = this.initTimeoutClear();
+    this.initTimeoutDestroyIdle();
 
     const fetch = () => {
       this.intervalPoll = this.initIntervalPoll();
@@ -104,38 +121,22 @@ export default class Query {
       this.cache = this.createQueryCache(data);
     };
 
-    const notCachedOrInvalidated = () => {
-      return !this.getCachedData() || this.cache.invalidated;
-    };
-
     const fetchAndMaybeCache = async () => {
       const data = await fetch();
       // after the await, cache may already exist if 2 queries were executed simultaneously
-      if (notCachedOrInvalidated()) {
-        Logger.debug('Caching data...');
+      if (!this.cache) {
+        Logger.debug('Caching data…');
         createCache(data);
       }
     };
-
-    const reasonCacheMiss = () => {
-      if (!this.getCachedData()) {
-        return '';
-      }
-
-      if (this.cache.invalidated) {
-        return ' (invalidated)';
-      }
-
-      throw new Error();
-    }
 
     switch (fetchStrategy) {
       default:
         throw new Error(`unknown or unexpected fetch strategy "${fetchStrategy}"`);
 
       case FetchStrategy.FetchFromCacheOrFallbackNetwork: {
-        if (notCachedOrInvalidated()) {
-          Logger.debug(`Cache miss${reasonCacheMiss()}, fetching from network...`);
+        if (!this.cache) {
+          Logger.debug(`Cache miss, fetching from network…`);
           await fetchAndMaybeCache();
         } else {
           Logger.debug('Cache hit, using cached data.');
@@ -143,28 +144,28 @@ export default class Query {
       } break;
 
       case FetchStrategy.FetchFromCacheAndNetwork: {
-        if (notCachedOrInvalidated()) {
-          Logger.debug(`Cache miss${reasonCacheMiss()}, fetching from network...`);
+        if (!this.cache) {
+          Logger.debug(`Cache miss, fetching from network…`);
           await fetchAndMaybeCache();
         } else {
-          Logger.debug('Cache hit, using cached data and refreshing from network...');
+          Logger.debug('Cache hit, using cached data and refreshing from network…');
           fetch();
         }
       } break;
 
       case FetchStrategy.FetchFromNetwork: {
-        Logger.debug('Fetching from network...');
+        Logger.debug('Fetching from network…');
         await fetchAndMaybeCache();
       } break;
 
       case FetchStrategy.FetchFromNetworkAndRecreateCache: {
-        Logger.debug('Fetching from network and recreating cache...');
+        Logger.debug('Fetching from network and recreating cache…');
         createCache(await fetch());
       } break;
 
       case FetchStrategy.FetchFromCacheOrThrow: {
-        if (notCachedOrInvalidated()) {
-          Logger.debug('Cache miss, throwing error...');
+        if (!this.cache) {
+          Logger.debug('Cache miss, throwing error…');
           throw new NotFoundInCacheError('not found in cache');
         } else {
           Logger.debug('Cache hit, using cached data.');
@@ -173,72 +174,88 @@ export default class Query {
     }
   }
 
+  // “single-flight” or “in-flight deduplication” pattern
   async executePromiseOrWaitPending() {
-    let result;
+    if (this.isDestroyed) {
+      throw new Error();
+    }
 
     if (this.pendingPromise) {
-      result = await this.pendingPromise;
-    } else {
-      const promise = this.executeRequest();
+      return this.pendingPromise;
+    }
 
-      this.pendingPromise = promise;
+    const { dataPromise, abort } = this.runNetworkRequest();
 
+    this.pendingPromise = (async () => {
       try {
-        result = await promise;
+        return await dataPromise;
       } finally {
         this.pendingPromise = null;
+        if (this.shouldDestroyWhenIdle) {
+          this.destroyIfIdle();
+        }
       }
-    }
+    })();
 
-    return result;
+    this.pendingPromise.abort = (...args) => {
+      abort?.(...args);
+      this.pendingPromise = null;
+    };
+
+    return this.pendingPromise;
   }
 
-  clear() {
-    if (this.cleared) {
-      return;
-    }
-
-    if (this.subscribers.size > 0) {
-      // throw new Error('Cannot clear query that has active subscribers');
-      Logger.warn(() => `Cannot clear ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} because it has active subscribers`);
-      return;
-    }
-
-    Logger.info(() => `Clearing ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)}`);
-
+  stopListening() {
     if (this.unsubscriber) {
       Logger.debug(() => `Unsubscribing ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)} from data updates`);
-
       this.unsubscriber();
       this.unsubscriber = null;
     }
-
-    clearTimeout(this.timeoutClear);
-    clearInterval(this.intervalPoll);
-
-    this.cleared = true;
-
-    this.onCleared();
   }
 
-  initTimeoutClear() {
-    if (!this.clearAfterDuration) {
-      return null;
+  destroy() {
+    if (this.isDestroyed) {
+      return;
     }
 
-    clearTimeout(this.timeoutClear);
+    this.isDestroyed = true;
+    this.shouldDestroyWhenIdle = false;
+    this.pendingPromise?.abort?.();
+    this.pendingPromise = null;
+    this.notifySubscribers(null);
+    this.subscribers.clear();
+    this.stopListening();
+    this.cache = null;
+    clearTimeout(this.timeoutDestroyIdle);
+    clearInterval(this.intervalPoll);
+    this.unregisterQuery();
+  }
 
-    return setTimeout(
-      () => {
-        if (this.pendingPromise || this.subscribers.size > 0) {
-          this.timeoutClear = this.initTimeoutClear();
-          return;
-        }
+  destroyWhenIdle() {
+    this.shouldDestroyWhenIdle = true;
+    this.destroyIfIdle();
+  }
 
-        this.clear();
-      },
-      this.clearAfterDuration.total({ unit: 'millisecond' })
+  destroyIfIdle() {
+    if (this.pendingPromise || this.subscribers.size > 0) {
+      return;
+    }
+
+    this.destroy();
+  }
+
+  initTimeoutDestroyIdle() {
+    if (!this.destroyIdleAfterDuration) {
+      return null;
+    }
+  
+    clearTimeout(this.timeoutDestroyIdle);
+
+    this.timeoutDestroyIdle = setTimeout(
+      () => this.destroyIfIdle(),
+      this.destroyIdleAfterDuration.total({ unit:'millisecond' })
     );
+    return this.timeoutDestroyIdle;
   }
 
   initIntervalPoll() {
@@ -259,12 +276,19 @@ export default class Query {
       throw new Error(`subscriber is not a function: ${JSON.stringify(subscriber)}`);
     }
 
+    this.shouldDestroyWhenIdle = false;
+
     const item = { subscriber };
     this.subscribers.add(item);
     Logger.info(() => `Added a subscriber to ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)}. Total subscriber count: ${this.subscribers.size}`);
 
     return () => {
       this.subscribers.delete(item);
+
+      if (this.subscribers.size === 0 && this.shouldDestroyWhenIdle) {
+        this.destroy();
+      }
+
       Logger.info(() => `Unsubscribed a subscriber to ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)}. ${this.subscribers.size} subscribers left`);
     };
   }

@@ -1,5 +1,10 @@
-import { expect, test } from 'vitest';
+import { beforeEach, expect, test } from 'vitest';
 import Document from './Document';
+
+beforeEach(() => {
+  Document.resetAll();
+  Document.instances.length = 0;
+});
 
 test('stringify', () => {
   const document =
@@ -102,7 +107,7 @@ test('stringify returns null', () => {
 
   const document3 =
     Document
-      .query('')
+      .query('query')
         .entitySet('services', 'Service')
           .deriveFrom(() => ({}))
           .scalar('foo')._._

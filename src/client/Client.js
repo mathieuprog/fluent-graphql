@@ -7,11 +7,11 @@ export default class Client {
     this.wsClient = (ws.url) ? new WsClient(ws) : null;
   }
 
-  request(query, variables) {
+  request(query, variables, options = {}) {
     if (!this.httpClient) {
       throw new Error('no HTTP client configured');
     }
-    return this.httpClient.request(query, variables);
+    return this.httpClient.request(query, variables, options);
   }
 
   subscribe(query, variables, sink, options = {}) {

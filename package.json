@@ -19,7 +19,7 @@
     "@js-temporal/polyfill": "^0.5.1",
     "graphql-ws": "^6.0.5",
     "ky": "^1.8.1",
-    "object-array-utils": "^6.0.0"
+    "object-array-utils": "^6.1.0"
   },
   "main": "src/index.js",
   "repository": {

@@ -18,18 +18,15 @@ export default class OperationExecutor {
     throwIfNotInstanceOfDocument(document);
     this.document = document;
     this.maybeClient = client;
-    this.queryRegistry =
-      new QueryRegistry(
-        document,
-        this.executeRequest.bind(this));
+    this.queryRegistry = new QueryRegistry(document, this.executeForCache.bind(this));
   }
 
-  clearQueries() {
-    this.queryRegistry.removeAll();
+  destroyQueries() {
+    this.queryRegistry.destroyAll();
   }
 
-  invalidateAllCaches() {
-    this.queryRegistry.invalidateAllCaches();
+  invalidateQueryCaches() {
+    this.queryRegistry.invalidateQueryCaches();
   }
 
   execute(...args) {
@@ -64,16 +61,15 @@ export default class OperationExecutor {
 
     if (fetchStrategy === FetchStrategy.FetchFromNetworkAndSkipCaching) {
       Logger.info('The query won\'t be cached');
-      return await this.executeRequestAndUserCallbacks(variables, Notifier.notify);
+      return this.executeOneOff(variables, Notifier.notify);
     }
 
     if (fetchStrategy === FetchStrategy.FetchFromNetworkAndSkipCachingAndCacheUpdate) {
       Logger.info('The query won\'t be cached, and cache updates will be skipped');
-      return await this.executeRequestAndUserCallbacks(variables);
+      return this.executeOneOff(variables);
     }
 
     const query = this.queryRegistry.getOrCreate(variables);
-
     const transformedData = await query.fetch(fetchStrategy);
     Logger.verbose(() => `Return data for query ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}: ${JSON.stringify(transformedData, null, 2)}`);
     this.document.afterExecutionCallback(transformedData);
@@ -86,7 +82,7 @@ export default class OperationExecutor {
 
     Logger.info(() => `Executing mutation ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
 
-    return this.executeRequestAndUserCallbacks(variables, Notifier.notify);
+    return this.executeOneOff(variables, Notifier.notify);
   }
 
   async executeSubscription(args) {
@@ -110,49 +106,64 @@ export default class OperationExecutor {
     Notifier.notify(globalCache.update(entities));
   }
 
-  async executeRequestAndUserCallbacks(variables, handleUpdates) {
-    const data = await this.executeRequest(variables, handleUpdates);
-
-    const transformedData = this.document.transform(data);
-
-    this.document.afterExecutionCallback(transformedData);
-
-    return transformedData;
+  async executeOneOff(variables, handleUpdates) {
+    const { dataPromise } = this.executeForCache(variables, handleUpdates);
+  
+    const raw = await dataPromise;
+    const transformed = this.document.transform(raw);
+  
+    this.document.afterExecutionCallback(transformed);
+    return transformed;
   }
 
-  async executeRequest(variables, handleUpdates) {
+  executeForCache(variables, handleUpdates, options = {}) {
+    const controller = options.signal ? undefined : new AbortController();
+
     Logger.info(() => `Executing HTTP request for ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
 
-    await this.maybeSimulateNetworkDelay();
+    const run = async () => {
+      await this.maybeSimulateNetworkDelay();
 
-    const client = await this.getClient();
+      const client = await this.getClient();
 
-    let data = await client.request(this.document.getQueryString(), variables);
+      let response = await client.request(
+        this.document.getQueryString(),
+        variables,
+        { signal: options.signal ?? controller?.signal }
+      );
 
-    Logger.info(() => `HTTP request executed for ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
-    Logger.debug(() => `Raw data: ${JSON.stringify(data, null, 2)}`);
+      Logger.info(() => `HTTP request executed for ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
+      Logger.debug(() => `Raw response: ${JSON.stringify(response, null, 2)}`);
 
-    data = transform(this.document, data);
+      response = transform(this.document, response);
 
-    data = addVirtualScalars(this.document, data);
+      response = addVirtualScalars(this.document, response);
 
-    const context = this.document.executionContextGetter(variables, data);
+      const context = this.document.executionContextGetter(variables, response);
 
-    data = await deriveFromReference(this.document, data, variables, context);
+      response = await deriveFromReference(this.document, response, variables, context);
 
-    data = await deriveFrom(this.document, data, variables, context);
+      response = await deriveFrom(this.document, response, variables, context);
 
-    data = await reference(this.document, data, variables, context);
+      response = await reference(this.document, response, variables, context);
 
-    Logger.verbose(() => `Transformed data ${JSON.stringify(data, null, 2)}`);
+      Logger.verbose(() => `Transformed response ${JSON.stringify(response, null, 2)}`);
 
-    if (handleUpdates) {
-      const entities = normalizeEntities(this.document, data);
+      if (handleUpdates) {
+        const entities = normalizeEntities(this.document, response);
 
-      handleUpdates(globalCache.update(entities));
-    }
+        handleUpdates(globalCache.update(entities));
+      }
 
-    return data;
+      return response;
+    };
+
+    const dataPromise = run();
+
+    return {
+      dataPromise,
+      abort: controller ? () => controller.abort() : undefined
+    };
   }
 
   async maybeSimulateNetworkDelay() {
@@ -164,11 +175,7 @@ export default class OperationExecutor {
 
   getCache(variables) {
     const query = this.queryRegistry.get(variables);
-    if (!query) {
-      return null;
-    }
-
-    return query.getCachedData();
+    return query ? query.getCachedData() : null;
   }
 
   getClient() {
@@ -178,6 +185,6 @@ export default class OperationExecutor {
       throw new Error(`no client specified for ${this.document.operationName} document and no default client found`);
     }
 
-    return (typeof client === 'function') ? client() : client;
+    return typeof client === 'function' ? client() : client;
   }
 }

@@ -1,10 +1,15 @@
-import { expect, test } from 'vitest';
+import { beforeEach, expect, test } from 'vitest';
 import Document from '../document/Document';
 import normalizeEntities from './normalizeEntities';
 
+beforeEach(() => {
+  Document.resetAll();
+  Document.instances.length = 0;
+});
+
 test('normalize entities', () => {
   const document =
-    Document.mutation()
+    Document.mutation('mutation')
       .viewer('me')
         .wrapper('wrapper')
           .entity('user')
