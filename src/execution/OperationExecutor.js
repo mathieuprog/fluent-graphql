@@ -145,7 +145,7 @@ export default class OperationExecutor {
 
       response = await deriveFrom(this.document, response, variables, context);
 
-      response = await reference(this.document, response, variables, context);
+      response = reference(this.document, response, variables, context);
 
       Logger.verbose(() => `Transformed response ${JSON.stringify(response, null, 2)}`);
 
