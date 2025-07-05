@@ -1,4 +1,4 @@
-import { hasArrayDuplicates, toSortedObject } from 'object-array-utils';
+import { hasArrayDuplicates, isNullish, toSortedObject } from 'object-array-utils';
 import Logger from '../Logger';
 import FetchStrategy from '../execution/FetchStrategy';
 import OperationExecutor from '../execution/OperationExecutor';
@@ -163,6 +163,7 @@ export default class Document {
   makeExecutable(client = null) {
     this.prepareQueryString();
     this.executor = new OperationExecutor(this, client);
+    this.freeze();
     return this;
   }
 
@@ -276,6 +277,36 @@ export default class Document {
   createExecutionContext(executionContextGetter) {
     this.executionContextGetter = executionContextGetter;
     return this;
+  }
+
+  freeze() {
+    this.freezeNodeRecursively(this.rootObject);
+    Object.freeze(this);
+    return this;
+  }
+
+  freezeNodeRecursively(node) {
+    if (isNullish(node)) {
+      throw new Error('Node is null or undefined');
+    }
+
+    if (typeof node !== 'object') {
+      throw new Error('Node is not an object');
+    }
+
+    if (node.objects) {
+      Object.values(node.objects).forEach(childNode => {
+        this.freezeNodeRecursively(childNode);
+      });
+    }
+
+    if (node.inlineFragments) {
+      Object.values(node.inlineFragments).forEach(fragment => {
+        this.freezeNodeRecursively(fragment);
+      });
+    }
+
+    Object.freeze(node);
   }
 
   invalidateQueryCaches() {
