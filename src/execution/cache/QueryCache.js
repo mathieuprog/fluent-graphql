@@ -28,7 +28,7 @@ export default class QueryCache {
     this.isStale = false;
   }
 
-  isStale() {
+  isMarkedStale() {
     return this.isStale;
   }
 
