@@ -162,7 +162,14 @@ export default class OperationExecutor {
 
     return {
       dataPromise,
-      abort: controller ? () => controller.abort() : undefined
+      abort: controller
+        ? () => controller.abort()
+        : () => {
+            throw new Error(
+              'executeForCache was called with an external AbortSignal; ' +
+              'call abort() on the AbortController that owns that signal.'
+            );
+          }
     };
   }
 
