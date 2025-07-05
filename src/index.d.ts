@@ -130,14 +130,6 @@ declare module 'fluent-graphql' {
     subscribe(variables: VariablesType, subscriber: Subscriber): Unsubscriber;
     afterExecution(fun: (data: TransformedType) => unknown): Document<ReturnType, VariablesType, TransformedType>;
     addPossibleTypenames(typenames: string | string[]): Document<ReturnType, VariablesType, TransformedType>;
-    filterEntity(fun: (entity: any, variables: VariablesType) => boolean): Document<ReturnType, VariablesType, TransformedType>;
-    scopeByTenants(fun: (variables: VariablesType) => PlainObject): Document<ReturnType, VariablesType, TransformedType>;
-    destroyIdleAfter(duration: any): Document<ReturnType, VariablesType, TransformedType>; // TODO Temporal type
-    pollAfter(duration: any): Document<ReturnType, VariablesType, TransformedType>; // TODO Temporal type
-    createExecutionContext(executionContextGetter: (variables: VariablesType, data: ReturnType) => unknown): Document<ReturnType, VariablesType, TransformedType>;
-    destroyQueries(): Document<ReturnType, VariablesType, TransformedType>;
-    invalidateQueryCaches(): Document<ReturnType, VariablesType, TransformedType>;
-    getQueryString(): string;
   }
 
   class QueryExecutor<ReturnType, VariablesType = unknown, TransformedType = ReturnType> {
