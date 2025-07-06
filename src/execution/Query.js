@@ -174,7 +174,7 @@ export default class Query {
     }
   }
 
-  // “single-flight” or “in-flight deduplication” pattern
+  // "single-flight" or "in-flight deduplication" pattern
   async executePromiseOrWaitPending() {
     if (this.isDestroyed) {
       throw new Error();
