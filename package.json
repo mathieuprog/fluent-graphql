@@ -4,7 +4,7 @@
   "description": "JavaScript GraphQL client",
   "funding": "https://github.com/mathieuprog/fluent-graphql?sponsor=1",
   "scripts": {
-    "test": "vitest"
+    "test": "vitest run"
   },
   "jest": {
     "testEnvironment": "jest-environment-node",
