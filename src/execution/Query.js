@@ -6,18 +6,18 @@ import FetchStrategy from './FetchStrategy';
 import Notifier from './Notifier';
 
 export default class Query {
-  constructor(document, variables, createQueryCache, runNetworkRequest, unregisterQuery, destroyIdleAfterDuration, pollAfterDuration) {
+  constructor(document, variables, createQueryCache, fetchAndUpdateCaches, unregisterQuery, destroyIdleAfterDuration, pollAfterDuration) {
     this.document = document;
     this.variables = variables;
     this.tenants = document.getTenantsCallback?.(variables);
     this.createQueryCache = createQueryCache;
-    this.runNetworkRequest = runNetworkRequest;
+    this.fetchAndUpdateCaches = fetchAndUpdateCaches;
     this.unregisterQuery = unregisterQuery;
     this.pendingPromise = null;
     this.unsubscriber = null;
     this.pollAfterDuration = pollAfterDuration;
     this.destroyIdleAfterDuration = destroyIdleAfterDuration;
-    this.intervalPoll = this.initIntervalPoll();
+    this.intervalPoll = null;
     this.timeoutDestroyIdle = this.initTimeoutDestroyIdle();
     this.cache = null;
     this.subscribers = new Set();
@@ -112,9 +112,9 @@ export default class Query {
   async doFetch(fetchStrategy) {
     this.initTimeoutDestroyIdle();
 
-    const fetch = () => {
+    const fetchAndUpdateCaches = () => {
       this.intervalPoll = this.initIntervalPoll();
-      return this.executePromiseOrWaitPending();
+      return this.runSingleFlight(this.fetchAndUpdateCaches.bind(this));
     };
 
     const createCache = (data) => {
@@ -122,11 +122,13 @@ export default class Query {
     };
 
     const fetchAndMaybeCache = async () => {
-      const data = await fetch();
+      const data = await fetchAndUpdateCaches();
       // after the await, cache may already exist if 2 queries were executed simultaneously
       if (!this.cache) {
         Logger.debug('Caching data…');
         createCache(data);
+      } else {
+        this.cache.markFresh();
       }
     };
 
@@ -138,6 +140,9 @@ export default class Query {
         if (!this.cache) {
           Logger.debug(`Cache miss, fetching from network…`);
           await fetchAndMaybeCache();
+        } else if (this.cache.isMarkedStale()) {
+          Logger.debug('Cache stale, fetching from network…');
+          await fetchAndMaybeCache();
         } else {
           Logger.debug('Cache hit, using cached data.');
         }
@@ -147,9 +152,14 @@ export default class Query {
         if (!this.cache) {
           Logger.debug(`Cache miss, fetching from network…`);
           await fetchAndMaybeCache();
+        } else if (this.cache.isMarkedStale()) {
+          Logger.debug('Cache stale, fetching from network…');
+          await fetchAndMaybeCache();
         } else {
           Logger.debug('Cache hit, using cached data and refreshing from network…');
-          fetch();
+          fetchAndUpdateCaches().then(() => {
+            this.cache.markFresh();
+          });
         }
       } break;
 
@@ -160,13 +170,15 @@ export default class Query {
 
       case FetchStrategy.FetchFromNetworkAndRecreateCache: {
         Logger.debug('Fetching from network and recreating cache…');
-        createCache(await fetch());
+        createCache(await fetchAndUpdateCaches());
       } break;
 
       case FetchStrategy.FetchFromCacheOrThrow: {
         if (!this.cache) {
           Logger.debug('Cache miss, throwing error…');
           throw new NotFoundInCacheError('not found in cache');
+        } else if (this.cache.isMarkedStale()) {
+          Logger.debug('Cache stale, using stale cached data.');
         } else {
           Logger.debug('Cache hit, using cached data.');
         }
@@ -175,7 +187,7 @@ export default class Query {
   }
 
   // "single-flight" or "in-flight deduplication" pattern
-  async executePromiseOrWaitPending() {
+  async runSingleFlight(fetch) {
     if (this.isDestroyed) {
       throw new Error();
     }
@@ -184,7 +196,7 @@ export default class Query {
       return this.pendingPromise;
     }
 
-    const { dataPromise, abort } = this.runNetworkRequest();
+    const { dataPromise, abort } = fetch();
 
     this.pendingPromise = (async () => {
       try {
@@ -192,7 +204,7 @@ export default class Query {
       } finally {
         this.pendingPromise = null;
         if (this.shouldDestroyWhenIdle) {
-          this.destroyIfIdle();
+          this.destroyOnlyIfIdle();
         }
       }
     })();
@@ -233,10 +245,10 @@ export default class Query {
 
   destroyWhenIdle() {
     this.shouldDestroyWhenIdle = true;
-    this.destroyIfIdle();
+    this.destroyOnlyIfIdle();
   }
 
-  destroyIfIdle() {
+  destroyOnlyIfIdle() {
     if (this.pendingPromise || this.subscribers.size > 0) {
       return;
     }
@@ -252,7 +264,7 @@ export default class Query {
     clearTimeout(this.timeoutDestroyIdle);
 
     this.timeoutDestroyIdle = setTimeout(
-      () => this.destroyIfIdle(),
+      () => this.destroyOnlyIfIdle(),
       this.destroyIdleAfterDuration.total({ unit:'millisecond' })
     );
     return this.timeoutDestroyIdle;
@@ -275,8 +287,6 @@ export default class Query {
     if (typeof subscriber !== 'function') {
       throw new Error(`subscriber is not a function: ${JSON.stringify(subscriber)}`);
     }
-
-    this.shouldDestroyWhenIdle = false;
 
     const item = { subscriber };
     this.subscribers.add(item);

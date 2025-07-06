@@ -25,6 +25,10 @@ export default class OperationExecutor {
     this.queryRegistry.destroyAll();
   }
 
+  destroyQueriesWhenIdle(onAllQueriesDestroyed) {
+    this.queryRegistry.destroyAllWhenIdle(onAllQueriesDestroyed);
+  }
+
   invalidateQueryCaches() {
     this.queryRegistry.invalidateQueryCaches();
   }

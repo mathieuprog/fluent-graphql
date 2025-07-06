@@ -8,6 +8,7 @@ export default class QueryRegistry {
     this.document = document;
     this.executeRequest = executeRequest;
     this.registry = {};
+    this.onAllQueriesDestroyed = null;
   }
 
   getOrCreate(variables) {
@@ -27,14 +28,14 @@ export default class QueryRegistry {
         ? this.document.pollAfterDuration(variables)
         : this.document.pollAfterDuration;
 
-    const runNetworkRequest = (options) =>
+    const fetchAndUpdateCaches = (options) =>
       this.executeRequest(variables, Notifier.notify, options);
 
     const query = new Query(
       this.document,
       variables,
       (data) => new QueryCache(this.document, data, variables),
-      runNetworkRequest,
+      fetchAndUpdateCaches,
       () => this.unregisterQuery(variables),
       destroyIdleAfterDuration,
       pollAfterDuration
@@ -61,7 +62,18 @@ export default class QueryRegistry {
     Object.values(this.registry).forEach((query) => query.destroy());
   }
 
+  destroyAllWhenIdle(onAllQueriesDestroyed) {
+    this.onAllQueriesDestroyed = onAllQueriesDestroyed;
+    Object.values(this.registry).forEach((query) => query.destroyWhenIdle());
+  }
+
   unregisterQuery(variables) {
     delete this.registry[JSON.stringify(toSortedObject(variables))];
+
+    if (this.onAllQueriesDestroyed && Object.keys(this.registry).length === 0) {
+      const callback = this.onAllQueriesDestroyed;
+      this.onAllQueriesDestroyed = null;
+      callback();
+    }
   }
 }

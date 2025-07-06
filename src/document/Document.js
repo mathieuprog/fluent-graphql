@@ -116,9 +116,9 @@ export default class Document {
     GlobalSettings.getTenantsByTypename = getTenantsByTypenameFun;
   }
 
-  static destroyQueries(operationNames) {
+  static destroyQueriesWhenIdle(operationNames) {
     if (hasArrayDuplicates(operationNames)) {
-      throw new Error(`array ${operationNames.join(', ')} passed to \`destroyQueries(operationNames)\` contains duplicates`);
+      throw new Error(`array ${operationNames.join(', ')} passed to \`destroyQueriesWhenIdle(operationNames)\` contains duplicates`);
     }
 
     operationNames.forEach((operationName) => {
@@ -127,8 +127,8 @@ export default class Document {
             && document.operationName === operationName;
         });
         
-      instances.forEach((instance) => {
-        instance.destroyQueries();
+      instances.forEach((document) => {
+        document.destroyQueriesWhenIdle();
       });
     });
   }
@@ -140,6 +140,23 @@ export default class Document {
       }
     });
     globalCache.clear();
+  }
+
+  static invalidateQueryCaches(operationNames) {
+    if (hasArrayDuplicates(operationNames)) {
+      throw new Error(`array ${operationNames.join(', ')} passed to \`invalidateQueryCaches(operationNames)\` contains duplicates`);
+    }
+
+    operationNames.forEach((operationName) => {
+      const instances = this.instances.filter((document) => {
+        return document.operationType === OperationType.Query
+            && document.operationName === operationName;
+      });
+      
+      instances.forEach((document) => {
+        document.invalidateQueryCaches();
+      });
+    });
   }
 
   simulateNetworkDelay(min, max) {
@@ -315,9 +332,15 @@ export default class Document {
   }
 
   destroyQueries() {
-    this.invalidateQueryCaches();
     this.executor?.destroyQueries();
     this.queryExecutors = {};
+    return this;
+  }
+
+  destroyQueriesWhenIdle() {
+    this.executor?.destroyQueriesWhenIdle(() => {
+      this.queryExecutors = {};
+    });
     return this;
   }
 
