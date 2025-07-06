@@ -1,5 +1,5 @@
 import Logger from '../Logger';
-import DocumentOptions from '../document/DocumentOptions';
+import GlobalSettings from '../document/GlobalSettings';
 import OperationType from '../document/OperationType';
 import FetchStrategy from './FetchStrategy';
 import Notifier from './Notifier';
@@ -55,7 +55,7 @@ export default class OperationExecutor {
   async executeQuery(args) {
     const [variables_, options] = args;
     const variables = variables_ || {};
-    const fetchStrategy = options?.fetchStrategy || DocumentOptions.defaultFetchStrategy;
+    const fetchStrategy = options?.fetchStrategy || GlobalSettings.defaultFetchStrategy;
 
     Logger.info(() => `Executing (${FetchStrategy.toString(fetchStrategy)}) query ${this.document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
 
@@ -176,7 +176,7 @@ export default class OperationExecutor {
   async maybeSimulateNetworkDelay() {
     const delay = await this.document.maybeSimulateNetworkDelay();
     if (delay === false) {
-      await DocumentOptions.maybeSimulateNetworkDelayGlobally();
+      await GlobalSettings.maybeSimulateNetworkDelayGlobally();
     }
   }
 
@@ -186,7 +186,7 @@ export default class OperationExecutor {
   }
 
   getClient() {
-    const client = this.maybeClient ?? DocumentOptions.defaultClient;
+    const client = this.maybeClient ?? GlobalSettings.defaultClient;
 
     if (!client) {
       throw new Error(`no client specified for ${this.document.operationName} document and no default client found`);

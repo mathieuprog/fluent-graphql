@@ -1,6 +1,6 @@
 import FetchStrategy from '../execution/FetchStrategy';
 
-export default class DocumentOptions {
+export default class GlobalSettings {
   static defaultClient = null;
   static defaultFetchStrategy = FetchStrategy.FetchFromCacheOrFallbackNetwork;
   static maybeSimulateNetworkDelayGlobally = () => Promise.resolve(false);

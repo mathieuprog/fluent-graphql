@@ -1,6 +1,6 @@
 import { differenceArraysOfPrimitives, hasProperties, isArraySubset, omitProperties } from 'object-array-utils';
 import Logger from '../Logger';
-import DocumentOptions from '../document/DocumentOptions';
+import GlobalSettings from '../document/GlobalSettings';
 import NotFoundInCacheError from '../errors/NotFoundInCacheError';
 import FetchStrategy from './FetchStrategy';
 import Notifier from './Notifier';
@@ -55,7 +55,7 @@ export default class Query {
       }
 
       if (this.tenants) {
-        const tenantNames = DocumentOptions.getTenantsByTypename(entity.__typename);
+        const tenantNames = GlobalSettings.getTenantsByTypename(entity.__typename);
 
         if (!isArraySubset(Object.keys(this.tenants), tenantNames)) {
           const missingTenants = differenceArraysOfPrimitives(tenantNames, Object.keys(this.tenants));
@@ -93,7 +93,7 @@ export default class Query {
       throw new Error();
     }
 
-    fetchStrategy = fetchStrategy ?? DocumentOptions.defaultFetchStrategy;
+    fetchStrategy = fetchStrategy ?? GlobalSettings.defaultFetchStrategy;
 
     if (fetchStrategy === FetchStrategy.FetchFromNetworkAndSkipCaching) {
       throw new Error();

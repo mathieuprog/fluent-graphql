@@ -4,7 +4,7 @@ import FetchStrategy from '../execution/FetchStrategy';
 import OperationExecutor from '../execution/OperationExecutor';
 import QueryExecutor from '../execution/QueryExecutor';
 import globalCache from '../execution/globalCache';
-import DocumentOptions from './DocumentOptions';
+import GlobalSettings from './GlobalSettings';
 import InlineFragmentFactory from './InlineFragmentFactory';
 import OperationType from './OperationType';
 import RootObject from './RootObject';
@@ -25,9 +25,9 @@ export default class Document {
     this.pollAfterDuration = null;
     this.executor = null;
     this.queryExecutors = {};
-    this.maybeSimulateNetworkDelay = () => false;
+    this.maybeSimulateNetworkDelay = () => Promise.resolve(false);
     this.refetchStrategy = FetchStrategy.FetchFromNetwork;
-    this.executionContextGetter = () => {};
+    this.executionContextGetter = () => ({});
     this.filterEntityCallback = (_entity) => true;
     this.getTenantsCallback = null;
     this.possibleTypenames = [];
@@ -93,15 +93,15 @@ export default class Document {
   }
 
   static setDefaultClient(client) {
-    DocumentOptions.defaultClient = client;
+    GlobalSettings.defaultClient = client;
   }
 
   static setDefaultFetchStrategy(strategy) {
-    DocumentOptions.defaultFetchStrategy = strategy;
+    GlobalSettings.defaultFetchStrategy = strategy;
   }
 
   static simulateNetworkDelayGlobally(min, max) {
-    DocumentOptions.maybeSimulateNetworkDelayGlobally =
+    GlobalSettings.maybeSimulateNetworkDelayGlobally =
       () => this.doSimulateNetworkDelay(min, max);
   }
 
@@ -113,7 +113,7 @@ export default class Document {
   }
 
   static defineTenantFields(getTenantsByTypenameFun) {
-    DocumentOptions.getTenantsByTypename = getTenantsByTypenameFun;
+    GlobalSettings.getTenantsByTypename = getTenantsByTypenameFun;
   }
 
   static destroyQueries(operationNames) {
