@@ -10,10 +10,9 @@ export default function consolidatedCaches() {
       continue;
     }
 
-    const allCachedData =
-      Object.values(document.executor.queryRegistry.registry)
-        .map((query) => query.getCachedData())
-        .filter((data) => data);
+    const allCachedData = Object.values(document.executor.queryRegistry.registry)
+      .map((query) => query.getCachedData())
+      .filter((data) => data);
 
     for (let data of allCachedData) {
       normalizedEntities = normalizedEntities.concat(normalizeEntities(data));
