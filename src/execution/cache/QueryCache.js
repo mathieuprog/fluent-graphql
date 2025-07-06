@@ -10,7 +10,7 @@ export default class QueryCache {
     throwIfNotInstanceOfDocument(document);
     this.document = document;
     this.data = deepFreezePlain(data);
-    this.transformedData = document.transform(data);
+    this.transformedData = deepFreezePlain(this.document.transform(data));
     this.variables = variables;
     this.isStale = false;
     Logger.info(() => `Cached response for operation ${document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
@@ -39,11 +39,10 @@ export default class QueryCache {
 
     this.data = this.doUpdate(this.data, this.document.rootObject, updates);
 
-    this.transformedData = this.document.transform(this.data);
-
     const updated = prevData !== this.data;
 
     if (updated) {
+      this.transformedData = deepFreezePlain(this.document.transform(this.data));
       Logger.info(() => `Updated ${this.document.operationName} cache with vars ${JSON.stringify(this.variables, null, 2)}`);
     } else {
       Logger.debug(() => `Nothing to update for ${this.document.operationName} cache with vars ${JSON.stringify(this.variables, null, 2)}`);
