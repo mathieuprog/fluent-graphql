@@ -13,6 +13,9 @@ export default {
       case 'FETCH_FROM_NETWORK':
         return 'network only';
 
+      case 'FETCH_FROM_NETWORK_AND_RECREATE_CACHE':
+        return 'network and recreate cache';
+
       case 'FETCH_FROM_NETWORK_AND_SKIP_CACHING':
         return 'network only and skip caching';
 
