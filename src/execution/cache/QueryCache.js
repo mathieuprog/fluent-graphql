@@ -12,7 +12,7 @@ export default class QueryCache {
     this.data = deepFreezePlain(data);
     this.transformedData = deepFreezePlain(this.document.transform(data));
     this.variables = variables;
-    this.isStale = false;
+    this.isStaleFlag = false;
     Logger.info(() => `Cached response for operation ${document.operationName} with vars ${JSON.stringify(variables, null, 2)}`);
   }
 
@@ -21,15 +21,15 @@ export default class QueryCache {
   }
 
   markStale() {
-    this.isStale = true;
+    this.isStaleFlag = true;
   }
 
   markFresh() {
-    this.isStale = false;
+    this.isStaleFlag = false;
   }
 
-  isMarkedStale() {
-    return this.isStale;
+  isStale() {
+    return this.isStaleFlag;
   }
 
   update(updates) {

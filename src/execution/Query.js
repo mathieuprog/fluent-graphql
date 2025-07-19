@@ -23,13 +23,28 @@ export default class Query {
     this.subscribers = new Set();
     this.shouldDestroyWhenIdle = false;
     this.isDestroyed = false;
+    this.destroyPredicate = null;
+    this.isObsoleteFlag = false;
   }
 
   getCachedData() {
     return this.cache?.getData() || null;
   }
 
+  hasCache() {
+    return !!this.cache;
+  }
+
+  isCacheStale() {
+    return this.cache?.isStale() || false;
+  }
+
   invalidate() {
+    // Don't invalidate obsolete queries - they shouldn't be refetched
+    if (this.isObsolete()) {
+      return;
+    }
+
     if (this.cache) {
       this.cache.markStale();
       // TODO notify observers of the isStale, isRefreshing, isFetching, etc. update
@@ -42,6 +57,15 @@ export default class Query {
     if (shouldFetch) {
       this.fetch(FetchStrategy.FetchFromNetwork);
     }
+  }
+
+  markObsolete() {
+    this.isObsoleteFlag = true;
+    // TODO notify observers of obsolescence status
+  }
+
+  isObsolete() {
+    return this.isObsoleteFlag;
   }
 
   updateCache(updates) {
@@ -106,7 +130,7 @@ export default class Query {
       this.unsubscriber = Notifier.subscribe(this);
     }
 
-    return this.cache.getData();
+    return this.cache?.getData() || null;
   }
 
   async doFetch(fetchStrategy) {
@@ -140,8 +164,11 @@ export default class Query {
         if (!this.cache) {
           Logger.debug(`Cache miss, fetching from network…`);
           await fetchAndMaybeCache();
-        } else if (this.cache.isMarkedStale()) {
+        } else if (this.cache.isStale()) {
           Logger.debug('Cache stale, fetching from network…');
+          await fetchAndMaybeCache();
+        } else if (this.isObsolete()) {
+          Logger.debug('Query obsolete, fetching from network…');
           await fetchAndMaybeCache();
         } else {
           Logger.debug('Cache hit, using cached data.');
@@ -152,7 +179,7 @@ export default class Query {
         if (!this.cache) {
           Logger.debug(`Cache miss, fetching from network…`);
           await fetchAndMaybeCache();
-        } else if (this.cache.isMarkedStale()) {
+        } else if (this.cache.isStale()) {
           Logger.debug('Cache stale, fetching from network…');
           await fetchAndMaybeCache();
         } else {
@@ -177,12 +204,17 @@ export default class Query {
         if (!this.cache) {
           Logger.debug('Cache miss, throwing error…');
           throw new NotFoundInCacheError('not found in cache');
-        } else if (this.cache.isMarkedStale()) {
+        } else if (this.cache.isStale()) {
           Logger.debug('Cache stale, using stale cached data.');
         } else {
           Logger.debug('Cache hit, using cached data.');
         }
       } break;
+    }
+    
+    // Trigger conditional destruction after fetch completes
+    if (this.shouldDestroyWhenIdle && this.destroyPredicate) {
+      this.destroyOnlyIfIdle();
     }
   }
 
@@ -203,7 +235,9 @@ export default class Query {
         return await dataPromise;
       } finally {
         this.pendingPromise = null;
-        if (this.shouldDestroyWhenIdle) {
+        // Only trigger automatic destruction for unconditional cases
+        // Conditional destruction should be triggered elsewhere to avoid race conditions
+        if (this.shouldDestroyWhenIdle && !this.destroyPredicate) {
           this.destroyOnlyIfIdle();
         }
       }
@@ -232,6 +266,8 @@ export default class Query {
 
     this.isDestroyed = true;
     this.shouldDestroyWhenIdle = false;
+    this.destroyPredicate = null;
+    this.isObsoleteFlag = false;
     this.pendingPromise?.abort?.();
     this.pendingPromise = null;
     this.notifySubscribers(null);
@@ -243,13 +279,22 @@ export default class Query {
     this.unregisterQuery();
   }
 
-  destroyWhenIdle() {
+  destroyWhenIdle(predicate = null) {
     this.shouldDestroyWhenIdle = true;
+    this.destroyPredicate = predicate;
     this.destroyOnlyIfIdle();
   }
 
   destroyOnlyIfIdle() {
     if (this.pendingPromise || this.subscribers.size > 0) {
+      return;
+    }
+
+    // Check condition if it exists before destroying
+    if (this.destroyPredicate && !this.destroyPredicate()) {
+      // Condition no longer met, cancel destruction
+      this.shouldDestroyWhenIdle = false;
+      this.destroyPredicate = null;
       return;
     }
 
@@ -296,7 +341,7 @@ export default class Query {
       this.subscribers.delete(item);
 
       if (this.subscribers.size === 0 && this.shouldDestroyWhenIdle) {
-        this.destroy();
+        this.destroyOnlyIfIdle(); // Use destroyOnlyIfIdle to check condition
       }
 
       Logger.info(() => `Unsubscribed a subscriber to ${this.document.operationName} query with vars ${JSON.stringify(this.variables, null, 2)}. ${this.subscribers.size} subscribers left`);

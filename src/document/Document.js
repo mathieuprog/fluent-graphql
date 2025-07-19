@@ -24,7 +24,6 @@ export default class Document {
     this.destroyIdleAfterDuration = null;
     this.pollAfterDuration = null;
     this.executor = null;
-    this.queryExecutors = {};
     this.maybeSimulateNetworkDelay = () => Promise.resolve(false);
     this.refetchStrategy = FetchStrategy.FetchFromNetwork;
     this.executionContextGetter = () => ({});
@@ -116,7 +115,7 @@ export default class Document {
     GlobalSettings.getTenantsByTypename = getTenantsByTypenameFun;
   }
 
-  static destroyQueriesWhenIdle(operationNames) {
+  static destroyQueriesWhenIdle(operationNames, options = {}) {
     if (hasArrayDuplicates(operationNames)) {
       throw new Error(`array ${operationNames.join(', ')} passed to \`destroyQueriesWhenIdle(operationNames)\` contains duplicates`);
     }
@@ -128,7 +127,7 @@ export default class Document {
         });
         
       instances.forEach((document) => {
-        document.destroyQueriesWhenIdle();
+        document.destroyQueriesWhenIdle(options);
       });
     });
   }
@@ -142,7 +141,7 @@ export default class Document {
     globalCache.clear();
   }
 
-  static invalidateQueryCaches(operationNames) {
+  static invalidateQueryCaches(operationNames, options = {}) {
     if (hasArrayDuplicates(operationNames)) {
       throw new Error(`array ${operationNames.join(', ')} passed to \`invalidateQueryCaches(operationNames)\` contains duplicates`);
     }
@@ -154,7 +153,7 @@ export default class Document {
       });
       
       instances.forEach((document) => {
-        document.invalidateQueryCaches();
+        document.invalidateQueryCaches(options);
       });
     });
   }
@@ -201,15 +200,7 @@ export default class Document {
       throw new Error('makeExecutable() has not been called');
     }
 
-    const variablesAsString = JSON.stringify(toSortedObject(variables));
-
-    let queryExecutor = this.queryExecutors[variablesAsString];
-    if (!queryExecutor) {
-      queryExecutor = new QueryExecutor(this, variables);
-      this.queryExecutors[variablesAsString] = queryExecutor;
-    }
-
-    return queryExecutor;
+    return new QueryExecutor(this, variables);
   }
 
   setExecutor(executor) {
@@ -326,21 +317,18 @@ export default class Document {
     Object.freeze(node);
   }
 
-  invalidateQueryCaches() {
-    this.executor?.invalidateQueryCaches();
+  invalidateQueryCaches(options = {}) {
+    this.executor?.invalidateQueryCaches(options);
     return this;
   }
 
   destroyQueries() {
     this.executor?.destroyQueries();
-    this.queryExecutors = {};
     return this;
   }
 
-  destroyQueriesWhenIdle() {
-    this.executor?.destroyQueriesWhenIdle(() => {
-      this.queryExecutors = {};
-    });
+  destroyQueriesWhenIdle(options = {}) {
+    this.executor?.destroyQueriesWhenIdle(options);
     return this;
   }
 

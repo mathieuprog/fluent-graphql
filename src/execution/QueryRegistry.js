@@ -8,7 +8,6 @@ export default class QueryRegistry {
     this.document = document;
     this.executeRequest = executeRequest;
     this.registry = {};
-    this.onAllQueriesDestroyed = null;
   }
 
   getOrCreate(variables) {
@@ -54,26 +53,62 @@ export default class QueryRegistry {
     return !!this.registry[JSON.stringify(toSortedObject(variables))];
   }
 
-  invalidateQueryCaches() {
-    Object.values(this.registry).forEach((query) => query.invalidate());
+  // Helper that evaluates whether a query matches the `where` option.
+  // `where` can be:
+  //   1. A function: (variables, query) => boolean
+  //   2. A plain object that should be a subset of the query variables. All
+  //      key/value pairs must match strictly.
+  //   3. Undefined / null – in that case every query matches.
+  matchesWhere(where, query) {
+    if (!where) {
+      return true;
+    }
+
+    if (typeof where === 'function') {
+      return !!where(query.variables, query);
+    }
+
+    if (typeof where === 'object') {
+      return Object.entries(where).every(([key, value]) => query.variables[key] === value);
+    }
+
+    throw new Error('`where` option must be a function or an object');
+  }
+
+  invalidateQueryCaches(options = {}) {
+    const { where } = options;
+
+
+    Object.values(this.registry).forEach((query) => {
+      if (this.matchesWhere(where, query)) {
+        query.invalidate();
+      }
+    });
+  }
+
+  destroyAllWhenIdle(options = {}) {
+    const { where } = options;
+
+    Object.values(this.registry).forEach((query) => {
+      if (!this.matchesWhere(where, query)) {
+        return;
+      }
+
+      if (where) {
+        // Condition-based destruction – re-evaluate the predicate right before
+        // destroying to ensure it is still valid.
+        query.destroyWhenIdle(() => this.matchesWhere(where, query));
+      } else {
+        query.destroyWhenIdle();
+      }
+    });
   }
 
   destroyAll() {
     Object.values(this.registry).forEach((query) => query.destroy());
   }
 
-  destroyAllWhenIdle(onAllQueriesDestroyed) {
-    this.onAllQueriesDestroyed = onAllQueriesDestroyed;
-    Object.values(this.registry).forEach((query) => query.destroyWhenIdle());
-  }
-
   unregisterQuery(variables) {
     delete this.registry[JSON.stringify(toSortedObject(variables))];
-
-    if (this.onAllQueriesDestroyed && Object.keys(this.registry).length === 0) {
-      const callback = this.onAllQueriesDestroyed;
-      this.onAllQueriesDestroyed = null;
-      callback();
-    }
   }
 }
