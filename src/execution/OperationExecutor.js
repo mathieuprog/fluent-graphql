@@ -160,12 +160,12 @@ export default class OperationExecutor {
         const entities = normalizeEntities(this.document, response);
 
         // Use the queue to ensure serial processing
-        const updates = await updateQueue.enqueue(entities, {
+        await updateQueue.enqueue(entities, {
           operationName: this.document.operationName,
           variables
         });
         
-        handleUpdates(updates);
+        // Don't call handleUpdates here - the queue already notifies
       }
 
       return response;
