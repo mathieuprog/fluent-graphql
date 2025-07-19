@@ -7,7 +7,7 @@ import QueryRegistry from './QueryRegistry';
 import addVirtualScalars from './addVirtualScalars';
 import deriveFrom from './deriveFrom';
 import deriveFromReference from './deriveFromReference';
-import globalCache from './globalCache';
+import updateQueue from './updateQueue';
 import { throwIfNotInstanceOfDocument } from './helpers';
 import normalizeEntities from './normalizeEntities';
 import reference from './reference';
@@ -104,10 +104,13 @@ export default class OperationExecutor {
     return query.addSubscriber(subscriber);
   }
 
-  simulateNetworkResponse(data) {
+  async simulateNetworkResponse(data) {
     data = transform(this.document, data);
     const entities = normalizeEntities(this.document, data);
-    Notifier.notify(globalCache.update(entities));
+    await updateQueue.enqueue(entities, {
+      operationName: this.document.operationName,
+      variables: {}
+    });
   }
 
   async executeOneOff(variables, handleUpdates) {
@@ -156,7 +159,13 @@ export default class OperationExecutor {
       if (handleUpdates) {
         const entities = normalizeEntities(this.document, response);
 
-        handleUpdates(globalCache.update(entities));
+        // Use the queue to ensure serial processing
+        const updates = await updateQueue.enqueue(entities, {
+          operationName: this.document.operationName,
+          variables
+        });
+        
+        handleUpdates(updates);
       }
 
       return response;

@@ -3,7 +3,10 @@ import Logger from '../Logger';
 import ObjectType from '../document/ObjectType';
 
 export class GlobalCache {
-  entities = {};
+  constructor() {
+    this.entities = {};
+    this.updateInProgress = false;
+  }
 
   clear() {
     this.entities = {};
@@ -15,7 +18,18 @@ export class GlobalCache {
 
   update(freshEntities) {
     Logger.debug(() => `Updating global cache`);
-    return this.doUpdate(freshEntities);
+    
+    // Simple locking mechanism to prevent concurrent updates
+    if (this.updateInProgress) {
+      Logger.warn('Concurrent update detected - this should not happen with proper queue implementation');
+    }
+    
+    this.updateInProgress = true;
+    try {
+      return this.doUpdate(freshEntities);
+    } finally {
+      this.updateInProgress = false;
+    }
   }
 
   doUpdate(freshEntities, updatedEntities = []) {
