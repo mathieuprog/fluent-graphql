@@ -4,6 +4,7 @@ import Document from './Document';
 beforeEach(() => {
   Document.resetAll();
   Document.instances.length = 0;
+  Document.enableDeepFreeze();
 });
 
 test('stringify', () => {

@@ -5,4 +5,5 @@ export default class GlobalSettings {
   static defaultFetchStrategy = FetchStrategy.FetchFromCacheOrFallbackNetwork;
   static maybeSimulateNetworkDelayGlobally = () => Promise.resolve(false);
   static getTenantsByTypename = (_typename) => [];
+  static enableDeepFreeze = true; // Control deep freezing for performance
 }

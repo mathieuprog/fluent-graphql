@@ -5,6 +5,7 @@ import deriveFrom from './deriveFrom';
 beforeEach(() => {
   Document.resetAll();
   Document.instances.length = 0;
+  Document.enableDeepFreeze();
 });
 
 test('derive data from other document', async () => {

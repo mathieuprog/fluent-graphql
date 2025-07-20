@@ -6,6 +6,7 @@ import deriveFromReference from './deriveFromReference';
 beforeEach(() => {
   Document.resetAll();
   Document.instances.length = 0;
+  Document.enableDeepFreeze();
 });
 
 test('derive data from foreign key', async () => {

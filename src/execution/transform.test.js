@@ -6,6 +6,7 @@ import transform from './transform';
 beforeEach(() => {
   Document.resetAll();
   Document.instances.length = 0;
+  Document.enableDeepFreeze();
 });
 
 test('transform', () => {

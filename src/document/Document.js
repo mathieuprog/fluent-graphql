@@ -158,6 +158,10 @@ export default class Document {
     });
   }
 
+  static enableDeepFreeze() {
+    GlobalSettings.enableDeepFreeze = true;
+  }
+
   simulateNetworkDelay(min, max) {
     this.maybeSimulateNetworkDelay =
       () => Document.doSimulateNetworkDelay(min, max);

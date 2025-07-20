@@ -7,6 +7,7 @@ import OperationExecutor from './OperationExecutor';
 beforeEach(() => {
   Document.resetAll();
   Document.instances.length = 0;
+  Document.enableDeepFreeze();
 });
 
 test('OperationExecutor', async () => {

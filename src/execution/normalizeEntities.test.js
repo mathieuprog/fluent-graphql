@@ -5,6 +5,7 @@ import normalizeEntities from './normalizeEntities';
 beforeEach(() => {
   Document.resetAll();
   Document.instances.length = 0;
+  Document.enableDeepFreeze();
 });
 
 test('normalize entities', () => {
