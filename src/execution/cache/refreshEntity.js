@@ -1,4 +1,4 @@
-import { areDataEqual, deepFreezePlain, differencePrimitives, makeCopyOnWriteObjectSetter } from 'object-array-utils';
+import { areDataEqual, differencePrimitives, makeCopyOnWriteObjectSetter } from 'object-array-utils';
 import ObjectType from '../../document/ObjectType';
 import copyEntity from './copyEntity';
 
@@ -126,11 +126,11 @@ export default function refreshEntity(entity, meta, updates, variables) {
 
           const entitiesToBeAdded =
             entityUpdates[propName]
-              .filter((entity) => (
-                !cachedIds.includes(entity.id)
-                && (!object.addEntityFiltersByTypename || object.addEntityFiltersByTypename[entity.__typename]?.(entity, variables, entityUpdates))
+              .filter((childEntity) => (
+                !cachedIds.includes(childEntity.id)
+                && (!object.addEntityFiltersByTypename || object.addEntityFiltersByTypename[childEntity.__typename]?.(childEntity, variables, entity))
               ))
-              .map((entity) => copyEntity(object, entity));
+              .map((childEntity) => copyEntity(object, childEntity));
 
           if (entityUpdates.__meta.objects[propName].areElementsToBeReplaced) {
             const filteredEntities = entity[propName].filter(({ id }) => freshIds.includes(id));
@@ -148,5 +148,5 @@ export default function refreshEntity(entity, meta, updates, variables) {
     }
   }
 
-  return deepFreezePlain(entity);
+  return entity;
 }
